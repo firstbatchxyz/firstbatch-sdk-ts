@@ -9,8 +9,16 @@ const presetAlgorithms: Record<keyof typeof library, string> = {
 };
 
 export default {
-  // BASE_URL: 'http://0.0.0.0:8080/',
-  BASE_URL: 'https://aws-eu-central-1.hollowdb.xyz/',
+  /** Endpoint to get region. */
+  REGION_URL: 'https://idp.firstbatch.xyz/v1/teams/team/get-team-information',
+  /** HollowDB regions, the field names are important. */
+  REGIONS: {
+    'us-east-1': 'https://aws-us-east-1.hollowdb.xyz/',
+    'us-west-1': 'https://aws-us-west-1.hollowdb.xyz/',
+    'eu-central-1': 'https://aws-eu-central-1.hollowdb.xyz/',
+    'ap-southeast-1': 'https://aws-ap-southeast-1.hollowdb.xyz/',
+  },
+  // defaults
   DEFAULT_QUANTIZER_TRAIN_SIZE: 100,
   DEFAULT_QUANTIZER_TYPE: 'scalar',
   DEFAULT_EMBEDDING_LAST_N: 50,
@@ -22,7 +30,9 @@ export default {
   DEFAULT_TOPK_QUANT: 5,
   DEFAULT_ENABLE_HISTORY: false,
   DEFAULT_VERBOSE: false,
+  // topK parameters
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
+  // presets
   PRESET_ALGORITHMS: presetAlgorithms,
 } as const;

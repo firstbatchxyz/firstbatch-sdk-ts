@@ -14,21 +14,16 @@ export class UserAction {
   readonly isBatch: boolean = false;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  constructor(action: Signal | PresetSignalNames | 'BATCH' | (string & {})) {
+  constructor(action: Signal | PresetSignalNames | 'BATCH') {
     if (action instanceof Signal) {
       this.actionType = action;
+    } else if (action === 'BATCH') {
+      this.actionType = Signal.empty();
+      this.isBatch = true;
+    } else if (action in Signals) {
+      this.actionType = Signals[action];
     } else {
-      // action is a string, we care about uppercase only
-      action = action.toUpperCase();
-
-      if (action === 'BATCH') {
-        this.actionType = Signal.empty();
-        this.isBatch = true;
-      } else if (action in Signals) {
-        this.actionType = Signals[action];
-      } else {
-        throw new Error('Invalid action: ' + action);
-      }
+      throw new Error('Invalid action: ' + action);
     }
   }
 

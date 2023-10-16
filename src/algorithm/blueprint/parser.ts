@@ -1,9 +1,8 @@
 import {UserAction} from './action';
 import {Blueprint, Edge, Vertex} from './blueprint';
-import {Params} from './params';
-import {Signal, Signals} from './signal';
+import {Params, ParamsInterface} from './params';
+import {PresetSignalNames, Signal, Signals} from './signal';
 
-// type BlueprintData =
 export class DFAParser {
   data: {
     signals?: {
@@ -13,11 +12,11 @@ export class DFAParser {
     nodes: {
       name: string;
       batch_type: Vertex['batchType'];
-      params: ConstructorParameters<typeof Params>[0];
+      params: Partial<ParamsInterface>;
     }[];
     edges: {
       name: string;
-      edge_type: string;
+      edge_type: PresetSignalNames | 'BATCH';
       start: string;
       end: string;
     }[];
@@ -43,7 +42,7 @@ export class DFAParser {
 
       // check if edges that have this node as its start vertex contain 'batch' action
       if (!edges.some(e => e.edgeType.isBatch)) {
-        throw new Error(`Node '${node.name}' is missing a 'batch' typed edge.`);
+        throw new Error(`Node '${node.name}' is missing a 'BATCH' typed edge.`);
       }
 
       // within all action types of these edges, we must either have all signals; or some amount of signals along with the DEFAULT signal

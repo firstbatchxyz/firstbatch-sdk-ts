@@ -9,7 +9,7 @@ The FirstBatch SDK provides an interface for integrating vector databases and po
 - Fetch personalized batches of data tailored to each user's embeddings
 - Support for multiple vector database integrations: Pinecone, Weaviate, etc.
 - Built-in algorithms for common personalization use cases
-- Easy configuration with Python classes and environment variables
+- Fully-typed
 
 ## Installation
 
@@ -42,7 +42,8 @@ const index = pinecone.index('index-name');
 Then, create a Vector Store with this index and pass it in the FirstBatch SDK.
 
 ```ts
-const sdk = new FirstBatch('firstbatch-api-key');
+// create SDK
+const sdk = await FirstBatch.new('firstbatch-api-key');
 
 // add client to SDK
 const vectorStore = new Pinecone(index);

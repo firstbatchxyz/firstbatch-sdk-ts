@@ -21,7 +21,7 @@ export class FirstBatch extends FirstBatchClient {
   readonly verbose: boolean;
   logger: Logger = getLogger('FirstBatchLogger');
 
-  constructor(apiKey: string, config?: Partial<FirstBatchConfig>) {
+  private constructor(apiKey: string, config?: Partial<FirstBatchConfig>) {
     super(apiKey);
     this.store = {};
     this.embeddingSize = config?.embeddingSize || constants.DEFAULT_EMBEDDING_SIZE;
@@ -43,6 +43,12 @@ export class FirstBatch extends FirstBatchClient {
       this.logger.warn("Product quantization not yet supported, defaulting to 'scalar'");
       this.quantizerType = 'scalar';
     }
+  }
+
+  static async new(apiKey: string, config?: Partial<FirstBatchConfig>): Promise<FirstBatch> {
+    const sdk = new FirstBatch(apiKey, config);
+    await sdk.init();
+    return sdk;
   }
 
   /** Add a vector store to the container. */

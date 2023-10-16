@@ -28,15 +28,16 @@ describe('algorithms', () => {
 
     const vectorStore = new Pinecone(index);
 
-    personalized = new FirstBatch(constants.FIRSTBATCH.API_KEY, config);
+    personalized = await FirstBatch.new(constants.FIRSTBATCH.API_KEY, config);
     await personalized.addVdb(vdbid, vectorStore);
   });
 
-  test('simple', async () => {
+  test.only('simple', async () => {
     const signals = [new Signal('batch', 0), new Signal('signal', 2), new Signal('batch', 0)];
 
     const session = await personalized.session('SIMPLE', vdbid);
     const sessionId = session.data;
+    console.log(session);
 
     let ids: string[] = [];
     for (const s of signals) {

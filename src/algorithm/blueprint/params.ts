@@ -1,4 +1,15 @@
-export class Params {
+export interface ParamsInterface {
+  mu: number;
+  alpha: number;
+  r: number;
+  last_n: number;
+  n_topics: number;
+  remove_duplicates: boolean;
+  apply_threshold: [boolean, number] | number;
+  apply_mmr: boolean;
+}
+
+export class Params implements ParamsInterface {
   mu: number;
   alpha: number;
   r: number;
@@ -8,18 +19,7 @@ export class Params {
   apply_threshold: [boolean, number];
   apply_mmr: boolean;
 
-  constructor(
-    args: Partial<{
-      mu: number;
-      alpha: number;
-      r: number;
-      last_n: number;
-      n_topics: number;
-      remove_duplicates: boolean;
-      apply_threshold: [boolean, number] | number;
-      apply_mmr: boolean;
-    }>
-  ) {
+  constructor(args: Partial<ParamsInterface>) {
     this.mu = args.mu || 0;
     this.alpha = args.alpha || 0;
     this.r = args.r || 0;

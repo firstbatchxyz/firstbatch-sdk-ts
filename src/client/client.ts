@@ -5,35 +5,16 @@ import {BatchResponse} from './types';
 import {Params} from '../algorithm/blueprint/params';
 
 export class FirstBatchClient {
-  private apiKey: string;
+  /** API key of this client. */
+  private apiKey: string = '';
   /** Prepared Axios instance with base URL and headers set. */
-  private axios: AxiosInstance;
+  private axios: AxiosInstance = axios.create();
+  /** TeamID of this client. */
+  teamId: string = '';
 
-  constructor(apiKey: string) {
+  /** Acts as a constructor. */
+  protected constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.axios = axios.create({
-      baseURL: constants.BASE_URL,
-      headers: {
-        'x-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      // override Axios internal handler so that we can handle ourselves
-      validateStatus: () => true,
-    });
-
-    if (Bun.env.VERBOSE_TEST) {
-      this.axios.interceptors.request.use(request => {
-        console.log(`REQ ${request.baseURL! + request.url}`);
-        return request;
-      });
-      this.axios.interceptors.response.use(response => {
-        console.log(`RES ${response.statusText} (${response.status})`);
-        if (response.status !== 200) {
-          console.log(response.data);
-        }
-        return response;
-      });
-    }
   }
 
   /** POST request wrapper. The actual response is wrapped within `data` field of the Axios response.
@@ -113,7 +94,7 @@ export class FirstBatchClient {
     return await this.post<string>('embeddings/create_session', {
       vdbid,
       algorithm,
-      id: options?.id,
+      id: this.idWrapper(options?.id),
       custom_id: options?.customId,
       factory_id: options?.factoryId,
       has_embeddings: options?.hasEmbeddings || false,
@@ -216,5 +197,73 @@ export class FirstBatchClient {
       id,
     });
     return response.data;
+  }
+
+  /** Initialize the client.
+   *
+   * Retrieves the region for the set API key, and creates an Axios instance for the client. */
+  protected async init() {
+    const headers = {
+      'x-api-key': this.apiKey,
+      'Content-Type': 'application/json',
+    };
+
+    // first, get the region & team data
+    const axiosResponse = await axios.get<{
+      success: boolean;
+      code: number;
+      message?: string | undefined;
+      data: {
+        teamID: string;
+        region: keyof typeof constants.REGIONS;
+      };
+    }>(constants.REGION_URL, {
+      headers,
+      validateStatus: status => {
+        if (status != 200) {
+          throw new Error(`Region request failed with ${status} at ${constants.REGION_URL}`);
+        }
+        return true;
+      },
+    });
+
+    const {teamID, region} = axiosResponse.data.data; // notice the 2 data's
+    this.teamId = teamID;
+    const regionBaseURL = constants.REGIONS[region];
+    if (!regionBaseURL) {
+      throw new Error('No such region: ' + region);
+    }
+
+    // then, set up the axios client with the region base URL
+    this.axios = axios.create({
+      baseURL: regionBaseURL,
+      headers: headers,
+      // override Axios internal handler so that we can handle ourselves
+      validateStatus: () => true,
+    });
+
+    // useful for debugging
+    if (Bun.env.VERBOSE_TEST) {
+      this.axios.interceptors.request.use(request => {
+        console.log(`REQ ${request.baseURL! + request.url}`);
+        return request;
+      });
+      this.axios.interceptors.response.use(response => {
+        console.log(`RES ${response.statusText} (${response.status})`);
+        // if (response.status !== 200) {
+        console.log(response.data);
+        // }
+        return response;
+      });
+    }
+  }
+
+  /** Attach teamID to the given ID. */
+  private idWrapper(id?: string): string | undefined {
+    if (id) {
+      return this.teamId + '-' + id;
+    } else {
+      return undefined;
+    }
   }
 }
