@@ -1,0 +1,100 @@
+{
+  "name": "firstbatch-sdk",
+  "author": "FirstBatch Team <dev@firstbatch.xyz>",
+  "license": "MIT",
+  "contributors": [
+    "Erhan Tezcan <erhan@firstbatch.xyz>",
+    "Anıl Altuner <anil@firstbatch.xyz>"
+  ],
+  "homepage": "https://github.com/firstbatchxyz/firstbatch-sdk-typescript#readme",
+  "scripts": {
+    "format": "prettier --check '**/*.ts'",
+    "lint": "eslint '**/*.ts'",
+    "check": "npx tsc --noEmit",
+    "build": "npx parcel build",
+    "prebuild": "bun run check && bun run format",
+    "test": "bun test --timeout 30000"
+  },
+  "type": "module",
+  "source": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "cjs": "dist/index.cjs",
+  "mjs": "dist/index.mjs",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.mjs"
+  },
+  "targets": {
+    "cjs": {
+      "outputFormat": "commonjs",
+      "isLibrary": true,
+      "context": "node"
+    },
+    "mjs": {
+      "outputFormat": "esmodule",
+      "isLibrary": true,
+      "context": "node"
+    }
+  },
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "axios": "^1.5.0",
+    "loglevel": "^1.8.1",
+    "mathjs": "^11.11.0",
+    "tdigest": "^0.1.2"
+  },
+  "optionalDependencies": {
+    "@pinecone-database/pinecone": "^1.0.1",
+    "weaviate-ts-client": "^1.5.0",
+    "graphql": "^16.8.1",
+    "typesense": "^1.7.1"
+  },
+  "devDependencies": {
+    "@parcel/packager-ts": "^2.9.3",
+    "@parcel/transformer-typescript-tsc": "^2.9.3",
+    "@parcel/transformer-typescript-types": "^2.9.3",
+    "@types/mathjs": "^9.4.2",
+    "@types/tdigest": "^0.1.1",
+    "@typescript-eslint/eslint-plugin": "^6.7.2",
+    "@typescript-eslint/parser": "^6.7.2",
+    "bun-types": "latest",
+    "eslint": "^8.49.0",
+    "parcel": "^2.9.3",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn"
+    },
+    "root": true,
+    "ignorePatterns": [
+      "build",
+      "dist"
+    ]
+  },
+  "prettier": {
+    "bracketSpacing": false,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "arrowParens": "avoid",
+    "printWidth": 120,
+    "useTabs": false,
+    "tabWidth": 2
+  }
+}
