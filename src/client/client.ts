@@ -243,7 +243,7 @@ export class FirstBatchClient {
     });
 
     // useful for debugging
-    if (Bun.env.VERBOSE_TEST) {
+    if (process.env.VERBOSE_TEST) {
       this.axios.interceptors.request.use(request => {
         console.log(`REQ ${request.baseURL! + request.url}`);
         return request;

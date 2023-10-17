@@ -276,7 +276,7 @@ export class FirstBatch extends FirstBatchClient {
     let metadataFilter = MetadataFilter.default();
     if (this.enableHistory) {
       if (history.length === 0) {
-        this.logger.debug('history is empty, no filter will be applied');
+        this.logger.debug('History is empty, no filter will be applied');
       }
 
       if (options?.filter !== undefined) {

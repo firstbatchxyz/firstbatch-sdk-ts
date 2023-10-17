@@ -1,29 +1,29 @@
 export default {
   PINECONE: {
-    API_KEY: Bun.env.PINECONE_API_KEY,
-    API_KEY_ALT: Bun.env.PINECONE_API_KEY_ALT,
-    ENV: Bun.env.PINECONE_ENV,
+    API_KEY: process.env.PINECONE_API_KEY as string,
+    API_KEY_ALT: process.env.PINECONE_API_KEY_ALT as string,
+    ENV: process.env.PINECONE_ENV as string,
     INDEX: {
       RSS: 'rss',
       FARCASTER: 'farcaster',
     },
-    CUSTOM_ID: Bun.env.PINECONE_CUSTOM_ID,
+    CUSTOM_ID: process.env.PINECONE_CUSTOM_ID as string,
   },
   WEAVIATE: {
-    API_KEY: Bun.env.WEAVIATE_API_KEY,
-    HOST: Bun.env.WEAVIATE_HOST,
+    API_KEY: process.env.WEAVIATE_API_KEY as string,
+    HOST: process.env.WEAVIATE_HOST as string,
     SCHEME: 'https',
     INDEX: {
       FARCASTER: 'Farcaster',
     },
   },
   FIRSTBATCH: {
-    API_KEY: Bun.env.FIRSTBATCH_API_KEY,
+    API_KEY: process.env.FIRSTBATCH_API_KEY as string,
   },
   TYPESENSE: {
-    API_KEY: Bun.env.TYPESENSE_API_KEY,
-    API_HOST: Bun.env.TYPESENSE_API_HOST,
-    API_PORT: parseInt(Bun.env.TYPESENSE_API_PORT),
+    API_KEY: process.env.TYPESENSE_API_KEY as string,
+    API_HOST: process.env.TYPESENSE_API_HOST as string,
+    API_PORT: parseInt(process.env.TYPESENSE_API_PORT as string),
     PROTOCOL: 'http',
   },
 } as const;

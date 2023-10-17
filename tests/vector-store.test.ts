@@ -12,7 +12,7 @@ describe('vector store', () => {
   let vs: Weaviate | Pinecone | Typesense;
   const dim = 1536;
 
-  (['weavitate', 'pinecone', 'typesense'] as const).map(vsname => {
+  ['weavitate', 'pinecone', 'typesense'].map(vsname => {
     (vsname == 'typesense' ? describe.skip : describe)(vsname, () => {
       beforeAll(async () => {
         if (vsname === 'weavitate') {
@@ -46,7 +46,7 @@ describe('vector store', () => {
 
           vs = new Typesense(client);
         } else {
-          vsname satisfies never;
+          // vsname satisfies never;
           throw new Error('unexpected vector store: ' + vsname);
         }
       });

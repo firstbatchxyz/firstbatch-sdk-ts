@@ -50,10 +50,17 @@ export class Blueprint {
 
   step(state: string, action: UserAction): [Vertex, Vertex['batchType'], Params] {
     // find the vertex with this state
+    let vertex: Vertex;
     if (!(state in this.map)) {
-      throw new Error('No vertex found for ' + state);
+      if (state === '0') {
+        // FIXME: edge case until API is fixes
+        vertex = this.vertices[0];
+      } else {
+        throw new Error('No vertex found for ' + state);
+      }
+    } else {
+      vertex = this.map[state];
     }
-    const vertex = this.map[state];
 
     // find an edge from that vertex with the given action, or one that has DEFAULT signal
     const edge = this.edges.find(

@@ -21,13 +21,14 @@ export class Pinecone extends VectorStore {
     else {
       // FIXME: what is the if condition here?
       if (query.filter.filter && query.embedding.vector) {
-        const result: QueryResponse = await this.index.query({
+        const q = {
           vector: query.embedding.vector,
           topK: query.top_k,
           filter: query.filter.filter as Record<string, any>, // TODO: type
           includeMetadata: query.include_metadata,
           includeValues: query.include_values,
-        });
+        };
+        const result: QueryResponse = await this.index.query(q);
         if (result.matches === undefined) throw Error('No valid match for query');
 
         const ids: string[] = [];

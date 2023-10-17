@@ -14,9 +14,9 @@ describe('algorithms', () => {
     embeddingSize: 1536,
     batchSize: 20,
     quantizerTrainSize: 100,
-    quantizerType: 'product',
+    quantizerType: 'scalar',
     enableHistory: true,
-    verbose: false,
+    verbose: true,
   };
 
   beforeEach(async () => {
@@ -32,12 +32,11 @@ describe('algorithms', () => {
     await personalized.addVdb(vdbid, vectorStore);
   });
 
-  test.only('simple', async () => {
+  test('simple', async () => {
     const signals = [new Signal('batch', 0), new Signal('signal', 2), new Signal('batch', 0)];
 
     const session = await personalized.session('SIMPLE', vdbid);
     const sessionId = session.data;
-    console.log(session);
 
     let ids: string[] = [];
     for (const s of signals) {
