@@ -109,16 +109,14 @@ export class BaseAlgorithm {
       metadata = metadata.concat(result.metadata.slice(0, k).filter(r => r !== undefined));
     });
 
-    if (options?.shuffle) {
-      // shuffled indices via Schwartzian transform
-      // works better for smaller arrays than Fisher-Yates
-      const idx = Array.from({length: ids.length}, (_, i) => ({i, sort: Math.random()}))
-        .sort((a, b) => a.sort - b.sort)
-        .map(({i}) => i);
+    // shuffled indices via Schwartzian transform
+    // works better for smaller arrays than Fisher-Yates
+    const idx = Array.from({length: ids.length}, (_, i) => ({i, sort: Math.random()}))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({i}) => i);
 
-      ids = ids.map((_, i, self) => self[idx[i]]);
-      metadata = metadata.map((_, i, self) => self[idx[i]]);
-    }
+    ids = ids.map((_, i, self) => self[idx[i]]);
+    metadata = metadata.map((_, i, self) => self[idx[i]]);
 
     // finally, get batchSize many items for each
     ids = ids.slice(0, batch.batch_size);
