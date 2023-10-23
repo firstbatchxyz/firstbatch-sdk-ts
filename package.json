@@ -1,12 +1,12 @@
 {
-  "name": "firstbatch-sdk",
+  "name": "firstbatch",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
   "license": "MIT",
   "contributors": [
     "Erhan Tezcan <erhan@firstbatch.xyz>",
     "Anıl Altuner <anil@firstbatch.xyz>"
   ],
-  "homepage": "https://github.com/firstbatchxyz/firstbatch-sdk-typescript#readme",
+  "homepage": "https://github.com/firstbatchxyz/firstbatch-sdk-ts#readme",
   "scripts": {
     "format": "prettier --check '**/*.ts'",
     "lint": "eslint '**/*.ts'",

@@ -16,9 +16,9 @@ The FirstBatch SDK provides an interface for integrating vector databases and po
 Install the package from NPM:
 
 ```sh
-yarn add firstbatch-sdk     # yarn
-npm install firstbatch-sdk  # npm
-pnpm add firstbatch-sdk     # pnpm
+yarn add firstbatch     # yarn
+npm install firstbatch  # npm
+pnpm add firstbatch     # pnpm
 ```
 
 ## Usage
@@ -31,7 +31,7 @@ First, initialize a Vector Database of your choice; our SDK supports [Pinecone](
 
 ```ts
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
-import {Pinecone, FirstBatch, UserAction, Signals} from 'firstbatch-sdk';
+import {Pinecone, FirstBatch, UserAction, Signals} from 'firstbatch';
 
 // create Pinecone client
 const pinecone = new PineconeClient({apiKey: 'pinecone-api-key', environment: 'pinecone-env'});
@@ -76,7 +76,7 @@ sdk.addSignal(sessionId, new UserAction(Signals.LIKE), ids[userPick]);
 The `Signals` in the code above contains a set of signals (i.e. labels and weights) that we have prepared for you, but you can also create a Signal with your own parameters:
 
 ```ts
-import {Signal} from 'firstbatch-sdk';
+import {Signal} from 'firstbatch';
 
 const mySignal = new Signal('label', 0.5); // label and weight
 const userAction = new UserAction(mySignal);

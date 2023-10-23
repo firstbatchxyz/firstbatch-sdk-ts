@@ -109,6 +109,7 @@ export class BaseAlgorithm {
       metadata = metadata.concat(result.metadata.slice(0, k).filter(r => r !== undefined));
     });
 
+    // NOTE: this used to be optional, but we now have it on by default
     // shuffled indices via Schwartzian transform
     // works better for smaller arrays than Fisher-Yates
     const idx = Array.from({length: ids.length}, (_, i) => ({i, sort: Math.random()}))
