@@ -9,6 +9,11 @@ export class Pinecone extends VectorStore {
   index: Index;
   private namespace: string | undefined;
 
+  /**
+   * @param index a Pinecone index
+   * @param namespace optional namespace
+   * @param distanceMetric optional distance metric, defaults to cosine similarity
+   */
   constructor(index: Index, namespace?: string, distanceMetric?: DistanceMetric) {
     super(distanceMetric);
     this.index = index;

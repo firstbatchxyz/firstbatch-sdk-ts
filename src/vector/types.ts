@@ -18,5 +18,5 @@ export type BatchOptions = {
   removeDuplicates?: boolean;
   applyThreshold?: number | [boolean, number];
   applyMMR?: boolean;
-  shuffle?: boolean;
+  // shuffle?: boolean; // enabled by default until further changes
 };

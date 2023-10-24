@@ -7,7 +7,7 @@ import type {FirstBatchConfig} from '../config';
 import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
-import {BatchResponse} from './types';
+import {BatchResponse, SessionObject} from './types';
 import {generateBatch, MetadataFilter, Query, QueryMetadata, FetchQuery, BatchQuery} from '../vector';
 import {UserAction} from '../algorithm/blueprint/action';
 
@@ -46,12 +46,18 @@ export class FirstBatch extends FirstBatchClient {
   }
 
   static async new(apiKey: string, config?: Partial<FirstBatchConfig>): Promise<FirstBatch> {
-    const sdk = new FirstBatch(apiKey, config);
-    await sdk.init();
-    return sdk;
+    const personalized = new FirstBatch(apiKey, config);
+    await personalized.init();
+    return personalized;
   }
 
-  /** Add a vector store to the container. */
+  /** Add a vector store to the container.
+   *
+   * @param vdbid vectorDB ID of your choice
+   * @param vectorStore a `VectorStore` instance
+   * @param embeddingSize optional embedding size, if `undefined`, the class-level embedding-size
+   * will be used.
+   */
   async addVdb(vdbid: string, vectorStore: VectorStore, embeddingSize?: number) {
     const exists = await this.vdbExists(vdbid);
     embeddingSize = embeddingSize || this.embeddingSize;
@@ -87,15 +93,27 @@ export class FirstBatch extends FirstBatchClient {
     }
   }
 
-  async userEmbeddings(sessionId: string) {
-    return super.getUserEmbeddings(sessionId);
+  /**
+   * Fetches the user embeddings for a specific session.
+   *
+   * @param session session object
+   * @returns vectors and weights
+   */
+  async userEmbeddings(session: SessionObject) {
+    return super.getUserEmbeddings(session);
   }
 
-  // TODO: this is not used
-  protected async getState(sessionId: string) {
-    return await this.getSession(sessionId);
-  }
-
+  /**
+   * Creates a new session with the provided parameters & vector database ID.
+   * This method returns the sessionID; however, you can provide the sessionID with this method to create a persistent session.
+   *
+   * @param algorithm algorithm label
+   * @param vdbid vectorDB id
+   * @param options optional `sessionId` or `customId`
+   * - if `sessionId` is given, a persistent-session will be created and this same id will be returned
+   * - `customId` is only expected when `algorithm = 'CUSTOM'`
+   * @returns session object
+   */
   async session(
     algorithm: keyof typeof constants.PRESET_ALGORITHMS | 'SIMPLE' | 'CUSTOM',
     vdbid: string,
@@ -104,18 +122,32 @@ export class FirstBatch extends FirstBatchClient {
     // if algorithm label is non-standard, the label is factory and factoryId is the algorithm name
     const label = ['SIMPLE', 'CUSTOM'].includes(algorithm) ? algorithm : 'FACTORY';
 
-    return await this.createSession(label, vdbid, {
+    const sessionResponse = await this.createSession(label, vdbid, {
       id: options?.sessionId,
       customId: label == 'CUSTOM' ? options?.customId : undefined,
       factoryId: label == 'FACTORY' ? algorithm : undefined,
     });
+
+    const session: SessionObject = {
+      id: sessionResponse.data,
+      isPersistent: options?.sessionId !== undefined,
+    };
+    return session;
   }
 
-  async addSignal(sessionId: string, userAction: UserAction, cid: string) {
-    const response = await this.getSession(sessionId);
+  /**
+   * Add a signal to current session.
+   *
+   * @param session session object
+   * @param userAction user action
+   * @param contentId id of a returned item from batch
+   * @returns `true` is signal was added succesfully
+   */
+  async addSignal(session: SessionObject, userAction: UserAction, contentId: string) {
+    const response = await this.getSession(session);
     const vectorStore = this.store[response.vdbid];
 
-    const query = new FetchQuery(cid);
+    const query = new FetchQuery(contentId);
     const result = await this.store[response.vdbid].fetch(query);
 
     const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, response.algorithm, {
@@ -125,31 +157,35 @@ export class FirstBatch extends FirstBatchClient {
 
     const [nextState] = algoInstance.blueprintStep(response.state, userAction);
 
-    const resp = await this.signal({
-      sessionId,
-      stateName: nextState.name,
-      signal: userAction.actionType.weight,
-      vector: result.vector.vector,
-    });
+    const resp = await this.signal(session, result.vector.vector, nextState.name, userAction.actionType.weight);
 
     if (this.enableHistory) {
-      await this.addHistory(sessionId, [cid]);
+      await this.addHistory(session, [contentId]);
     }
 
     return resp.success;
   }
 
+  /**
+   * Get a new batch.
+   *
+   * @param session session object
+   * @param options optional batch size, and bias parameters (vectors and weights)
+   * @returns ids and metadata
+   */
   async batch(
-    sessionId: string,
-    batchSize?: number,
+    session: SessionObject,
     options?: {
-      biasVectors?: number[][];
-      biasWeights?: number[];
+      batchSize?: number;
+      bias?: {
+        vectors: number[][];
+        weights: number[];
+      };
     }
   ): Promise<[string[], QueryMetadata[]]> {
-    const response = await this.getSession(sessionId);
+    const response = await this.getSession(session);
     const vs = this.store[response.vdbid];
-    batchSize = batchSize || this.batchSize;
+    const batchSize = options?.batchSize || this.batchSize;
 
     const algoInstance = await this.getAlgorithm(vs.embeddingSize, batchSize, response.algorithm, {
       factoryId: response.factory_id,
@@ -159,7 +195,7 @@ export class FirstBatch extends FirstBatchClient {
 
     const [nextState, batchType, params] = algoInstance.blueprintStep(response.state, userAction);
 
-    const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
+    const history = this.enableHistory ? await this.getHistory(session) : {ids: []};
 
     let ids: string[];
     let batch: QueryMetadata[];
@@ -182,7 +218,8 @@ export class FirstBatch extends FirstBatchClient {
         removeDuplicates: params.remove_duplicates,
       });
     } else if (batchType === 'biased' || batchType === 'personalized') {
-      if (batchType === 'biased' && !(options && options.biasVectors && options.biasWeights)) {
+      // check if bias exists
+      if (batchType === 'biased' && options?.bias === undefined) {
         throw new Error('Bias vectors and weights must be provided for biased batch');
       }
 
@@ -195,7 +232,7 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
-        this.updateState(sessionId, nextState.name);
+        this.updateState(session, nextState.name);
         const batchQueryResult = await vs.multiSearch(batchQuery);
         [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
@@ -204,10 +241,10 @@ export class FirstBatch extends FirstBatchClient {
         });
       } else {
         // act like biased batch
-        const batchResponse = await this.biasedBatch(sessionId, response.vdbid, nextState.name, {
+        const batchResponse = await this.biasedBatch(session, response.vdbid, nextState.name, {
           params,
-          biasVectors: options?.biasVectors, // defined if 'biased'
-          biasWeights: options?.biasWeights, // defined if 'biased'
+          biasVectors: options?.bias?.vectors,
+          biasWeights: options?.bias?.weights,
         });
         const batchQuery = this.queryWrapper(response.vdbid, algoInstance.batchSize, batchResponse, history.ids, {
           applyMMR: params.apply_mmr,
@@ -222,7 +259,7 @@ export class FirstBatch extends FirstBatchClient {
         });
       }
     } else if (batchType === 'sampled') {
-      const batchResponse = await this.sampledBatch(sessionId, response.vdbid, nextState.name, params.n_topics);
+      const batchResponse = await this.sampledBatch(session, response.vdbid, nextState.name, params.n_topics);
       const batchQuery = this.queryWrapper(response.vdbid, algoInstance.batchSize, batchResponse, history.ids, {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold[1],
@@ -243,7 +280,7 @@ export class FirstBatch extends FirstBatchClient {
     batch = batch.slice(0, algoInstance.batchSize);
 
     if (this.enableHistory) {
-      await this.addHistory(sessionId, ids);
+      await this.addHistory(session, ids);
     }
 
     return [ids, batch];

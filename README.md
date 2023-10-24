@@ -4,21 +4,20 @@ The FirstBatch SDK provides an interface for integrating vector databases and po
 
 ## Key Features
 
-- Seamlessly manage user sessions with persistent IDs or temporary sessions
-- Send signal actions like likes, clicks, etc. to update user embeddings in real-time
-- Fetch personalized batches of data tailored to each user's embeddings
+- Seamlessly manage user sessions with persistent IDs or temporary sessions.
+- Send signal actions like likes, clicks, etc. to update user embeddings in real-time.
+- Fetch personalized batches of data tailored to each user's embeddings.
 - Support for multiple vector database integrations: Pinecone, Weaviate, etc.
-- Built-in algorithms for common personalization use cases
-- Fully-typed
+- Built-in algorithms for common personalization use cases.
 
 ## Installation
 
 Install the package from NPM:
 
 ```sh
-yarn add firstbatch-sdk     # yarn
-npm install firstbatch-sdk  # npm
-pnpm add firstbatch-sdk     # pnpm
+yarn add firstbatch     # yarn
+npm install firstbatch  # npm
+pnpm add firstbatch     # pnpm
 ```
 
 ## Usage
@@ -31,7 +30,7 @@ First, initialize a Vector Database of your choice; our SDK supports [Pinecone](
 
 ```ts
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
-import {Pinecone, FirstBatch, UserAction, Signals} from 'firstbatch-sdk';
+import {Pinecone, FirstBatch, UserAction, Signals} from 'firstbatch';
 
 // create Pinecone client
 const pinecone = new PineconeClient({apiKey: 'pinecone-api-key', environment: 'pinecone-env'});
@@ -43,12 +42,12 @@ Then, create a Vector Store with this index and pass it in the FirstBatch SDK.
 
 ```ts
 // create SDK
-const sdk = await FirstBatch.new('firstbatch-api-key');
+const personalized = await FirstBatch.new('firstbatch-api-key');
 
 // add client to SDK
 const vectorStore = new Pinecone(index);
 const vdbid = 'pinecone-example-db';
-await sdk.addVdb(vdbid, vectorStore);
+await personalized.addVdb(vdbid, vectorStore);
 ```
 
 ### Personalization
@@ -57,18 +56,18 @@ Now, we can create a session with an algorithm that suits our use-case, and prov
 
 ```ts
 // create a session
-const session = sdk.session('ALGORITHM_NAME', vdbid);
+const session = personalized.session('ALGORITHM_NAME', vdbid);
 
 // make recommendations
 const sessionId = session.data;
-const [ids, batch] = sdk.batch(sessionId);
+const [ids, batch] = personalized.batch(sessionId);
 ```
 
 Suppose that the user has **liked** the **first content** from the `batch` above. We can provide personalization over this as follows:
 
 ```ts
 const userPick = 0; // i.e. the first content
-sdk.addSignal(sessionId, new UserAction(Signals.LIKE), ids[userPick]);
+personalized.addSignal(sessionId, new UserAction(Signals.LIKE), ids[userPick]);
 ```
 
 ### Custom Signals
@@ -76,7 +75,7 @@ sdk.addSignal(sessionId, new UserAction(Signals.LIKE), ids[userPick]);
 The `Signals` in the code above contains a set of signals (i.e. labels and weights) that we have prepared for you, but you can also create a Signal with your own parameters:
 
 ```ts
-import {Signal} from 'firstbatch-sdk';
+import {Signal} from 'firstbatch';
 
 const mySignal = new Signal('label', 0.5); // label and weight
 const userAction = new UserAction(mySignal);
@@ -110,7 +109,7 @@ Bun will look for `.env.test` during the tests.
 
 ## Support
 
-For any issues or queries contact `support@firstbatch.com`.
+For any issues or queries contact `support@firstbatch.xyz`.
 
 ## Resources
 
