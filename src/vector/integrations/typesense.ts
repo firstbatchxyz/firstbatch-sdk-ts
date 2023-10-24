@@ -18,7 +18,7 @@ export class Typesense extends VectorStore {
     // FIXME: queryname is not used
     super(distanceMetric);
     this.client = client;
-    this.collectionName = collectionName || constants.DEFAULT_COLLECTION;
+    this.collectionName = collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }

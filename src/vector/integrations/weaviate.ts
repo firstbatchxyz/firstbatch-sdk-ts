@@ -27,7 +27,7 @@ export class Weaviate extends VectorStore {
   ) {
     super(distanceMetric);
     this.client = client;
-    this.index = index || constants.DEFAULT_COLLECTION;
+    this.index = index || constants.DEFAULT_WEAVIATE_INDEX;
     this.outputFields = outputFields;
   }
 
