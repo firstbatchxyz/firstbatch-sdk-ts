@@ -36,14 +36,13 @@ describe('algorithms', () => {
     const signals = [new Signal('batch', 0), new Signal('signal', 2), new Signal('batch', 0)];
 
     const session = await personalized.session('SIMPLE', vdbid);
-    const sessionId = session.data;
 
     let ids: string[] = [];
     for (const s of signals) {
       if (s.label === 'batch') {
-        [ids] = await personalized.batch(sessionId);
+        [ids] = await personalized.batch(session);
       } else if (s.label === 'signal') {
-        await personalized.addSignal(sessionId, new UserAction(Signals.LIKE), ids[s.weight]);
+        await personalized.addSignal(session, new UserAction(Signals.LIKE), ids[s.weight]);
       }
     }
   });
@@ -62,18 +61,18 @@ describe('algorithms', () => {
       new Signal('batch', 0),
     ];
     const session = await personalized.session('SIMPLE', vdbid);
-    const sessionId = session.data;
-    const bias: Parameters<typeof personalized.batch>[2] = {
-      biasVectors: generateVectors(1536, 5).map(v => v.vector),
-      biasWeights: new Array(5).fill(1),
+
+    const bias = {
+      vectors: generateVectors(1536, 5).map(v => v.vector),
+      weights: new Array(5).fill(1),
     };
 
     let ids: string[] = [];
     for (const s of signals) {
       if (s.label === 'batch') {
-        [ids] = await personalized.batch(sessionId, undefined, bias);
+        [ids] = await personalized.batch(session, {bias});
       } else if (s.label === 'signal') {
-        await personalized.addSignal(sessionId, new UserAction(Signals.LIKE), ids[s.weight]);
+        await personalized.addSignal(session, new UserAction(Signals.LIKE), ids[s.weight]);
       }
     }
   });
@@ -91,14 +90,13 @@ describe('algorithms', () => {
       new Signal('signal', 9),
     ];
     const session = await personalized.session('RECOMMENDATIONS', vdbid);
-    const sessionId = session.data;
 
     let ids: string[] = [];
     for (const s of signals) {
       if (s.label === 'batch') {
-        [ids] = await personalized.batch(sessionId);
+        [ids] = await personalized.batch(session);
       } else if (s.label === 'signal') {
-        await personalized.addSignal(sessionId, new UserAction(Signals.ADD_TO_CART), ids[s.weight]);
+        await personalized.addSignal(session, new UserAction(Signals.ADD_TO_CART), ids[s.weight]);
       }
     }
   });
@@ -108,14 +106,13 @@ describe('algorithms', () => {
     const session = await personalized.session('CUSTOM', vdbid, {
       customId: constants.PINECONE.CUSTOM_ID,
     });
-    const sessionId = session.data;
 
     let ids: string[] = [];
     for (const s of signals) {
       if (s.label === 'batch') {
-        [ids] = await personalized.batch(sessionId);
+        [ids] = await personalized.batch(session);
       } else if (s.label === 'signal') {
-        await personalized.addSignal(sessionId, new UserAction(Signals.ADD_TO_CART), ids[s.weight]);
+        await personalized.addSignal(session, new UserAction(Signals.ADD_TO_CART), ids[s.weight]);
       }
     }
   });

@@ -10,14 +10,15 @@ import {VectorStore} from './base';
 
 export class Typesense extends VectorStore {
   private client: TypesenseClient;
-  private collectionName: string;
-  private collection: Collection;
-  private metadataKey: string;
+  private collectionName: string; // TODO: why is this optional?
+  private collection: Collection; // FIXME: this is not used
+  private metadataKey: string; // FIXME: this is not used
 
   constructor(client: TypesenseClient, collectionName?: string, queryName?: string, distanceMetric?: DistanceMetric) {
+    // FIXME: queryname is not used
     super(distanceMetric);
     this.client = client;
-    this.collectionName = collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
+    this.collectionName = collectionName || constants.DEFAULT_COLLECTION;
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }

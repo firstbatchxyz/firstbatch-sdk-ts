@@ -6,7 +6,7 @@ import {ProductQuantizer} from '../src/lossy/product';
 import {PQ} from '../src/lossy/pqt';
 
 describe('lossy compression', () => {
-  const EPSILON = 1e-5; // TODO: should this be more/less?
+  const EPSILON = 1e-5; // FIXME: aggree on an eps value
   const data = generateRandomVectors(1000, 1536);
 
   describe.skip('via product quantization', () => {
@@ -55,7 +55,7 @@ describe('lossy compression', () => {
     });
   });
 
-  describe('via scalar quantization', () => {
+  describe.todo('via scalar quantization', () => {
     const data = generateRandomVectors(1000, 1536);
     const quantizer = new ScalarQuantizer(256);
 

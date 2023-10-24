@@ -1,11 +1,17 @@
 export type APIResponse<T> = {
   success: boolean;
   code: number;
-  data: T; // string | {[key: string]: string | number | string[] | number[] | number[][]};
+  data: T;
   message?: string;
 };
 
+// TODO: name this something else? this type can be used my others too
 export type BatchResponse = {
   vectors: number[][];
   weights: number[];
+};
+
+export type SessionObject = {
+  id: string;
+  isPersistent: boolean;
 };

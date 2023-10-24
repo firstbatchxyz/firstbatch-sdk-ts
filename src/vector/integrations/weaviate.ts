@@ -5,27 +5,33 @@ import {MetadataFilter, QueryMetadata} from '../metadata';
 import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../fetch';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
+import constants from '../../constants';
 
 export class Weaviate extends VectorStore {
   private client: WeaviateClient;
-  private readonly index?: string;
+  private readonly index: string;
   private readonly outputFields: string[] = [];
 
+  /**
+   *
+   * @param client a Weaviate client
+   * @param index index name
+   * @param outputFields an array of field names
+   * @param distanceMetric optional distance metric, defaults to cosine similarity
+   */
   constructor(
     client: WeaviateClient,
-    index?: string,
+    index?: string, // TODO: why is this optional?
     outputFields: string[] = ['text'],
     distanceMetric?: DistanceMetric
   ) {
     super(distanceMetric);
     this.client = client;
-    this.index = index;
+    this.index = index || constants.DEFAULT_COLLECTION;
     this.outputFields = outputFields;
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {
-    if (!this.index) throw new Error('Index not set');
-
     if (query.search_type === 'fetch') {
       throw new Error("search_type must be 'default' or 'sparse' to use the search method");
     }
@@ -83,8 +89,6 @@ export class Weaviate extends VectorStore {
   }
 
   async fetch(query: FetchQuery): Promise<FetchResult> {
-    if (!this.index) throw new Error('Index not set');
-
     const result = await this.client.data.getterById().withClassName(this.index).withVector().withId(query.id).do();
     const vec = result.vector as number[];
 

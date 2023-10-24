@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import * as crypto from 'crypto';
 import constants from '../constants';
-import {BatchResponse} from './types';
+import {BatchResponse, SessionObject} from './types';
 import {Params} from '../algorithm/blueprint/params';
 
 export class FirstBatchClient {
@@ -73,10 +73,10 @@ export class FirstBatchClient {
     });
   }
 
-  protected async addHistory(sessionId: string, ids: string[]) {
+  protected async addHistory(session: SessionObject, ids: string[]) {
     // TODO: type of data?
     return await this.post<any>('embeddings/update_history', {
-      id: sessionId,
+      id: session.id,
       ids,
     });
   }
@@ -101,26 +101,26 @@ export class FirstBatchClient {
     });
   }
 
-  protected async updateState(id: string, state: string) {
+  protected async updateState(session: SessionObject, state: string) {
     // TODO: type of data?
     return await this.post<any>('embeddings/update_state', {
-      id: id,
+      id: session.id,
       state: state,
     });
   }
 
-  protected async signal(args: {sessionId: string; vector: number[]; stateName: string; signal: number}) {
+  protected async signal(session: SessionObject, vector: number[], stateName: string, signal: number) {
     // TODO: type of data?
     return this.post<any>('embeddings/signal', {
-      id: args.sessionId,
-      state: args.stateName,
-      signal: args.signal,
-      vector: args.vector,
+      id: session.id,
+      state: stateName,
+      signal: signal,
+      vector: vector,
     });
   }
 
   protected async biasedBatch(
-    sessionId: string,
+    session: SessionObject,
     vdbid: string,
     state: string,
     options?: {
@@ -130,7 +130,7 @@ export class FirstBatchClient {
     }
   ) {
     const response = await this.post<BatchResponse>('embeddings/biased_batch', {
-      id: sessionId,
+      id: session.id,
       vdbid: vdbid,
       state: state,
       params: options?.params,
@@ -141,14 +141,14 @@ export class FirstBatchClient {
   }
 
   protected async sampledBatch(
-    sessionId: string,
+    session: SessionObject,
     vdbid: string,
     state: string,
     nTopics: number,
     params?: Record<string, number>
   ) {
     const response = await this.post<BatchResponse>('embeddings/sampled_batch', {
-      id: sessionId,
+      id: session.id,
       n: nTopics,
       vdbid: vdbid,
       state: state,
@@ -157,7 +157,7 @@ export class FirstBatchClient {
     return response.data;
   }
 
-  protected async getSession(sessionId: string) {
+  protected async getSession(session: SessionObject) {
     const response = await this.post<{
       state: string;
       algorithm: 'SIMPLE' | 'CUSTOM' | 'FACTORY';
@@ -165,21 +165,21 @@ export class FirstBatchClient {
       has_embeddings: boolean;
       factory_id?: string;
       custom_id?: string;
-    }>('embeddings/get_session', {id: sessionId});
+    }>('embeddings/get_session', {id: session.id});
 
     return response.data;
   }
 
-  protected async getHistory(id: string) {
+  protected async getHistory(session: SessionObject) {
     const response = await this.post<{ids: string[]}>('embeddings/get_history', {
-      id,
+      id: session.id,
     });
     return response.data;
   }
 
-  protected async getUserEmbeddings(id: string, lastN?: number) {
+  protected async getUserEmbeddings(session: SessionObject, lastN?: number) {
     const response = await this.post<BatchResponse>('embeddings/get_embeddings', {
-      id: id,
+      id: session.id,
       last_n: lastN || constants.DEFAULT_EMBEDDING_LAST_N,
     });
     return response.data;
@@ -192,9 +192,9 @@ export class FirstBatchClient {
     return response.data;
   }
 
-  protected async getBlueprint(id: string) {
+  protected async getBlueprint(customId: string) {
     const response = await this.post<string>('embeddings/get_blueprint', {
-      id,
+      id: customId,
     });
     return response.data;
   }
