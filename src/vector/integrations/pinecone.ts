@@ -1,8 +1,8 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
 import type {Vector, DistanceMetric} from '../types';
 import {MetadataFilter, QueryMetadata} from '../metadata';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../fetch';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../query';
+import {FetchQuery, FetchResult} from '../fetch';
+import {Query, QueryResult} from '../query';
 import {VectorStore} from './base';
 
 export class Pinecone extends VectorStore {
@@ -67,16 +67,6 @@ export class Pinecone extends VectorStore {
       }
     }
     return fetches[0];
-  }
-
-  async multiSearch(query: BatchQuery) {
-    const multiResult = await Promise.all(query.queries.map(q => this.search(q)));
-    return new BatchQueryResult(query.batch_size, multiResult);
-  }
-
-  async multiFetch(query: BatchFetchQuery) {
-    const multiResult = await Promise.all(query.fetches.map(q => this.fetch(q)));
-    return new BatchFetchResult(query.batch_size, multiResult);
   }
 
   historyFilter(ids: string[], prevFilter?: object) {

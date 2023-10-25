@@ -1,10 +1,10 @@
 import {DistanceMetric, Vector} from '../types';
-import {Query, QueryResult, BatchQuery, BatchQueryResult} from '../query';
+import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
-import {FetchQuery, FetchResult, BatchFetchResult, BatchFetchQuery} from '../fetch';
+import {FetchQuery, FetchResult} from '../fetch';
 import {MultiSearchRequestWithPresetSchema} from 'typesense/lib/Typesense/MultiSearch';
 import {VectorStore} from './base';
 
@@ -75,18 +75,6 @@ export class Typesense extends VectorStore {
       .documents(query.id)
       .retrieve();
     return new FetchResult(res.vec, res.metadata, res.id);
-  }
-
-  async multiSearch(query: BatchQuery): Promise<BatchQueryResult> {
-    const results = query.queries.map(q => this.search(q));
-    const multiResult = await Promise.all(results);
-    return new BatchQueryResult(query.batch_size, multiResult);
-  }
-
-  async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const results = query.fetches.map(q => this.fetch(q));
-    const multiResult = await Promise.all(results);
-    return new BatchFetchResult(query.batch_size, multiResult);
   }
 
   historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string, idField: string = '_id') {

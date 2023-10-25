@@ -8,14 +8,15 @@ import {Client as TypesenseClient} from 'typesense';
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
 import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../src/vector/fetch';
-import {Weaviate, Pinecone, Typesense} from '../src/';
+import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
+import {createClient} from '@supabase/supabase-js';
 
 describe('vector store', () => {
-  let vs: Weaviate | Pinecone | Typesense;
+  let vs: Weaviate | Pinecone | Typesense | Supabase;
   const dim = 1536;
 
-  ['weavitate', 'pinecone', 'typesense'].map(vsname => {
-    (vsname == 'typesense' ? describe.skip : describe)(vsname, () => {
+  ['weavitate', 'pinecone', 'typesense', 'supabase'].map(vsname => {
+    (vsname == 'typesense' || vsname == 'supabase' ? describe.todo : describe)(vsname, () => {
       beforeAll(async () => {
         if (vsname === 'weavitate') {
           const client = weaviate.client({
@@ -47,8 +48,11 @@ describe('vector store', () => {
           expect(health.ok).toBeTrue();
 
           vs = new Typesense(client);
+        }
+        if (vsname === 'supabase') {
+          const client = createClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
+          vs = new Supabase(client);
         } else {
-          // vsname satisfies never;
           throw new Error('unexpected vector store: ' + vsname);
         }
       });

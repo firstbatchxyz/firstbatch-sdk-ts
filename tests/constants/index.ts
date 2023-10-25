@@ -26,4 +26,8 @@ export default {
     API_PORT: parseInt(process.env.TYPESENSE_API_PORT as string),
     PROTOCOL: 'http',
   },
+  SUPABASE: {
+    URL: process.env.SUPABASE_URL as string,
+    KEY: process.env.SUPABASE_KEY as string,
+  },
 } as const;

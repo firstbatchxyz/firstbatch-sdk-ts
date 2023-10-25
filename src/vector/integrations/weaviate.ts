@@ -1,8 +1,8 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
 import type {DistanceMetric, Vector} from '../types';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../query';
+import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../fetch';
+import {FetchQuery, FetchResult} from '../fetch';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
 import constants from '../../constants';
@@ -96,18 +96,6 @@ export class Weaviate extends VectorStore {
     const vector: Vector = {vector: vec, id: query.id, dim: vec.length};
 
     return new FetchResult(vector, metadata, query.id);
-  }
-
-  async multiSearch(query: BatchQuery): Promise<BatchQueryResult> {
-    const results = query.queries.map(q => this.search(q));
-    const multiResult = await Promise.all(results);
-    return new BatchQueryResult(query.batch_size, multiResult);
-  }
-
-  async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const results = query.fetches.map(q => this.fetch(q));
-    const multiResult = await Promise.all(results);
-    return new BatchFetchResult(query.batch_size, multiResult);
   }
 
   historyFilter(
