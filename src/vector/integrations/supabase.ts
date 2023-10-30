@@ -1,5 +1,5 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
-import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
+import {PostgrestFilterBuilder} from '@supabase/postgrest-js';
 import type {DistanceMetric, Vector} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
@@ -159,7 +159,6 @@ export class Supabase extends VectorStore {
     return results.map(r => [r.id.toString(), r.embedding, r.metadata]);
   }
 
-  // TODO: do this after the rpc is defined
   historyFilter(ids: string[], prevFilter?: Record<string, any>) {
     // TODO: is there a better query option instead of `and`ing `ne`s?
     // TODO: these two branches are the same, just assign exisrting filter at first if there is one

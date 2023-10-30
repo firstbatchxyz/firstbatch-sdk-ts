@@ -51,6 +51,7 @@
   },
   "optionalDependencies": {
     "@supabase/supabase-js": "^2.38.3",
+    "@supabase/postgrest-js": "^1.8.5",
     "graphql": "^16.8.1",
     "typesense": "^1.7.1",
     "weaviate-ts-client": "^1.5.0",
@@ -60,7 +61,6 @@
     "@parcel/packager-ts": "^2.9.3",
     "@parcel/transformer-typescript-tsc": "^2.9.3",
     "@parcel/transformer-typescript-types": "^2.9.3",
-    "@supabase/postgrest-js": "^1.8.5",
     "@types/mathjs": "^9.4.2",
     "@types/tdigest": "^0.1.1",
     "@typescript-eslint/eslint-plugin": "^6.7.2",

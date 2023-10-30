@@ -70,7 +70,7 @@ export class Pinecone extends VectorStore {
   }
 
   historyFilter(ids: string[], prevFilter?: object) {
-    const filter: Record<string, any> = {
+    const filter = {
       id: {$nin: ids},
     };
 
