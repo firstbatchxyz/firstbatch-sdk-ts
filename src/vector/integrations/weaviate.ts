@@ -21,7 +21,7 @@ export class Weaviate extends VectorStore {
    */
   constructor(
     client: WeaviateClient,
-    index?: string, // TODO: why is this optional?
+    index?: string,
     outputFields: string[] = ['text'],
     distanceMetric?: DistanceMetric
   ) {

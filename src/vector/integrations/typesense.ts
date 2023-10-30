@@ -10,7 +10,7 @@ import {VectorStore} from './base';
 
 export class Typesense extends VectorStore {
   private client: TypesenseClient;
-  private collectionName: string; // TODO: why is this optional?
+  private collectionName: string;
   private collection: Collection; // FIXME: this is not used
   private metadataKey: string; // FIXME: this is not used
 
