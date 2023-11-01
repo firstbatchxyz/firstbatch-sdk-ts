@@ -11,7 +11,6 @@ describe('algorithms', () => {
   let personalized: FirstBatch;
   const vdbid = 'my_db';
   const config: FirstBatchConfig = {
-    embeddingSize: 1536,
     batchSize: 20,
     quantizerTrainSize: 100,
     quantizerType: 'scalar',

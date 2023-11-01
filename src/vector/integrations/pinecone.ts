@@ -11,17 +11,29 @@ export class Pinecone extends VectorStore {
 
   /**
    * @param index a Pinecone index
-   * @param namespace optional namespace
-   * @param distanceMetric optional distance metric, defaults to cosine similarity
+   * @param namespace (optional) namespace
+   * @param distanceMetric (optional) distance metric, defaults to cosine similarity
    */
-  constructor(index: Index, namespace?: string, distanceMetric?: DistanceMetric) {
-    super(distanceMetric);
+  constructor(
+    index: Index,
+    options?: {
+      namespace?: string;
+      historyField?: string;
+      embeddingSize?: number;
+      distanceMetric?: DistanceMetric;
+    }
+  ) {
+    super({
+      embeddingSize: options?.embeddingSize,
+      distanceMetric: options?.distanceMetric,
+      historyField: options?.historyField,
+    });
     this.index = index;
-    this.namespace = namespace;
+    this.namespace = options?.namespace;
   }
 
   async search(query: Query) {
-    if (query.search_type === 'fetch') throw Error("search_type must be 'default' or 'sparse' to use search method");
+    if (query.search_type === 'fetch') throw Error("`search_type` must be 'default' or 'sparse' to use search method");
     else if (query.search_type === 'sparse') throw Error('sparse search is not implemented yet');
     else {
       // FIXME: what is the if condition here?
@@ -71,27 +83,29 @@ export class Pinecone extends VectorStore {
 
   historyFilter(ids: string[], prevFilter?: object) {
     const filter = {
-      id: {$nin: ids},
+      [this.historyField]: {$nin: ids},
     };
 
     if (prevFilter) {
       const merged: Record<string, any> = {...prevFilter};
 
       if (merged.id) {
-        merged.id.$nin = Array.from(new Set([...(merged.id.$nin || []), ...filter.id.$nin]));
+        merged[this.historyField].$nin = Array.from(
+          new Set([...(merged[this.historyField].$nin || []), ...filter[this.historyField].$nin])
+        );
       } else {
-        merged.id = filter.id;
+        merged[this.historyField] = filter[this.historyField];
       }
 
       for (const [key, value] of Object.entries(filter)) {
-        if (key !== 'id' && !(key in merged)) {
+        if (key !== this.historyField && !(key in merged)) {
           merged[key] = value;
         }
       }
 
       return new MetadataFilter('history', merged);
     } else {
-      return new MetadataFilter('history', filter);
+      return new MetadataFilter('History', filter);
     }
   }
 }

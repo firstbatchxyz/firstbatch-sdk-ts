@@ -12,23 +12,30 @@ export class Weaviate extends VectorStore {
   private readonly index: string;
   private readonly outputFields: string[] = [];
 
-  /**
-   *
+  /** A wrapper for the Weaviate client.
    * @param client a Weaviate client
-   * @param index index name
-   * @param outputFields an array of field names
-   * @param distanceMetric optional distance metric, defaults to cosine similarity
+   * @param index (optional) index name
+   * @param outputFields (optional) an array of field names for outputs
+   * @param distanceMetric (optional) optional distance metric, defaults to cosine similarity
    */
   constructor(
     client: WeaviateClient,
-    index?: string,
-    outputFields: string[] = ['text'],
-    distanceMetric?: DistanceMetric
+    options?: {
+      index?: string;
+      outputFields?: string[];
+      embeddingSize?: number;
+      historyField?: string;
+      distanceMetric?: DistanceMetric;
+    }
   ) {
-    super(distanceMetric);
+    super({
+      embeddingSize: options?.embeddingSize,
+      distanceMetric: options?.distanceMetric,
+      historyField: options?.historyField,
+    });
     this.client = client;
-    this.index = index || constants.DEFAULT_WEAVIATE_INDEX;
-    this.outputFields = outputFields;
+    this.index = options?.index || constants.DEFAULT_WEAVIATE_INDEX;
+    this.outputFields = options?.outputFields || ['text'];
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {
@@ -103,8 +110,7 @@ export class Weaviate extends VectorStore {
     prevFilter?: {
       operands: any[];
       operator: string;
-    },
-    idField: string = 'id'
+    }
   ) {
     const filter = prevFilter || {
       operator: 'And',
@@ -113,7 +119,7 @@ export class Weaviate extends VectorStore {
 
     for (const id of ids) {
       const f = {
-        path: [idField],
+        path: [this.historyField],
         operator: 'NotEqual',
         valueText: id,
       };

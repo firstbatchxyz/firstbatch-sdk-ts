@@ -14,11 +14,22 @@ export class Typesense extends VectorStore {
   private collection: Collection; // FIXME: this is not used
   private metadataKey: string; // FIXME: this is not used
 
-  constructor(client: TypesenseClient, collectionName?: string, queryName?: string, distanceMetric?: DistanceMetric) {
-    // FIXME: queryname is not used
-    super(distanceMetric);
+  constructor(
+    client: TypesenseClient,
+    options?: {
+      collectionName?: string;
+      historyField?: string;
+      embeddingSize?: number;
+      distanceMetric?: DistanceMetric;
+    }
+  ) {
+    super({
+      embeddingSize: options?.embeddingSize,
+      distanceMetric: options?.distanceMetric,
+      historyField: options?.historyField || constants.DEFAULT_TYPESENSE_HISTORY_FIELD,
+    });
     this.client = client;
-    this.collectionName = collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
+    this.collectionName = options?.collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }
@@ -77,12 +88,12 @@ export class Typesense extends VectorStore {
     return new FetchResult(res.vec, res.metadata, res.id);
   }
 
-  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string, idField: string = '_id') {
-    if (idField !== '_id') {
+  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string) {
+    if (this.historyField !== '_id') {
       throw new Error("TypeSense doesn't allow filtering on id field. Try duplicating id in another field like _id.");
     }
 
-    let filter_ = `${idField}:!=[${ids.join(',')}]`;
+    let filter_ = `${this.historyField}:!=[${ids.join(',')}]`;
 
     if (prevFilter !== undefined && typeof prevFilter === 'string') {
       filter_ += ` && ${prevFilter}`;

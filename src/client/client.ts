@@ -8,9 +8,11 @@ export class FirstBatchClient {
   /** API key of this client. */
   private apiKey: string = '';
   /** Prepared Axios instance with base URL and headers set. */
-  private axios: AxiosInstance = axios.create();
+  private axios: AxiosInstance = axios.create(); // see `init`
   /** TeamID of this client. */
   teamId: string = '';
+  /** Backend URL with respect to the region of the API key. */
+  url: string = '';
 
   /** Acts as a constructor. */
   protected constructor(apiKey: string) {
@@ -235,8 +237,9 @@ export class FirstBatchClient {
     }
 
     // then, set up the axios client with the region base URL
+    this.url = regionBaseURL;
     this.axios = axios.create({
-      baseURL: regionBaseURL,
+      baseURL: this.url,
       headers: headers,
       // override Axios internal handler so that we can handle ourselves
       validateStatus: () => true,

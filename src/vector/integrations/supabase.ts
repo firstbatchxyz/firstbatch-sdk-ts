@@ -38,11 +38,24 @@ export class Supabase extends VectorStore {
   private collectionName: string;
   private queryName: string;
 
-  constructor(client: SupabaseClient, collectionName?: string, queryName?: string, distanceMetric?: DistanceMetric) {
-    super(distanceMetric);
+  constructor(
+    client: SupabaseClient,
+    options?: {
+      collectionName?: string;
+      queryName?: string;
+      embeddingSize?: number;
+      historyField?: string;
+      distanceMetric?: DistanceMetric;
+    }
+  ) {
+    super({
+      embeddingSize: options?.embeddingSize,
+      distanceMetric: options?.distanceMetric,
+      historyField: options?.historyField,
+    });
     this.client = client;
-    this.collectionName = collectionName || constants.DEFAULT_SUPABASE_COLLECTION;
-    this.queryName = queryName || constants.DEFAULT_SUPABASE_QUERY_NAME;
+    this.collectionName = options?.collectionName || constants.DEFAULT_SUPABASE_COLLECTION;
+    this.queryName = options?.queryName || constants.DEFAULT_SUPABASE_QUERY_NAME;
   }
 
   async search(query: Query): Promise<QueryResult> {

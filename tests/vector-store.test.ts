@@ -25,7 +25,9 @@ describe('vector store', () => {
             apiKey: new ApiKey(constants.WEAVIATE.API_KEY),
           });
 
-          vs = new Weaviate(client, constants.WEAVIATE.INDEX.FARCASTER);
+          vs = new Weaviate(client, {
+            index: constants.WEAVIATE.INDEX.FARCASTER,
+          });
         } else if (vsname === 'pinecone') {
           const pinecone = new PineconeClient({
             apiKey: constants.PINECONE.API_KEY_ALT,

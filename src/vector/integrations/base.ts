@@ -6,18 +6,27 @@ import type {MetadataFilter} from '../metadata';
 import type {CompressedVector, DistanceMetric, Vector} from '../types';
 
 export abstract class VectorStore {
+  public embeddingSize: number;
+  public distanceMetric: DistanceMetric;
+
+  protected readonly historyField: string;
+
   private _registered: boolean = false;
-  private _embeddingSize: number = constants.DEFAULT_EMBEDDING_SIZE;
   private _quantizer?: BaseLossy;
-  constructor(readonly distanceMetric: DistanceMetric = 'cosine_sim') {}
 
-  get embeddingSize() {
-    return this._embeddingSize;
+  constructor(options?: {embeddingSize?: number; distanceMetric?: DistanceMetric; historyField?: string}) {
+    this.embeddingSize = options?.embeddingSize || constants.DEFAULT_EMBEDDING_SIZE;
+    this.distanceMetric = options?.distanceMetric || constants.DEFAULT_DISTANCE_METRIC;
+    this.historyField = options?.historyField || constants.DEFAULT_HISTORY_FIELD;
   }
 
-  set embeddingSize(value: number) {
-    this._embeddingSize = value;
-  }
+  // get embeddingSize() {
+  //   return this._embeddingSize;
+  // }
+
+  // set embeddingSize(value: number) {
+  //   this._embeddingSize = value;
+  // }
 
   get quantizer() {
     if (!this._quantizer) {
@@ -60,5 +69,5 @@ export abstract class VectorStore {
 
   public abstract search(query: Query): Promise<QueryResult>;
   public abstract fetch(query: FetchQuery): Promise<FetchResult>;
-  public abstract historyFilter(ids: string[], prevFilter?: object, idField?: string): MetadataFilter;
+  public abstract historyFilter(ids: string[], prevFilter?: object): MetadataFilter;
 }
