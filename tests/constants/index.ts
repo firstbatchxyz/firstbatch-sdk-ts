@@ -13,7 +13,7 @@ export default {
     API_KEY: process.env.WEAVIATE_API_KEY as string,
     HOST: process.env.WEAVIATE_HOST as string,
     SCHEME: 'https',
-    INDEX: {
+    CLASS_NAME: {
       FARCASTER: 'Farcaster',
     },
   },

@@ -9,19 +9,20 @@ import constants from '../../constants';
 
 export class Weaviate extends VectorStore {
   private client: WeaviateClient;
-  private readonly index: string;
+  private readonly className: string;
   private readonly outputFields: string[] = [];
 
   /** A wrapper for the Weaviate client.
    * @param client a Weaviate client
-   * @param index (optional) index name
+   * @param className (optional) className name
    * @param outputFields (optional) an array of field names for outputs
+   * @param historyField (optional) the name of the `id` field for history filtering
    * @param distanceMetric (optional) optional distance metric, defaults to cosine similarity
    */
   constructor(
     client: WeaviateClient,
     kwargs?: {
-      index?: string;
+      className?: string;
       outputFields?: string[];
       embeddingSize?: number;
       historyField?: string;
@@ -34,7 +35,7 @@ export class Weaviate extends VectorStore {
       historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.index = kwargs?.index || constants.DEFAULT_WEAVIATE_INDEX;
+    this.className = kwargs?.className || constants.DEFAULT_WEAVIATE_CLASS_NAME;
     this.outputFields = kwargs?.outputFields || ['text'];
   }
 
@@ -48,7 +49,7 @@ export class Weaviate extends VectorStore {
 
     const vector = {vector: query.embedding.vector};
     let queryObject = this.client.graphql.get();
-    queryObject.withClassName(this.index);
+    queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
     if (query.filter.name && typeof query.filter.filter === 'object') {
       queryObject = queryObject.withWhere({
@@ -73,7 +74,7 @@ export class Weaviate extends VectorStore {
     const scores: number[] = [];
     const vectors: Vector[] = [];
     const metadata: QueryMetadata[] = [];
-    const data = result.data['Get'][this.index.charAt(0).toUpperCase() + this.index.slice(1)];
+    const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
     for (const res of data) {
       const _id = res['_additional'].id;
@@ -96,7 +97,7 @@ export class Weaviate extends VectorStore {
   }
 
   async fetch(query: FetchQuery): Promise<FetchResult> {
-    const result = await this.client.data.getterById().withClassName(this.index).withVector().withId(query.id).do();
+    const result = await this.client.data.getterById().withClassName(this.className).withVector().withId(query.id).do();
     const vec = result.vector as number[];
 
     const metadata = new QueryMetadata(query.id, result.properties as RecordMetadata);

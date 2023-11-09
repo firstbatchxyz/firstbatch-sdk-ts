@@ -26,7 +26,7 @@ describe('vector store', () => {
           });
 
           vs = new Weaviate(client, {
-            index: constants.WEAVIATE.INDEX.FARCASTER,
+            className: constants.WEAVIATE.CLASS_NAME.FARCASTER,
           });
         } else if (vsname === 'pinecone') {
           const pinecone = new PineconeClient({
