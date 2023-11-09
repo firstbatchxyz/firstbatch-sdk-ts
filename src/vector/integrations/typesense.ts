@@ -16,7 +16,7 @@ export class Typesense extends VectorStore {
 
   constructor(
     client: TypesenseClient,
-    options?: {
+    kwargs?: {
       collectionName?: string;
       historyField?: string;
       embeddingSize?: number;
@@ -24,12 +24,12 @@ export class Typesense extends VectorStore {
     }
   ) {
     super({
-      embeddingSize: options?.embeddingSize,
-      distanceMetric: options?.distanceMetric,
-      historyField: options?.historyField || constants.DEFAULT_TYPESENSE_HISTORY_FIELD,
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField || constants.DEFAULT_TYPESENSE_HISTORY_FIELD,
     });
     this.client = client;
-    this.collectionName = options?.collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
+    this.collectionName = kwargs?.collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }

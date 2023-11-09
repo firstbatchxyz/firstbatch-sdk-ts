@@ -20,7 +20,7 @@ export class Weaviate extends VectorStore {
    */
   constructor(
     client: WeaviateClient,
-    options?: {
+    kwargs?: {
       index?: string;
       outputFields?: string[];
       embeddingSize?: number;
@@ -29,13 +29,13 @@ export class Weaviate extends VectorStore {
     }
   ) {
     super({
-      embeddingSize: options?.embeddingSize,
-      distanceMetric: options?.distanceMetric,
-      historyField: options?.historyField,
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.index = options?.index || constants.DEFAULT_WEAVIATE_INDEX;
-    this.outputFields = options?.outputFields || ['text'];
+    this.index = kwargs?.index || constants.DEFAULT_WEAVIATE_INDEX;
+    this.outputFields = kwargs?.outputFields || ['text'];
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {

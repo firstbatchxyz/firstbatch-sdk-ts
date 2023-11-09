@@ -3,12 +3,18 @@ import {createClient} from '@supabase/supabase-js';
 import constants from './constants';
 import {Supabase} from '../src';
 import {FetchQuery, generateQuery} from '../src/vector';
+
+// FIXME: remove this test suite when Supabase is done
+
 describe('supabase', () => {
   let vs: Supabase;
 
-  it('should connect and stuff', async () => {
+  it('should connect', async () => {
     const client = createClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
-    vs = new Supabase(client, 'default', 'match_documents');
+    vs = new Supabase(client, {
+      collectionName: 'new',
+      queryName: 'match_documents',
+    });
   });
 
   it('should search', async () => {

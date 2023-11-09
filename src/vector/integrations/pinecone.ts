@@ -16,7 +16,7 @@ export class Pinecone extends VectorStore {
    */
   constructor(
     index: Index,
-    options?: {
+    kwargs?: {
       namespace?: string;
       historyField?: string;
       embeddingSize?: number;
@@ -24,12 +24,12 @@ export class Pinecone extends VectorStore {
     }
   ) {
     super({
-      embeddingSize: options?.embeddingSize,
-      distanceMetric: options?.distanceMetric,
-      historyField: options?.historyField,
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField,
     });
     this.index = index;
-    this.namespace = options?.namespace;
+    this.namespace = kwargs?.namespace;
   }
 
   async search(query: Query) {

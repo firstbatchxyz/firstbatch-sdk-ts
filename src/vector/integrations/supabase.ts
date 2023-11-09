@@ -40,7 +40,7 @@ export class Supabase extends VectorStore {
 
   constructor(
     client: SupabaseClient,
-    options?: {
+    kwargs?: {
       collectionName?: string;
       queryName?: string;
       embeddingSize?: number;
@@ -49,13 +49,13 @@ export class Supabase extends VectorStore {
     }
   ) {
     super({
-      embeddingSize: options?.embeddingSize,
-      distanceMetric: options?.distanceMetric,
-      historyField: options?.historyField,
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.collectionName = options?.collectionName || constants.DEFAULT_SUPABASE_COLLECTION;
-    this.queryName = options?.queryName || constants.DEFAULT_SUPABASE_QUERY_NAME;
+    this.collectionName = kwargs?.collectionName || constants.DEFAULT_SUPABASE_COLLECTION;
+    this.queryName = kwargs?.queryName || constants.DEFAULT_SUPABASE_QUERY_NAME;
   }
 
   async search(query: Query): Promise<QueryResult> {

@@ -13,7 +13,7 @@ import {createClient} from '@supabase/supabase-js';
 
 describe('vector store', () => {
   let vs: Weaviate | Pinecone | Typesense | Supabase;
-  const dim = 1536;
+  let dim: number;
 
   ['weavitate', 'pinecone', 'typesense', 'supabase'].map(vsname => {
     (vsname == 'typesense' || vsname == 'supabase' ? describe.todo : describe)(vsname, () => {
@@ -57,6 +57,9 @@ describe('vector store', () => {
         } else {
           throw new Error('unexpected vector store: ' + vsname);
         }
+
+        // dimension is retrieved from vector store's default value
+        dim = vs.embeddingSize;
       });
 
       test('search', async () => {
