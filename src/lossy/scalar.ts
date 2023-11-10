@@ -23,7 +23,7 @@ export class ScalarQuantizer extends BaseLossy {
     for (const scalar of scalars.vector) {
       this.quantizer.push(scalar);
     }
-    this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile((i) / this.levels));
+    this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile(i / this.levels));
   }
   findIndex(scalar: number): number {
     for (let i = 0; i < this.quantiles.length; i++) {

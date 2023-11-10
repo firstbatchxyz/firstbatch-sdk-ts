@@ -1,18 +1,11 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
-import {PostgrestFilterBuilder} from '@supabase/postgrest-js';
+import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
 import type {DistanceMetric, Vector} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {FetchQuery, FetchResult} from '../fetch';
 import {VectorStore} from './base';
-
-/** Interface for the parameters required for searching embeddings. */
-interface SearchEmbeddingsParams {
-  query_embedding: number[];
-  match_count: number; // int
-  filter?: SupabaseMetadata | SupabaseFilterRPCCall;
-}
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
 export type SupabaseMetadata = Record<string, any>;

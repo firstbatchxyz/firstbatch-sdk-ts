@@ -4,12 +4,12 @@ import {beforeAll, describe, expect, test} from 'bun:test';
 import weaviate, {ApiKey} from 'weaviate-ts-client';
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
 import {Client as TypesenseClient} from 'typesense';
+import {createClient as createSupabaseClient} from '@supabase/supabase-js';
 
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
 import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../src/vector/fetch';
 import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
-import {createClient} from '@supabase/supabase-js';
 
 describe('vector store', () => {
   let vs: Weaviate | Pinecone | Typesense | Supabase;
@@ -52,7 +52,7 @@ describe('vector store', () => {
           vs = new Typesense(client);
         }
         if (vsname === 'supabase') {
-          const client = createClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
+          const client = createSupabaseClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
           vs = new Supabase(client);
         } else {
           throw new Error('unexpected vector store: ' + vsname);
