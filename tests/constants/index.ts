@@ -13,7 +13,7 @@ export default {
     API_KEY: process.env.WEAVIATE_API_KEY as string,
     HOST: process.env.WEAVIATE_HOST as string,
     SCHEME: 'https',
-    INDEX: {
+    CLASS_NAME: {
       FARCASTER: 'Farcaster',
     },
   },
@@ -25,5 +25,9 @@ export default {
     API_HOST: process.env.TYPESENSE_API_HOST as string,
     API_PORT: parseInt(process.env.TYPESENSE_API_PORT as string),
     PROTOCOL: 'http',
+  },
+  SUPABASE: {
+    URL: process.env.SUPABASE_URL as string,
+    KEY: process.env.SUPABASE_KEY as string,
   },
 } as const;

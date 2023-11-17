@@ -1,24 +1,35 @@
 import {DistanceMetric, Vector} from '../types';
-import {Query, QueryResult, BatchQuery, BatchQueryResult} from '../query';
+import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
-import {FetchQuery, FetchResult, BatchFetchResult, BatchFetchQuery} from '../fetch';
+import {FetchQuery, FetchResult} from '../fetch';
 import {MultiSearchRequestWithPresetSchema} from 'typesense/lib/Typesense/MultiSearch';
 import {VectorStore} from './base';
 
 export class Typesense extends VectorStore {
   private client: TypesenseClient;
-  private collectionName: string; // TODO: why is this optional?
+  private collectionName: string;
   private collection: Collection; // FIXME: this is not used
   private metadataKey: string; // FIXME: this is not used
 
-  constructor(client: TypesenseClient, collectionName?: string, queryName?: string, distanceMetric?: DistanceMetric) {
-    // FIXME: queryname is not used
-    super(distanceMetric);
+  constructor(
+    client: TypesenseClient,
+    kwargs?: {
+      collectionName?: string;
+      historyField?: string;
+      embeddingSize?: number;
+      distanceMetric?: DistanceMetric;
+    }
+  ) {
+    super({
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField || constants.DEFAULT_TYPESENSE_HISTORY_FIELD,
+    });
     this.client = client;
-    this.collectionName = collectionName || constants.DEFAULT_COLLECTION;
+    this.collectionName = kwargs?.collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }
@@ -77,24 +88,12 @@ export class Typesense extends VectorStore {
     return new FetchResult(res.vec, res.metadata, res.id);
   }
 
-  async multiSearch(query: BatchQuery): Promise<BatchQueryResult> {
-    const results = query.queries.map(q => this.search(q));
-    const multiResult = await Promise.all(results);
-    return new BatchQueryResult(query.batch_size, multiResult);
-  }
-
-  async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const results = query.fetches.map(q => this.fetch(q));
-    const multiResult = await Promise.all(results);
-    return new BatchFetchResult(query.batch_size, multiResult);
-  }
-
-  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string, idField: string = '_id') {
-    if (idField !== '_id') {
+  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string) {
+    if (this.historyField !== '_id') {
       throw new Error("TypeSense doesn't allow filtering on id field. Try duplicating id in another field like _id.");
     }
 
-    let filter_ = `${idField}:!=[${ids.join(',')}]`;
+    let filter_ = `${this.historyField}:!=[${ids.join(',')}]`;
 
     if (prevFilter !== undefined && typeof prevFilter === 'string') {
       filter_ += ` && ${prevFilter}`;

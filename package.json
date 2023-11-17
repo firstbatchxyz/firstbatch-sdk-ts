@@ -50,6 +50,8 @@
     "tdigest": "^0.1.2"
   },
   "optionalDependencies": {
+    "@supabase/supabase-js": "^2.38.3",
+    "@supabase/postgrest-js": "^1.8.5",
     "graphql": "^16.8.1",
     "typesense": "^1.7.1",
     "weaviate-ts-client": "^1.5.0",

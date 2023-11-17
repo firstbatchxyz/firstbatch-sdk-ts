@@ -21,10 +21,17 @@ export class ScalarQuantizer extends BaseLossy {
     const scalars = data.reduce((acc, cur) => concatVectors(acc, cur), {vector: [], dim: 0, id: ''});
 
     for (const scalar of scalars.vector) {
-      // TODO: this was `update`
       this.quantizer.push(scalar);
     }
-    this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile((i * 100.0) / this.levels));
+    this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile(i / this.levels));
+  }
+  findIndex(scalar: number): number {
+    for (let i = 0; i < this.quantiles.length; i++) {
+      if (scalar < this.quantiles[i]) {
+        return i;
+      }
+    }
+    return this.levels - 1;
   }
 
   private dequantize(qv: number[]): number[] {
@@ -36,7 +43,7 @@ export class ScalarQuantizer extends BaseLossy {
   }
 
   private quantizeScalar(scalar: number): number {
-    return this.quantiles.findIndex(q => scalar < q);
+    return this.findIndex(scalar);
   }
 
   compress(data: Vector): CompressedVector {

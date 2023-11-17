@@ -1,34 +1,42 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
 import type {DistanceMetric, Vector} from '../types';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../query';
+import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../fetch';
+import {FetchQuery, FetchResult} from '../fetch';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
 import constants from '../../constants';
 
 export class Weaviate extends VectorStore {
   private client: WeaviateClient;
-  private readonly index: string;
+  private readonly className: string;
   private readonly outputFields: string[] = [];
 
-  /**
-   *
+  /** A wrapper for the Weaviate client.
    * @param client a Weaviate client
-   * @param index index name
-   * @param outputFields an array of field names
-   * @param distanceMetric optional distance metric, defaults to cosine similarity
+   * @param className (optional) className name
+   * @param outputFields (optional) an array of field names for outputs
+   * @param historyField (optional) the name of the `id` field for history filtering
+   * @param distanceMetric (optional) optional distance metric, defaults to cosine similarity
    */
   constructor(
     client: WeaviateClient,
-    index?: string, // TODO: why is this optional?
-    outputFields: string[] = ['text'],
-    distanceMetric?: DistanceMetric
+    kwargs?: {
+      className?: string;
+      outputFields?: string[];
+      embeddingSize?: number;
+      historyField?: string;
+      distanceMetric?: DistanceMetric;
+    }
   ) {
-    super(distanceMetric);
+    super({
+      embeddingSize: kwargs?.embeddingSize,
+      distanceMetric: kwargs?.distanceMetric,
+      historyField: kwargs?.historyField,
+    });
     this.client = client;
-    this.index = index || constants.DEFAULT_COLLECTION;
-    this.outputFields = outputFields;
+    this.className = kwargs?.className || constants.DEFAULT_WEAVIATE_CLASS_NAME;
+    this.outputFields = kwargs?.outputFields || ['text'];
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {
@@ -41,7 +49,7 @@ export class Weaviate extends VectorStore {
 
     const vector = {vector: query.embedding.vector};
     let queryObject = this.client.graphql.get();
-    queryObject.withClassName(this.index);
+    queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
     if (query.filter.name && typeof query.filter.filter === 'object') {
       queryObject = queryObject.withWhere({
@@ -66,7 +74,7 @@ export class Weaviate extends VectorStore {
     const scores: number[] = [];
     const vectors: Vector[] = [];
     const metadata: QueryMetadata[] = [];
-    const data = result.data['Get'][this.index.charAt(0).toUpperCase() + this.index.slice(1)];
+    const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
     for (const res of data) {
       const _id = res['_additional'].id;
@@ -89,7 +97,7 @@ export class Weaviate extends VectorStore {
   }
 
   async fetch(query: FetchQuery): Promise<FetchResult> {
-    const result = await this.client.data.getterById().withClassName(this.index).withVector().withId(query.id).do();
+    const result = await this.client.data.getterById().withClassName(this.className).withVector().withId(query.id).do();
     const vec = result.vector as number[];
 
     const metadata = new QueryMetadata(query.id, result.properties as RecordMetadata);
@@ -98,25 +106,12 @@ export class Weaviate extends VectorStore {
     return new FetchResult(vector, metadata, query.id);
   }
 
-  async multiSearch(query: BatchQuery): Promise<BatchQueryResult> {
-    const results = query.queries.map(q => this.search(q));
-    const multiResult = await Promise.all(results);
-    return new BatchQueryResult(query.batch_size, multiResult);
-  }
-
-  async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const results = query.fetches.map(q => this.fetch(q));
-    const multiResult = await Promise.all(results);
-    return new BatchFetchResult(query.batch_size, multiResult);
-  }
-
   historyFilter(
     ids: string[],
     prevFilter?: {
       operands: any[];
       operator: string;
-    },
-    idField: string = 'id'
+    }
   ) {
     const filter = prevFilter || {
       operator: 'And',
@@ -125,7 +120,7 @@ export class Weaviate extends VectorStore {
 
     for (const id of ids) {
       const f = {
-        path: [idField],
+        path: [this.historyField],
         operator: 'NotEqual',
         valueText: id,
       };

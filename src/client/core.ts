@@ -12,7 +12,6 @@ import {generateBatch, MetadataFilter, Query, QueryMetadata, FetchQuery, BatchQu
 import {UserAction} from '../algorithm/blueprint/action';
 
 export class FirstBatch extends FirstBatchClient {
-  readonly embeddingSize: number;
   readonly batchSize: number;
   readonly quantizerTrainSize: number;
   readonly quantizerType: 'scalar' | 'product';
@@ -24,7 +23,6 @@ export class FirstBatch extends FirstBatchClient {
   private constructor(apiKey: string, config?: Partial<FirstBatchConfig>) {
     super(apiKey);
     this.store = {};
-    this.embeddingSize = config?.embeddingSize || constants.DEFAULT_EMBEDDING_SIZE;
     this.batchSize = config?.batchSize || constants.DEFAULT_BATCH_SIZE;
     this.quantizerTrainSize = config?.quantizerTrainSize || constants.DEFAULT_QUANTIZER_TRAIN_SIZE;
     this.quantizerType = config?.quantizerType || constants.DEFAULT_QUANTIZER_TYPE;
@@ -33,12 +31,13 @@ export class FirstBatch extends FirstBatchClient {
 
     // setup logger
     if (this.verbose !== undefined) {
-      this.logger.setLevel(this.verbose ? 'DEBUG' : 'WARN');
-      this.logger.debug('Verbose mode enabled.');
+      this.logger.setLevel(this.verbose ? 'INFO' : 'WARN');
+      this.logger.info('Verbose mode enabled.');
     } else {
-      this.logger.setLevel('ERROR');
+      this.logger.setLevel('WARN');
     }
 
+    // prepare quantizer
     if (this.quantizerType === 'product') {
       this.logger.warn("Product quantization not yet supported, defaulting to 'scalar'");
       this.quantizerType = 'scalar';
@@ -48,6 +47,8 @@ export class FirstBatch extends FirstBatchClient {
   static async new(apiKey: string, config?: Partial<FirstBatchConfig>): Promise<FirstBatch> {
     const personalized = new FirstBatch(apiKey, config);
     await personalized.init();
+
+    personalized.logger.info('Using: ' + personalized.url);
     return personalized;
   }
 
@@ -58,29 +59,29 @@ export class FirstBatch extends FirstBatchClient {
    * @param embeddingSize optional embedding size, if `undefined`, the class-level embedding-size
    * will be used.
    */
-  async addVdb(vdbid: string, vectorStore: VectorStore, embeddingSize?: number) {
+  async addVdb(vdbid: string, vectorStore: VectorStore) {
     const exists = await this.vdbExists(vdbid);
-    embeddingSize = embeddingSize || this.embeddingSize;
-    // TODO: THIS IS DANGEROUS, it is a side effect on VS and may cause problems
-    vectorStore.embeddingSize = embeddingSize;
 
     if (exists) {
       this.store[vdbid] = vectorStore;
     } else {
-      this.logger.debug(`VectorDB with id ${vdbid} not found, sketching a new VectorDB.`);
+      this.logger.info(`VectorDB with id ${vdbid} not found, sketching a new VectorDB.`);
       if (this.quantizerType === 'scalar') {
         // TODO: THIS IS DANGEROUS, it is a side effect on vector store and may cause problems
         vectorStore.quantizer = new ScalarQuantizer(256);
 
-        const trainSize = Math.min(Math.floor(this.quantizerTrainSize / constants.DEFAULT_TOPK_QUANT), 500);
-        const batch = generateBatch(trainSize, embeddingSize, constants.DEFAULT_TOPK_QUANT, true);
+        const trainSize = Math.min(
+          Math.floor(this.quantizerTrainSize / constants.DEFAULT_TOPK_QUANT),
+          constants.MINIMUM_TRAIN_SIZE
+        );
+        const batch = generateBatch(trainSize, vectorStore.embeddingSize, constants.DEFAULT_TOPK_QUANT, true);
 
         const results = await vectorStore.multiSearch(batch);
         vectorStore.trainQuantizer(results.vectors());
 
         const quantizedVectors = results.vectors().map(v => vectorStore.quantizeVector(v).vector);
 
-        this.logger.debug('Initializing with scalar quantizer, might take some time...');
+        this.logger.info('Initializing with scalar quantizer, might take some time...');
         await this.initVectordbScalar(vdbid, quantizedVectors, (vectorStore.quantizer as ScalarQuantizer).quantiles);
 
         this.store[vdbid] = vectorStore;
@@ -200,13 +201,13 @@ export class FirstBatch extends FirstBatchClient {
     let ids: string[];
     let batch: QueryMetadata[];
 
-    this.logger.debug(
+    this.logger.info(
       `Session: ${response.algorithm} ${response.factory_id} ${response.custom_id}\t(${batchType} ${batchSize})`
     );
     if (batchType === 'random') {
       const batchQuery = generateBatch(
         batchSize,
-        this.embeddingSize,
+        vs.embeddingSize,
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
         params.apply_mmr || params.apply_threshold[0]
       );
@@ -228,7 +229,7 @@ export class FirstBatch extends FirstBatchClient {
         this.logger.warn('No embeddings found for personalized batch, switching to random batch.');
         const batchQuery = generateBatch(
           batchSize,
-          this.embeddingSize,
+          vs.embeddingSize,
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
@@ -313,11 +314,11 @@ export class FirstBatch extends FirstBatchClient {
     let metadataFilter = MetadataFilter.default();
     if (this.enableHistory) {
       if (history.length === 0) {
-        this.logger.debug('History is empty, no filter will be applied');
+        this.logger.info('History is empty, no filter will be applied');
       }
 
       if (options?.filter !== undefined) {
-        metadataFilter = this.store[vdbid].historyFilter(history, options?.filter, '_id');
+        metadataFilter = this.store[vdbid].historyFilter(history, options?.filter);
       } else {
         metadataFilter = this.store[vdbid].historyFilter(history);
       }
