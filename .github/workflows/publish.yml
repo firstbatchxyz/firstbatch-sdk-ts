@@ -10,6 +10,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
 
       - uses: actions/setup-node@v3
         with:
