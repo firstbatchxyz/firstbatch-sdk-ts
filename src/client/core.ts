@@ -158,7 +158,13 @@ export class FirstBatch extends FirstBatchClient {
 
     const [nextState] = algoInstance.blueprintStep(response.state, userAction);
 
-    const resp = await this.signal(session, result.vector.vector, nextState.name, userAction.actionType.weight);
+    const resp = await this.signal(
+      session,
+      result.vector.vector,
+      nextState.name,
+      userAction.actionType.weight,
+      userAction.actionType.label
+    );
 
     if (this.enableHistory) {
       await this.addHistory(session, [contentId]);
@@ -211,6 +217,7 @@ export class FirstBatch extends FirstBatchClient {
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
         params.apply_mmr || params.apply_threshold[0]
       );
+      this.updateState(session, nextState.name, 'random');
       const batchQueryResult = await vs.multiSearch(batchQuery);
 
       [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
@@ -233,7 +240,7 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
-        this.updateState(session, nextState.name);
+        this.updateState(session, nextState.name, 'personalized');
         const batchQueryResult = await vs.multiSearch(batchQuery);
         [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?

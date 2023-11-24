@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import constants from '../constants';
 import {BatchResponse, SessionObject} from './types';
 import {Params} from '../algorithm/blueprint/params';
+import {Vertex} from '../algorithm';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -103,20 +104,28 @@ export class FirstBatchClient {
     });
   }
 
-  protected async updateState(session: SessionObject, state: string) {
+  protected async updateState(session: SessionObject, state: string, batchType: Vertex['batchType']) {
     // TODO: type of data?
     return await this.post<any>('embeddings/update_state', {
       id: session.id,
       state: state,
+      batchType: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
     });
   }
 
-  protected async signal(session: SessionObject, vector: number[], stateName: string, signal: number) {
+  protected async signal(
+    session: SessionObject,
+    vector: number[],
+    stateName: string,
+    signal: number,
+    signalLabel: string
+  ) {
     // TODO: type of data?
     return this.post<any>('embeddings/signal', {
       id: session.id,
       state: stateName,
       signal: signal,
+      signal_label: signalLabel,
       vector: vector,
     });
   }
