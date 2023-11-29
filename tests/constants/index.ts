@@ -1,13 +1,13 @@
 export default {
   PINECONE: {
     API_KEY: process.env.PINECONE_API_KEY as string,
-    API_KEY_ALT: process.env.PINECONE_API_KEY_ALT as string,
     ENV: process.env.PINECONE_ENV as string,
     INDEX: {
-      RSS: 'rss',
+      RSS: 'rss-2',
       FARCASTER: 'farcaster',
     },
     CUSTOM_ID: process.env.PINECONE_CUSTOM_ID as string,
+    EMBEDDING_SIZE: 384,
   },
   WEAVIATE: {
     API_KEY: process.env.WEAVIATE_API_KEY as string,
