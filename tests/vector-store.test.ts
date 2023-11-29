@@ -15,7 +15,7 @@ describe('vector store', () => {
   let vs: Weaviate | Pinecone | Typesense | Supabase;
   let dim: number;
 
-  ['weavitate', 'pinecone', 'typesense', 'supabase'].map(vsname => {
+  ['weavitate', 'pinecone' /* 'typesense', 'supabase' */].map(vsname => {
     (vsname == 'typesense' || vsname == 'supabase' ? describe.todo : describe)(vsname, () => {
       beforeAll(async () => {
         if (vsname === 'weavitate') {
@@ -30,11 +30,13 @@ describe('vector store', () => {
           });
         } else if (vsname === 'pinecone') {
           const pinecone = new PineconeClient({
-            apiKey: constants.PINECONE.API_KEY_ALT,
+            apiKey: constants.PINECONE.API_KEY,
             environment: constants.PINECONE.ENV,
           });
-          const index = pinecone.index(constants.PINECONE.INDEX.FARCASTER);
-          vs = new Pinecone(index);
+          const index = pinecone.index(constants.PINECONE.INDEX.RSS);
+          vs = new Pinecone(index, {
+            embeddingSize: constants.PINECONE.EMBEDDING_SIZE,
+          });
         } else if (vsname === 'typesense') {
           const client = new TypesenseClient({
             apiKey: constants.TYPESENSE.API_KEY,
@@ -50,8 +52,7 @@ describe('vector store', () => {
           expect(health.ok).toBeTrue();
 
           vs = new Typesense(client);
-        }
-        if (vsname === 'supabase') {
+        } else if (vsname === 'supabase') {
           const client = createSupabaseClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
           vs = new Supabase(client);
         } else {

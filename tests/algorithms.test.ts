@@ -9,7 +9,7 @@ import constants from './constants';
 
 describe('algorithms', () => {
   let personalized: FirstBatch;
-  const vdbid = 'my_db';
+  const vdbid = 'my_db_384';
   const config: FirstBatchConfig = {
     batchSize: 20,
     quantizerTrainSize: 100,
@@ -17,6 +17,7 @@ describe('algorithms', () => {
     enableHistory: true,
     verbose: true,
   };
+  const embeddingSize = constants.PINECONE.EMBEDDING_SIZE;
 
   beforeEach(async () => {
     const indexName = constants.PINECONE.INDEX.RSS;
@@ -25,7 +26,9 @@ describe('algorithms', () => {
     await pinecone.describeIndex(indexName);
     const index = pinecone.index(indexName);
 
-    const vectorStore = new Pinecone(index);
+    const vectorStore = new Pinecone(index, {
+      embeddingSize,
+    });
 
     personalized = await FirstBatch.new(constants.FIRSTBATCH.API_KEY, config);
     await personalized.addVdb(vdbid, vectorStore);
@@ -62,7 +65,7 @@ describe('algorithms', () => {
     const session = await personalized.session('SIMPLE', vdbid);
 
     const bias = {
-      vectors: generateVectors(1536, 5).map(v => v.vector),
+      vectors: generateVectors(embeddingSize, 5).map(v => v.vector),
       weights: new Array(5).fill(1),
     };
 

@@ -14,6 +14,8 @@ export class FirstBatchClient {
   teamId: string = '';
   /** Backend URL with respect to the region of the API key. */
   url: string = '';
+  /** Region for this client. */
+  region: string = '';
 
   /** Acts as a constructor. */
   protected constructor(apiKey: string) {
@@ -46,6 +48,7 @@ export class FirstBatchClient {
       key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'scalar',
+      region: this.region,
       quantized_vecs: vecs,
       quantiles: quantiles,
     });
@@ -66,6 +69,7 @@ export class FirstBatchClient {
       key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'product',
+      region: this.region,
       quantized_vecs: vecs,
       quantized_residuals: res_vecs,
       codebook: codebook,
@@ -240,6 +244,7 @@ export class FirstBatchClient {
 
     const {teamID, region} = axiosResponse.data.data; // notice the 2 data's
     this.teamId = teamID;
+    this.region = region;
     const regionBaseURL = constants.REGIONS[region];
     if (!regionBaseURL) {
       throw new Error('No such region: ' + region);

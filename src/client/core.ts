@@ -56,8 +56,6 @@ export class FirstBatch extends FirstBatchClient {
    *
    * @param vdbid vectorDB ID of your choice
    * @param vectorStore a `VectorStore` instance
-   * @param embeddingSize optional embedding size, if `undefined`, the class-level embedding-size
-   * will be used.
    */
   async addVdb(vdbid: string, vectorStore: VectorStore) {
     const exists = await this.vdbExists(vdbid);
@@ -217,7 +215,7 @@ export class FirstBatch extends FirstBatchClient {
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
         params.apply_mmr || params.apply_threshold[0]
       );
-      this.updateState(session, nextState.name, 'random');
+      this.updateState(session, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vs.multiSearch(batchQuery);
 
       [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
@@ -240,7 +238,7 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
-        this.updateState(session, nextState.name, 'personalized');
+        this.updateState(session, nextState.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vs.multiSearch(batchQuery);
         [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
@@ -363,9 +361,7 @@ export class FirstBatch extends FirstBatchClient {
   ): Promise<BaseAlgorithm> {
     switch (algorithm) {
       case 'SIMPLE': {
-        return new SimpleAlgorithm(batchSize, {
-          embeddingSize: embeddingSize,
-        });
+        return new SimpleAlgorithm(batchSize, {embeddingSize});
       }
       case 'CUSTOM': {
         if (!options?.customId) {
@@ -373,18 +369,14 @@ export class FirstBatch extends FirstBatchClient {
         }
 
         const blueprint = await this.getBlueprint(options.customId);
-        return new CustomAlgorithm(blueprint, batchSize, {
-          embeddingSize: embeddingSize,
-        });
+        return new CustomAlgorithm(blueprint, batchSize, {embeddingSize});
       }
       case 'FACTORY': {
         if (!options?.factoryId) {
           throw new Error('Expected factoryId');
         }
 
-        return new FactoryAlgorithm(options.factoryId, batchSize, {
-          embeddingSize: embeddingSize,
-        });
+        return new FactoryAlgorithm(options.factoryId, batchSize, {embeddingSize});
       }
       default:
         algorithm satisfies never;
