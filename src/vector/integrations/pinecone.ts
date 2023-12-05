@@ -34,35 +34,32 @@ export class Pinecone extends VectorStore {
 
   async search(query: Query) {
     if (query.search_type === 'fetch') throw Error("`search_type` must be 'default' or 'sparse' to use search method");
-    else if (query.search_type === 'sparse') throw Error('sparse search is not implemented yet');
-    else {
-      // FIXME: what is the if condition here?
-      if (query.filter.filter && query.embedding.vector) {
-        const q = {
-          vector: query.embedding.vector,
-          topK: query.top_k,
-          filter: query.filter.filter as Record<string, any>, // TODO: type
-          includeMetadata: query.include_metadata,
-          includeValues: query.include_values,
-        };
-        const result: QueryResponse = await this.index.query(q);
-        if (result.matches === undefined) throw Error('No valid match for query');
+    if (query.search_type === 'sparse') throw Error('sparse search is not implemented yet');
 
-        const ids: string[] = [];
-        const scores: number[] = [];
-        const vectors: Vector[] = [];
-        const metadata: QueryMetadata[] = [];
+    const q = {
+      vector: query.embedding.vector,
+      topK: query.top_k,
+      filter: query.filter.filter as Record<string, any>, // TODO: type
+      includeMetadata: query.include_metadata,
+      includeValues: query.include_values,
+    };
 
-        for (const r of result.matches) {
-          ids.push(r.id);
-          if (r.score != undefined) scores.push(r.score);
-          else scores.push(0);
-          vectors.push({vector: r.values, dim: r.values.length, id: r.id});
-          metadata.push(new QueryMetadata(r.id, r.metadata as RecordMetadata));
-        }
-        return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
-      } else throw Error('query must have a valid embedding and filter');
+    const result: QueryResponse = await this.index.query(q);
+    if (result.matches === undefined) throw Error('No valid match for query');
+
+    const ids: string[] = [];
+    const scores: number[] = [];
+    const vectors: Vector[] = [];
+    const metadata: QueryMetadata[] = [];
+
+    for (const r of result.matches) {
+      ids.push(r.id);
+      if (r.score != undefined) scores.push(r.score);
+      else scores.push(0);
+      vectors.push({vector: r.values, dim: r.values.length, id: r.id});
+      metadata.push(new QueryMetadata(r.id, r.metadata as RecordMetadata));
     }
+    return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
   }
 
   async fetch(query: FetchQuery) {

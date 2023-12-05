@@ -282,6 +282,7 @@ export class FirstBatch extends FirstBatchClient {
       throw new Error('Invalid batch type: ' + batchType);
     }
 
+    // take only `batchSize` many results
     ids = ids.slice(0, algoInstance.batchSize);
     batch = batch.slice(0, algoInstance.batchSize);
 

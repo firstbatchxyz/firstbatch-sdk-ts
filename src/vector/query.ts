@@ -126,19 +126,28 @@ export class BatchQueryResult {
     this.results = results;
   }
 
+  /**
+   * Returns the `Vector` objects within the results.
+   *
+   * Does not modify the underlying results.
+   */
   vectors(): Vector[] {
     return this.results.flatMap(result => result.vectors);
   }
 
+  /**
+   * Flattens an array of `QueryResult` objects into a single one.
+   * Although this looks like the built-in `flat`, it calls the `concat` method
+   * of the `QueryResult` object, not the built-in `concat`.
+   *
+   * Does not modify the underlying results.
+   */
   flatten(): QueryResult {
-    let flattenedResult: QueryResult = this.results[0];
-    for (let i = 1; i < this.results.length; i++) {
-      flattenedResult = flattenedResult.concat(this.results[i]);
-    }
-    return flattenedResult;
+    return this.results.reduce((acc, cur) => acc.concat(cur), new QueryResult({}));
   }
 
-  sort() {
+  /** Sorts the results with respect to the result scores. */
+  sort(): void {
     this.results.forEach(result => {
       // sort by scores in reverse, and get the indices
       const idx = result.scores.sort((a, b) => b - a).map((_, i) => i);
@@ -152,6 +161,9 @@ export class BatchQueryResult {
   }
 
   removeDuplicates() {
+    // it is possible that there are no results
+    if (this.results.length === 0) return;
+
     const flat = this.flatten();
     const uniqueIds = new Set<string>(flat.ids).keys();
     const idx: number[] = [];

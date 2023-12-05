@@ -175,3 +175,6 @@ tsconfig.tsbuildinfo
 # environment
 .env*
 !.env.d.ts
+
+# ignored test
+ignore.test.ts
