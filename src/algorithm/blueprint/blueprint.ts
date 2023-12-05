@@ -1,6 +1,6 @@
 import {UserAction} from './action';
 import {Signals} from './signal';
-import type {Params} from './params';
+import {Params} from './params';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -87,7 +87,7 @@ export class Vertex {
   }
 
   eq(other: Vertex) {
-    return this.name === other.name && this.batchType === other.batchType && this.params.eq(other.params);
+    return this.name === other.name && this.batchType === other.batchType && Params.eq(this.params, other.params);
   }
 }
 

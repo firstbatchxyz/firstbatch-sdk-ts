@@ -38,16 +38,16 @@ export class Params implements ParamsInterface {
     }
   }
 
-  eq(other: Params) {
+  static eq(a: Params, b: Params) {
     return (
-      this.mu === other.mu &&
-      this.alpha === other.alpha &&
-      this.r === other.r &&
-      this.last_n === other.last_n &&
-      this.n_topics === other.n_topics &&
-      this.remove_duplicates === other.remove_duplicates &&
-      this.apply_threshold === other.apply_threshold &&
-      this.apply_mmr === other.apply_mmr
+      a.mu === b.mu &&
+      a.alpha === b.alpha &&
+      a.r === b.r &&
+      a.last_n === b.last_n &&
+      a.n_topics === b.n_topics &&
+      a.remove_duplicates === b.remove_duplicates &&
+      a.apply_threshold === b.apply_threshold &&
+      a.apply_mmr === b.apply_mmr
     );
   }
 }
