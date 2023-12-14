@@ -1,4 +1,4 @@
-import {Logger, getLogger} from 'loglevel';
+import log from 'loglevel';
 import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
@@ -18,7 +18,7 @@ export class FirstBatch extends FirstBatchClient {
   readonly enableHistory: boolean;
   readonly store: Record<string, VectorStore>;
   readonly verbose: boolean;
-  logger: Logger = getLogger('FirstBatchLogger');
+  logger: log.Logger = log.getLogger('FirstBatchLogger');
 
   private constructor(apiKey: string, config?: Partial<FirstBatchConfig>) {
     super(apiKey);
