@@ -113,7 +113,7 @@ export class FirstBatchClient {
     return await this.post<any>('embeddings/update_state', {
       id: session.id,
       state: state,
-      batchType: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
+      batch_type: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
     });
   }
 
