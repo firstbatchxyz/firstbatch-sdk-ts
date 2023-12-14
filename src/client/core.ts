@@ -164,7 +164,7 @@ export class FirstBatch extends FirstBatchClient {
       userAction.actionType.label
     );
 
-    if (this.enableHistory) {
+    if (resp.success && this.enableHistory) {
       await this.addHistory(session, [contentId]);
     }
 
