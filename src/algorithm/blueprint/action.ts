@@ -32,8 +32,12 @@ export class UserAction {
     return new UserAction('BATCH');
   }
 
-  /** Equality check with another `UserAction`. */
+  /** Equality check with another `UserAction`.
+   *
+   * - either they are both `BATCH` actions
+   * - or their underlying action types are equal
+   */
   eq(other: UserAction) {
-    return this.isBatch === other.isBatch || this.actionType.eq(other.actionType);
+    return (this.isBatch && other.isBatch) || this.actionType.eq(other.actionType);
   }
 }

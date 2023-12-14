@@ -15,7 +15,8 @@ const example1: string = `{
     {"name": "edge4", "edge_type": "BATCH",       "start": "2", "end": "3"},
     {"name": "edge5", "edge_type": "DEFAULT",     "start": "2", "end": "2"},
     {"name": "edge6", "edge_type": "BATCH",       "start": "3", "end": "2"},
-    {"name": "edge7", "edge_type": "DEFAULT",     "start": "3", "end": "2"}
+    {"name": "edge7", "edge_type": "DEFAULT",     "start": "3", "end": "2"},
+    {"name": "edge8", "edge_type": "LIKE",        "start": "3", "end": "1"}
   ]
 }`;
 

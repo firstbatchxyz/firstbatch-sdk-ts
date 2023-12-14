@@ -53,7 +53,7 @@ export class Blueprint {
     let vertex: Vertex;
     if (!(state in this.map)) {
       if (state === '0') {
-        // FIXME: edge case until API is fixes
+        // FIXME: edge case until API is fixed
         vertex = this.vertices[0];
       } else {
         throw new Error('No vertex found for ' + state);
@@ -62,10 +62,11 @@ export class Blueprint {
       vertex = this.map[state];
     }
 
-    // find an edge from that vertex with the given action, or one that has DEFAULT signal
-    const edge = this.edges.find(
-      e => e.start.eq(vertex) && (e.edgeType.eq(action) || Signals.DEFAULT.eq(e.edgeType.actionType))
-    );
+    // find an edge from that vertex with the given action, or a DEFAULT edge
+    const edge =
+      this.edges.find(e => e.start.eq(vertex) && e.edgeType.eq(action)) ||
+      this.edges.find(e => Signals.DEFAULT.eq(e.edgeType.actionType));
+
     if (!edge) {
       // this should never happen if `DFAParser.validateEdges` works correctly
       throw new Error('Expected to find an edge');

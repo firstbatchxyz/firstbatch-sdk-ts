@@ -34,7 +34,7 @@ describe('parser & blueprint', () => {
     const blueprint = parser.parse();
 
     expect(blueprint.vertices.length).toBe(3);
-    expect(blueprint.edges.length).toBe(8);
+    expect(blueprint.edges.length).toBe(9);
 
     // signal should be added by reading the parsed blueprint
     const newSignal = Signals.NEW_SIGNAL;
@@ -43,5 +43,8 @@ describe('parser & blueprint', () => {
     // new signal should be able to be used in step
     const [nextState] = blueprint.step('1', new UserAction(Signals.NEW_SIGNAL));
     expect(nextState.name).toBe('3');
+
+    const [finalState] = blueprint.step(nextState.name, new UserAction('LIKE'));
+    expect(finalState.name).toBe('1');
   });
 });
