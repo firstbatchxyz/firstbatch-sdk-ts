@@ -70,6 +70,9 @@ const presetSignals = {
   CLICK_AD: new Signal('CLICK_AD', 6.0),
 };
 
+/** A union of preset signal names.
+ * Each signal here has a corresponding `Signal` object that is prepared by FirstBatch.
+ */
 export type PresetSignalNames = keyof typeof presetSignals;
 /**
  * Preset set of signals, you can use these or add your own signals to this object.
