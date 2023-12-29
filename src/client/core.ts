@@ -54,6 +54,20 @@ export class FirstBatch extends FirstBatchClient {
 
   /** Add a vector store to the container.
    *
+   * Behind the lines, this function makes an API call to the Embedding API
+   * to see if the vector store exists; if is doesn't exist, it will be "sketched"
+   * with respect to the `quantizerType`, which may take some time.
+   *
+   * If you would are CERTAIN that the vector store exists & would like to skip this
+   * existence-check API call, you can simply do:
+   *
+   * ```ts
+   * sdk.store[vdbid] = vectorStore
+   * ```
+   *
+   * Most of the times you will not need to do so, but it may save a few milliseconds in
+   * a serverless setting where the SDK is created on each function invocation.
+   *
    * @param vdbid vectorDB ID of your choice
    * @param vectorStore a `VectorStore` instance
    */
@@ -65,7 +79,12 @@ export class FirstBatch extends FirstBatchClient {
     } else {
       this.logger.info(`VectorDB with id ${vdbid} not found, sketching a new VectorDB.`);
       if (this.quantizerType === 'scalar') {
-        // TODO: THIS IS DANGEROUS, it is a side effect on vector store and may cause problems
+        // FIXME: THIS IS DANGEROUS, it is a side effect on vector store and may cause problems
+        // in particular, if the same vector store is used for different `vdbid`'s, it will cause
+        // the quantizer to be overwritten in the same process.
+        //
+        // on the other hand, this quantizer is not used outside this function, so perhaps we
+        // can have the quantizer as a separate object?
         vectorStore.quantizer = new ScalarQuantizer(256);
 
         const trainSize = Math.min(
@@ -143,20 +162,23 @@ export class FirstBatch extends FirstBatchClient {
    * @returns `true` is signal was added succesfully
    */
   async addSignal(session: SessionObject, userAction: UserAction, contentId: string) {
-    const response = await this.getSession(session);
-    const vectorStore = this.store[response.vdbid];
+    const sessionResponse = await this.getSession(session);
+    const vectorStore = this.store[sessionResponse.vdbid];
+    if (vectorStore === undefined) {
+      throw new Error('Vector Store is undefined, have you called `addVdb` function?');
+    }
 
     const query = new FetchQuery(contentId);
-    const result = await this.store[response.vdbid].fetch(query);
+    const result = await this.store[sessionResponse.vdbid].fetch(query);
 
-    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, response.algorithm, {
-      factoryId: response.factory_id,
-      customId: response.custom_id,
+    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, sessionResponse.algorithm, {
+      factoryId: sessionResponse.factory_id,
+      customId: sessionResponse.custom_id,
     });
 
-    const [nextState] = algoInstance.blueprintStep(response.state, userAction);
+    const [nextState, batchType, params] = algoInstance.blueprintStep(sessionResponse.state, userAction);
 
-    const resp = await this.signal(
+    const signalResponse = await this.signal(
       session,
       result.vector.vector,
       nextState.name,
@@ -164,11 +186,17 @@ export class FirstBatch extends FirstBatchClient {
       userAction.actionType.label
     );
 
-    if (resp.success && this.enableHistory) {
+    if (signalResponse.success && this.enableHistory) {
       await this.addHistory(session, [contentId]);
     }
 
-    return resp.success;
+    return {
+      success: signalResponse.success,
+      source: sessionResponse.state,
+      destination: nextState.name,
+      batchType,
+      params,
+    };
   }
 
   /**
@@ -189,10 +217,13 @@ export class FirstBatch extends FirstBatchClient {
     }
   ): Promise<[string[], QueryMetadata[]]> {
     const response = await this.getSession(session);
-    const vs = this.store[response.vdbid];
+    const vectorStore = this.store[response.vdbid];
+    if (vectorStore === undefined) {
+      throw new Error('Vector Store is undefined, have you called `addVdb` function?');
+    }
     const batchSize = options?.batchSize || this.batchSize;
 
-    const algoInstance = await this.getAlgorithm(vs.embeddingSize, batchSize, response.algorithm, {
+    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, batchSize, response.algorithm, {
       factoryId: response.factory_id,
       customId: response.custom_id,
     });
@@ -211,12 +242,12 @@ export class FirstBatch extends FirstBatchClient {
     if (batchType === 'random') {
       const batchQuery = generateBatch(
         batchSize,
-        vs.embeddingSize,
+        vectorStore.embeddingSize,
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
         params.apply_mmr || params.apply_threshold[0]
       );
       this.updateState(session, nextState.name, 'random'); // TODO: await?
-      const batchQueryResult = await vs.multiSearch(batchQuery);
+      const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
       [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
         applyMMR: params.apply_mmr,
@@ -234,12 +265,12 @@ export class FirstBatch extends FirstBatchClient {
         this.logger.warn('No embeddings found for personalized batch, switching to random batch.');
         const batchQuery = generateBatch(
           batchSize,
-          vs.embeddingSize,
+          vectorStore.embeddingSize,
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
         this.updateState(session, nextState.name, 'personalized'); // TODO: await?
-        const batchQueryResult = await vs.multiSearch(batchQuery);
+        const batchQueryResult = await vectorStore.multiSearch(batchQuery);
         [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
           applyThreshold: params.apply_threshold,
@@ -256,7 +287,7 @@ export class FirstBatch extends FirstBatchClient {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold[1],
         });
-        const batchQueryResult = await vs.multiSearch(batchQuery);
+        const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
         [ids, batch] = algoInstance.biasedBatch(batchQueryResult, batchQuery, {
           applyMMR: params.apply_mmr,
@@ -270,7 +301,7 @@ export class FirstBatch extends FirstBatchClient {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold[1],
       });
-      const batchQueryResult = await vs.multiSearch(batchQuery);
+      const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
       [ids, batch] = algoInstance.sampledBatch(batchQueryResult, batchQuery, {
         applyMMR: params.apply_mmr,

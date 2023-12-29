@@ -1,5 +1,8 @@
 # Firstbatch SDK
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM](https://img.shields.io/npm/v/firstbatch?logo=npm&color=CB3837)](https://www.npmjs.com/package/firstbatch)
+
 The FirstBatch SDK provides an interface for integrating vector databases and powering personalized AI experiences in your application.
 
 ## Key Features

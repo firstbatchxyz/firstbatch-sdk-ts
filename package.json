@@ -1,6 +1,6 @@
 {
   "name": "firstbatch",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "FirstBatch Team <dev@firstbatch.xyz>",
   "license": "MIT",
   "contributors": [
@@ -30,13 +30,19 @@
   "targets": {
     "cjs": {
       "outputFormat": "commonjs",
-      "isLibrary": true,
-      "context": "node"
+      "isLibrary": false,
+      "context": "node",
+      "scopeHoist": false,
+      "includeNodeModules": false,
+      "optimize": false
     },
     "mjs": {
       "outputFormat": "esmodule",
-      "isLibrary": true,
-      "context": "node"
+      "isLibrary": false,
+      "context": "node",
+      "scopeHoist": false,
+      "includeNodeModules": false,
+      "optimize": false
     }
   },
   "files": [

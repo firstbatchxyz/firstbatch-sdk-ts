@@ -42,9 +42,9 @@ export class FirstBatchClient {
     return axiosResponse.data;
   }
 
+  /** Initializes vectorDB, returns error message as a response if there was one. */
   protected async initVectordbScalar(vdbid: string, vecs: number[][], quantiles: number[]) {
-    // TODO: type of `data`?
-    return await this.post<any>('embeddings/init_vdb', {
+    return await this.post<string>('embeddings/init_vdb', {
       key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'scalar',
@@ -54,6 +54,7 @@ export class FirstBatchClient {
     });
   }
 
+  /** Initializes vectorDB, returns error message as a response if there was one. */
   protected async initVectordbProduct(
     vdbid: string,
     vecs: number[][],
@@ -64,8 +65,7 @@ export class FirstBatchClient {
     Ks: number,
     Ds: number
   ) {
-    // TODO: type of `data`?
-    return await this.post<any>('embeddings/init_vdb', {
+    return await this.post<string>('embeddings/init_vdb', {
       key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'product',
@@ -80,9 +80,9 @@ export class FirstBatchClient {
     });
   }
 
+  /** Updates history, returns error message as a response if there was one. */
   protected async addHistory(session: SessionObject, ids: string[]) {
-    // TODO: type of data?
-    return await this.post<any>('embeddings/update_history', {
+    return await this.post<string>('embeddings/update_history', {
       id: session.id,
       ids,
     });
@@ -108,15 +108,16 @@ export class FirstBatchClient {
     });
   }
 
+  /** Updates state, returns error message as a response if there was one. */
   protected async updateState(session: SessionObject, state: string, batchType: Vertex['batchType']) {
-    // TODO: type of data?
-    return await this.post<any>('embeddings/update_state', {
+    return await this.post<string>('embeddings/update_state', {
       id: session.id,
       state: state,
       batch_type: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
     });
   }
 
+  /** Adds a signal, returns error message as a response if there was one. */
   protected async signal(
     session: SessionObject,
     vector: number[],
@@ -124,8 +125,7 @@ export class FirstBatchClient {
     signal: number,
     signalLabel: string
   ) {
-    // TODO: type of data?
-    return this.post<any>('embeddings/signal', {
+    return this.post<string>('embeddings/signal', {
       id: session.id,
       state: stateName,
       signal: signal,
