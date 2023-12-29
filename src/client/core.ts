@@ -162,23 +162,23 @@ export class FirstBatch extends FirstBatchClient {
    * @returns `true` is signal was added succesfully
    */
   async addSignal(session: SessionObject, userAction: UserAction, contentId: string) {
-    const response = await this.getSession(session);
-    const vectorStore = this.store[response.vdbid];
+    const sessionResponse = await this.getSession(session);
+    const vectorStore = this.store[sessionResponse.vdbid];
     if (vectorStore === undefined) {
       throw new Error('Vector Store is undefined, have you called `addVdb` function?');
     }
 
     const query = new FetchQuery(contentId);
-    const result = await this.store[response.vdbid].fetch(query);
+    const result = await this.store[sessionResponse.vdbid].fetch(query);
 
-    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, response.algorithm, {
-      factoryId: response.factory_id,
-      customId: response.custom_id,
+    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, sessionResponse.algorithm, {
+      factoryId: sessionResponse.factory_id,
+      customId: sessionResponse.custom_id,
     });
 
-    const [nextState] = algoInstance.blueprintStep(response.state, userAction);
+    const [nextState, batchType, params] = algoInstance.blueprintStep(sessionResponse.state, userAction);
 
-    const resp = await this.signal(
+    const signalResponse = await this.signal(
       session,
       result.vector.vector,
       nextState.name,
@@ -186,11 +186,17 @@ export class FirstBatch extends FirstBatchClient {
       userAction.actionType.label
     );
 
-    if (resp.success && this.enableHistory) {
+    if (signalResponse.success && this.enableHistory) {
       await this.addHistory(session, [contentId]);
     }
 
-    return resp.success;
+    return {
+      success: signalResponse.success,
+      source: sessionResponse.state,
+      destination: nextState.name,
+      batchType,
+      params,
+    };
   }
 
   /**
