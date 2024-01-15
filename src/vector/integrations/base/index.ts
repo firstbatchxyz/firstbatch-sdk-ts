@@ -1,17 +1,17 @@
-import constants from '../../constants';
-import type {BaseLossy} from '../../lossy/base';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../fetch';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../query';
-import type {MetadataFilter} from '../metadata';
-import type {CompressedVector, DistanceMetric, Vector} from '../types';
+import constants from '../../../constants';
+import type {BaseLossy} from '../../../lossy/base';
+import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../../fetch';
+import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../query';
+import type {MetadataFilter} from '../../metadata';
+import type {CompressedVector, DistanceMetric, Vector} from '../../types';
 
 export abstract class VectorStore {
   public embeddingSize: number;
   public distanceMetric: DistanceMetric;
+  public registered: boolean = false;
 
   protected readonly historyField: string;
 
-  private _registered: boolean = false;
   private _quantizer?: BaseLossy;
 
   constructor(options?: {embeddingSize?: number; distanceMetric?: DistanceMetric; historyField?: string}) {
@@ -19,14 +19,6 @@ export abstract class VectorStore {
     this.distanceMetric = options?.distanceMetric || constants.DEFAULT_DISTANCE_METRIC;
     this.historyField = options?.historyField || constants.DEFAULT_HISTORY_FIELD;
   }
-
-  // get embeddingSize() {
-  //   return this._embeddingSize;
-  // }
-
-  // set embeddingSize(value: number) {
-  //   this._embeddingSize = value;
-  // }
 
   get quantizer() {
     if (!this._quantizer) {
@@ -36,13 +28,6 @@ export abstract class VectorStore {
   }
   set quantizer(value: BaseLossy) {
     this._quantizer = value;
-  }
-
-  get registered() {
-    return this._registered;
-  }
-  set registered(value: boolean) {
-    this._registered = value;
   }
 
   trainQuantizer(vectors: Vector[]): void {

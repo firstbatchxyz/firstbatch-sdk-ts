@@ -1,5 +1,5 @@
-import {CompressedVector, Vector} from '../vector/types';
-import {BaseLossy} from './base';
+import {CompressedVector, Vector} from '../../vector/types';
+import {BaseLossy} from '../base';
 import {PQ} from './pqt';
 import {concat, Matrix, matrix} from 'mathjs';
 

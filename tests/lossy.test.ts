@@ -3,7 +3,7 @@ import {ScalarQuantizer} from '../src/lossy/scalar';
 import {flatten, matrix, equal as mathEqual} from 'mathjs';
 import {generateRandomVectors, meanAbsoluteError} from './utils/vector';
 import {ProductQuantizer} from '../src/lossy/product';
-import {PQ} from '../src/lossy/pqt';
+import {PQ} from '../src/lossy/product/pqt';
 
 describe('lossy compression', () => {
   const EPSILON = 1e-4; // FIXME: aggree on an eps value

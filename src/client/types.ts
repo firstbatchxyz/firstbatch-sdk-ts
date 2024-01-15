@@ -5,7 +5,7 @@ export type APIResponse<T> = {
   message?: string;
 };
 
-// TODO: name this something else? this type can be used my others too
+// TODO: name this something else? this type can be used by others too
 export type BatchResponse = {
   vectors: number[][];
   weights: number[];

@@ -54,6 +54,7 @@ export class Blueprint {
     if (!(state in this.map)) {
       if (state === '0') {
         // FIXME: edge case until API is fixed
+        // API will request the state 0 referring to the first state.
         vertex = this.vertices[0];
       } else {
         throw new Error('No vertex found for ' + state);

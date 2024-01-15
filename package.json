@@ -9,8 +9,8 @@
   ],
   "homepage": "https://github.com/firstbatchxyz/firstbatch-sdk-ts#readme",
   "scripts": {
-    "format": "prettier --check '**/*.ts'",
-    "lint": "eslint '**/*.ts'",
+    "format": "prettier --check ./src/**/*.ts ./tests/**/*.ts",
+    "lint": "eslint '**/*.ts' && echo 'All good!'",
     "check": "npx tsc --noEmit",
     "build": "npx parcel build",
     "prebuild": "bun run check && bun run format",

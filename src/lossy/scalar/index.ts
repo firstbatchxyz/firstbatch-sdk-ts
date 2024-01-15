@@ -1,6 +1,6 @@
-import {BaseLossy} from './base'; // Import necessary modules
-import {CompressedVector, Vector} from '../vector/types';
-import {concatVectors} from '../vector/utils';
+import {BaseLossy} from '../base'; // Import necessary modules
+import {CompressedVector, Vector} from '../../vector/types';
+import {concatVectors} from '../../vector/utils';
 import {TDigest} from 'tdigest';
 
 export class ScalarQuantizer extends BaseLossy {

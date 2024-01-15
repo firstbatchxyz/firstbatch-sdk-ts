@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from 'axios';
-import * as crypto from 'crypto';
+import {createHash} from 'crypto';
 import constants from '../constants';
 import {BatchResponse, SessionObject} from './types';
 import {Params} from '../algorithm/blueprint/params';
@@ -45,7 +45,7 @@ export class FirstBatchClient {
   /** Initializes vectorDB, returns error message as a response if there was one. */
   protected async initVectordbScalar(vdbid: string, vecs: number[][], quantiles: number[]) {
     return await this.post<string>('embeddings/init_vdb', {
-      key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
+      key: createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'scalar',
       region: this.region,
@@ -66,7 +66,7 @@ export class FirstBatchClient {
     Ds: number
   ) {
     return await this.post<string>('embeddings/init_vdb', {
-      key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
+      key: createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'product',
       region: this.region,

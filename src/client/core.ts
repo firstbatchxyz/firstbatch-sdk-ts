@@ -2,7 +2,6 @@ import log from 'loglevel';
 import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
-import type {FirstBatchConfig} from '../config';
 // import {ProductQuantizer} from '../lossy/product';
 import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
@@ -10,6 +9,15 @@ import {adjustWeights} from '../vector/utils';
 import {BatchResponse, SessionObject} from './types';
 import {generateBatch, MetadataFilter, Query, QueryMetadata, FetchQuery, BatchQuery} from '../vector';
 import {UserAction} from '../algorithm/blueprint/action';
+
+/** Configuration for the FirstBatch core client. */
+export interface FirstBatchConfig {
+  batchSize: number;
+  quantizerTrainSize: number;
+  quantizerType: 'scalar' | 'product';
+  enableHistory: boolean;
+  verbose: boolean;
+}
 
 export class FirstBatch extends FirstBatchClient {
   readonly batchSize: number;
@@ -72,10 +80,14 @@ export class FirstBatch extends FirstBatchClient {
    * @param vectorStore a `VectorStore` instance
    */
   async addVdb(vdbid: string, vectorStore: VectorStore) {
+    // if the given vector store is registered already, dont bother
+    if (vectorStore.registered) return;
+
     const exists = await this.vdbExists(vdbid);
 
     if (exists) {
       this.store[vdbid] = vectorStore;
+      vectorStore.registered = true;
     } else {
       this.logger.info(`VectorDB with id ${vdbid} not found, sketching a new VectorDB.`);
       if (this.quantizerType === 'scalar') {
@@ -86,6 +98,7 @@ export class FirstBatch extends FirstBatchClient {
         // on the other hand, this quantizer is not used outside this function, so perhaps we
         // can have the quantizer as a separate object?
         vectorStore.quantizer = new ScalarQuantizer(256);
+        vectorStore.registered = true;
 
         const trainSize = Math.min(
           Math.floor(this.quantizerTrainSize / constants.DEFAULT_TOPK_QUANT),
