@@ -45,3 +45,5 @@ describe('parser & blueprint', () => {
     expect(finalState.name).toBe('1');
   });
 });
+
+// TODO: add tests for thrown errors on same edge & same vertex being added

@@ -163,9 +163,7 @@ export class Supabase extends VectorStore {
       }
       return new MetadataFilter('', prevFilter);
     } else {
-      const filter: Record<string, any> = {
-        $and: [],
-      };
+      const filter: Record<string, any> = {$and: []};
       for (const id in ids) {
         filter['$and'].push({id_field: {$ne: id}});
       }
