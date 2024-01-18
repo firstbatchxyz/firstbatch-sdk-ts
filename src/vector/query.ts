@@ -1,6 +1,6 @@
 import {matrix, Matrix, mean} from 'mathjs';
 import {MetadataFilter, QueryMetadata} from './metadata';
-import type {DistanceMetric, SearchType, Vector} from './types';
+import type {DistanceMetric, Vector} from './types';
 import {generateVectors} from './utils';
 
 export class Query {

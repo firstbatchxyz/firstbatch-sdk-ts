@@ -60,9 +60,7 @@ export class Supabase extends VectorStore {
       const result = await this.queryWrapper(
         query.embedding.vector,
         query.top_k,
-        query.filter.filter as SupabaseFilter,
-        true,
-        false
+        query.filter.filter as SupabaseFilter
       );
 
       const idsScore: Record<string, number[]> = Object.fromEntries(result.map(r => [r[0], r[1]]));
@@ -82,9 +80,7 @@ export class Supabase extends VectorStore {
       const results = await this.queryWrapper(
         query.embedding.vector,
         query.top_k,
-        query.filter.filter as Record<string, any>,
-        true,
-        query.include_metadata
+        query.filter.filter as Record<string, any>
       );
       for (const r of results) {
         ids.push(r[0]);
@@ -143,13 +139,7 @@ export class Supabase extends VectorStore {
    *
    * Reference: https://github.com/langchain-ai/langchainjs/blob/main/langchain/src/vectorstores/supabase.ts#L148
    */
-  private async queryWrapper(
-    data: number[],
-    limit: number,
-    filter: Record<string, any>,
-    includeValues: boolean,
-    includeMetadata: boolean
-  ): Promise<SupabaseRecord[]> {
+  private async queryWrapper(data: number[], limit: number, filter: Record<string, any>): Promise<SupabaseRecord[]> {
     const result = await this.client.rpc(this.queryName, {
       query_embedding: data,
       match_count: limit,

@@ -10,8 +10,3 @@ export type BatchResponse = {
   vectors: number[][];
   weights: number[];
 };
-
-export type SessionObject = {
-  id: string;
-  isPersistent: boolean;
-};

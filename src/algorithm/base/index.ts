@@ -1,27 +1,13 @@
-import constants from '../../constants';
 import {maximalMarginalRelevance} from '../../vector/utils';
 import {DFAParser, UserAction, Blueprint} from '../blueprint';
 import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../../vector';
 
 export class BaseAlgorithm {
   protected blueprint: Blueprint;
-  protected includeValues: boolean;
   algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
-  batchSize: number;
 
-  constructor(
-    algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE',
-    batchSize: number,
-    args: {
-      blueprint: string | object;
-      batchSize?: number;
-      includeValues?: boolean;
-    }
-  ) {
-    this.batchSize = batchSize;
-
-    this.blueprint = new DFAParser(args.blueprint).parse();
-    this.includeValues = args.includeValues ?? true;
+  constructor(algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE', blueprint: string | object) {
+    this.blueprint = new DFAParser(blueprint).parse();
     this.algorithmType = algorithmType;
   }
 

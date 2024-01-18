@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from '../constants';
-import {BatchResponse, SessionObject} from './types';
+import {BatchResponse} from './types';
 import {Params} from '../algorithm/blueprint/params';
 import {Vertex} from '../algorithm';
 
@@ -81,11 +81,8 @@ export class FirstBatchClient {
   }
 
   /** Updates history, returns error message as a response if there was one. */
-  protected async addHistory(session: SessionObject, ids: string[]) {
-    return await this.post<string>('embeddings/update_history', {
-      id: session.id,
-      ids,
-    });
+  protected async addHistory(sessionId: string, ids: string[]) {
+    return await this.post<string>('embeddings/update_history', {id: sessionId, ids});
   }
 
   protected async createSession(
@@ -104,29 +101,23 @@ export class FirstBatchClient {
       id: this.idWrapper(options?.id),
       custom_id: options?.customId,
       factory_id: options?.factoryId,
-      has_embeddings: options?.hasEmbeddings || false,
+      has_embeddings: options?.hasEmbeddings ?? false,
     });
   }
 
   /** Updates state, returns error message as a response if there was one. */
-  protected async updateState(session: SessionObject, state: string, batchType: Vertex['batchType']) {
+  protected async updateState(sessionId: string, state: string, batchType: Vertex['batchType']) {
     return await this.post<string>('embeddings/update_state', {
-      id: session.id,
+      id: sessionId,
       state: state,
       batch_type: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
     });
   }
 
   /** Adds a signal, returns error message as a response if there was one. */
-  protected async signal(
-    session: SessionObject,
-    vector: number[],
-    stateName: string,
-    signal: number,
-    signalLabel: string
-  ) {
+  protected async signal(sessionId: string, vector: number[], stateName: string, signal: number, signalLabel: string) {
     return this.post<string>('embeddings/signal', {
-      id: session.id,
+      id: sessionId,
       state: stateName,
       signal: signal,
       signal_label: signalLabel,
@@ -135,7 +126,7 @@ export class FirstBatchClient {
   }
 
   protected async biasedBatch(
-    session: SessionObject,
+    sessionId: string,
     vdbid: string,
     state: string,
     options?: {
@@ -145,7 +136,7 @@ export class FirstBatchClient {
     }
   ) {
     const response = await this.post<BatchResponse>('embeddings/biased_batch', {
-      id: session.id,
+      id: sessionId,
       vdbid: vdbid,
       state: state,
       params: options?.params,
@@ -156,14 +147,14 @@ export class FirstBatchClient {
   }
 
   protected async sampledBatch(
-    session: SessionObject,
+    sessionId: string,
     vdbid: string,
     state: string,
     nTopics: number,
     params?: Record<string, number>
   ) {
     const response = await this.post<BatchResponse>('embeddings/sampled_batch', {
-      id: session.id,
+      id: sessionId,
       n: nTopics,
       vdbid: vdbid,
       state: state,
@@ -172,7 +163,7 @@ export class FirstBatchClient {
     return response.data;
   }
 
-  protected async getSession(session: SessionObject) {
+  protected async getSession(sessionId: string) {
     const response = await this.post<{
       state: string;
       algorithm: 'SIMPLE' | 'CUSTOM' | 'FACTORY';
@@ -180,22 +171,19 @@ export class FirstBatchClient {
       has_embeddings: boolean;
       factory_id?: string;
       custom_id?: string;
-    }>('embeddings/get_session', {id: session.id});
-
+    }>('embeddings/get_session', {id: sessionId});
     return response.data;
   }
 
-  protected async getHistory(session: SessionObject) {
-    const response = await this.post<{ids: string[]}>('embeddings/get_history', {
-      id: session.id,
-    });
+  protected async getHistory(sessionId: string) {
+    const response = await this.post<{ids: string[]}>('embeddings/get_history', {id: sessionId});
     return response.data;
   }
 
-  protected async getUserEmbeddings(session: SessionObject, lastN?: number) {
+  protected async getUserEmbeddings(sessionId: string, lastN?: number) {
     const response = await this.post<BatchResponse>('embeddings/get_embeddings', {
-      id: session.id,
-      last_n: lastN || constants.DEFAULT_EMBEDDING_LAST_N,
+      id: sessionId,
+      last_n: lastN ?? constants.DEFAULT_EMBEDDING_LAST_N,
     });
     return response.data;
   }
