@@ -1,10 +1,9 @@
-import {DistanceMetric, Vector} from '../types';
+import type {DistanceMetric, Vector, FetchResult} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
-import {FetchResult} from '../fetch';
 import {MultiSearchRequestWithPresetSchema} from 'typesense/lib/Typesense/MultiSearch';
 import {VectorStore} from './base';
 

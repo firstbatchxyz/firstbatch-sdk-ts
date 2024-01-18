@@ -131,5 +131,5 @@ function cosineSimilarityMatrix(A: number[][], B: number[][]): number[][] {
 }
 
 export function concatVectors(self: Vector, other: Vector): Vector {
-  return {vector: self.vector.concat(other.vector), dim: self.dim + other.dim, id: self.id + '_' + other.id};
+  return {vector: self.vector.concat(other.vector), id: self.id + '_' + other.id};
 }

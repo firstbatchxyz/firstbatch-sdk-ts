@@ -259,7 +259,7 @@ export class FirstBatch extends FirstBatchClient {
       this.updateState(session, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
+      [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, batchSize, {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -281,7 +281,7 @@ export class FirstBatch extends FirstBatchClient {
         );
         this.updateState(session, nextState.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-        [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, {
+        [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, batchSize, {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -299,7 +299,7 @@ export class FirstBatch extends FirstBatchClient {
         });
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-        [ids, batch] = algoInstance.biasedBatch(batchQueryResult, batchQuery, {
+        [ids, batch] = algoInstance.biasedBatch(batchQueryResult, batchQuery, algoInstance.batchSize, {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -313,7 +313,7 @@ export class FirstBatch extends FirstBatchClient {
       });
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.sampledBatch(batchQueryResult, batchQuery, {
+      [ids, batch] = algoInstance.sampledBatch(batchQueryResult, batchQuery, algoInstance.batchSize, {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -324,6 +324,7 @@ export class FirstBatch extends FirstBatchClient {
     }
 
     // take only `batchSize` many results
+    // TODO: this might be happening multiple times without being necessary
     ids = ids.slice(0, algoInstance.batchSize);
     batch = batch.slice(0, algoInstance.batchSize);
 
@@ -364,13 +365,7 @@ export class FirstBatch extends FirstBatchClient {
       : MetadataFilter.default();
 
     const queries = response.vectors.map(
-      (v, i) =>
-        new Query(
-          {vector: v, dim: v.length, id: ''},
-          Math.max(topKs[i], constants.MIN_TOPK),
-          includeValues,
-          metadataFilter
-        )
+      (vector, i) => new Query({vector, id: ''}, Math.max(topKs[i], constants.MIN_TOPK), includeValues, metadataFilter)
     );
 
     // if apply MMR, increase top_k for MMR to work better

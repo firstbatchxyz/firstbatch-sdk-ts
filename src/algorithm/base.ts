@@ -32,29 +32,26 @@ export class BaseAlgorithm {
   }
 
   /** A random batch, will delete `applyThreshold` from `options` if given. */
-  randomBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
-    if (options.applyThreshold) {
-      delete options.applyThreshold;
-    }
-    return BaseAlgorithm.applyParams(batch, query, options);
+  randomBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
+    delete options.applyThreshold;
+    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
   }
 
   /** A biased batch, will delete `applyMMR` from `options` if given. */
-  biasedBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
-    if (options.applyMMR) {
-      delete options.applyMMR;
-    }
-    return BaseAlgorithm.applyParams(batch, query, options);
+  biasedBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
+    delete options.applyMMR;
+    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
   }
 
   /** A sampled batch. */
-  sampledBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
-    return BaseAlgorithm.applyParams(batch, query, options);
+  sampledBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
+    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
   }
 
   private static applyParams(
     batch: BatchQueryResult,
     query: BatchQuery,
+    batchSize: number,
     options: BatchOptions
   ): [string[], QueryMetadata[]] {
     if (batch.results.length !== query.queries.length) {
@@ -105,8 +102,9 @@ export class BaseAlgorithm {
     metadata = metadata.map((_, i, self) => self[idx[i]]);
 
     // finally, get batchSize many items for each
-    ids = ids.slice(0, batch.batch_size);
-    metadata = metadata.slice(0, batch.batch_size);
+    // TODO: this happens outside as well
+    ids = ids.slice(0, batchSize);
+    metadata = metadata.slice(0, batchSize);
     return [ids, metadata];
   }
 

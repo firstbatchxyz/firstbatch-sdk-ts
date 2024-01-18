@@ -1,8 +1,7 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
-import type {DistanceMetric, Vector} from '../types';
+import type {DistanceMetric, Vector, FetchResult} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
-import {FetchResult} from '../fetch';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
 import constants from '../../constants';
@@ -89,8 +88,8 @@ export class Weaviate extends VectorStore {
       metadata.push(new QueryMetadata(_id, m));
       scores.push(res['_additional'].distance);
       if (query.include_values) {
-        vectors.push({vector: res['_additional'].vector, id: _id, dim: res['_additional'].vector.length});
-      } else vectors.push({vector: [], id: _id, dim: 0});
+        vectors.push({vector: res['_additional'].vector, id: _id});
+      } else vectors.push({vector: [], id: _id});
     }
 
     return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
@@ -98,11 +97,9 @@ export class Weaviate extends VectorStore {
 
   async fetch(id: string): Promise<FetchResult> {
     const result = await this.client.data.getterById().withClassName(this.className).withVector().withId(id).do();
-    const vec = result.vector as number[];
-
+    const vector = result.vector as number[];
     const metadata = new QueryMetadata(id, result.properties as RecordMetadata);
-
-    return {vector: {vector: vec, id, dim: vec.length}, metadata, id};
+    return {vector: {vector, id}, metadata, id};
   }
 
   historyFilter(

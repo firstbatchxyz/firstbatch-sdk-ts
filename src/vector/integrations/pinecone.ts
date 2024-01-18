@@ -55,7 +55,7 @@ export class Pinecone extends VectorStore {
       ids.push(r.id);
       if (r.score != undefined) scores.push(r.score);
       else scores.push(0);
-      vectors.push({vector: r.values, dim: r.values.length, id: r.id});
+      vectors.push({vector: r.values, id: r.id});
       metadata.push(new QueryMetadata(r.id, r.metadata as RecordMetadata));
     }
     return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
@@ -67,7 +67,7 @@ export class Pinecone extends VectorStore {
     for (const key in result.records) {
       if (Object.hasOwn(result.records, key)) {
         const v = result.records[key];
-        const vector: Vector = {vector: v.values, dim: v.values.length, id: key};
+        const vector: Vector = {vector: v.values, id: key};
         const metadata = new QueryMetadata(key, v.metadata as RecordMetadata);
         return {vector, metadata, id: key};
       }
@@ -84,7 +84,7 @@ export class Pinecone extends VectorStore {
     if (prevFilter) {
       const merged: Record<string, any> = {...prevFilter};
 
-      if (merged.id) {
+      if (merged[this.historyField]) {
         merged[this.historyField].$nin = Array.from(
           new Set([...(merged[this.historyField].$nin || []), ...filter[this.historyField].$nin])
         );

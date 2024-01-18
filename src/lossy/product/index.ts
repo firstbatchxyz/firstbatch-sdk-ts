@@ -22,8 +22,8 @@ export class ProductQuantizer extends BaseLossy {
   }
 
   train(data: Vector[]): void {
-    // Encode data to PQ-codes
-    if (data[0].dim % this.m !== 0) {
+    // TODO: check this for all vectors
+    if (data[0].vector.length % this.m !== 0) {
       throw new Error('Input dimension must be divisible by M');
     }
 
@@ -71,7 +71,7 @@ export class ProductQuantizer extends BaseLossy {
       const vector = concat(x, residual, 0); // 0 indicates vertical concatenation
 
       // TODO: is this cast valid?
-      return {vector: vector as number[], dim: data.vector.length, id: data.id};
+      return {vector: vector as number[], id: data.id};
     } else {
       throw new Error('No residual');
     }

@@ -40,7 +40,6 @@ export default {
   // topK parameters
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
-
   // presets
   PRESET_ALGORITHMS: presetAlgorithms,
 } as const;

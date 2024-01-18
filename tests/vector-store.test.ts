@@ -8,7 +8,6 @@ import {createClient as createSupabaseClient} from '@supabase/supabase-js';
 
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
-import {BatchFetchResult} from '../src/vector/fetch';
 import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
 
 describe('vector store', () => {
@@ -91,8 +90,7 @@ describe('vector store', () => {
         expect(res).toBeInstanceOf(QueryResult);
 
         const ids = res.ids;
-        const multiFetchRes = await vs.multiFetch(ids, 10);
-        expect(multiFetchRes).toBeInstanceOf(BatchFetchResult);
+        const multiFetchRes = await vs.multiFetch(ids);
       });
 
       test('history', async () => {

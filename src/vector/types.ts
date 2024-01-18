@@ -1,7 +1,8 @@
+import {QueryMetadata} from './metadata';
+
 export interface Vector {
   id: string;
   vector: number[];
-  dim: number;
 }
 
 export interface CompressedVector {
@@ -19,4 +20,10 @@ export type BatchOptions = {
   applyThreshold?: number;
   applyMMR?: boolean;
   // shuffle?: boolean; // enabled by default until further changes
+};
+
+export type FetchResult = {
+  vector: Vector;
+  metadata: QueryMetadata;
+  id: string;
 };

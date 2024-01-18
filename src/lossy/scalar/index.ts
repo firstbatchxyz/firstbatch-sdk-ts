@@ -18,7 +18,7 @@ export class ScalarQuantizer extends BaseLossy {
   train(data: Vector[]): void {
     // concat all vectors within the data
     // TODO: we probably dont need the initial value here
-    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur), {vector: [], dim: 0, id: ''});
+    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur), {vector: [], id: ''});
 
     for (const scalar of scalars.vector) {
       this.quantizer.push(scalar);
@@ -56,6 +56,6 @@ export class ScalarQuantizer extends BaseLossy {
 
   decompress(data: CompressedVector): Vector {
     const dequantizedData: number[] = this.dequantize(data.vector);
-    return {vector: dequantizedData, dim: dequantizedData.length, id: data.id};
+    return {vector: dequantizedData, id: data.id};
   }
 }

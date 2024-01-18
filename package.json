@@ -13,7 +13,8 @@
     "lint": "eslint '**/*.ts' && echo 'All good!'",
     "check": "bunx tsc --noEmit && echo 'All good!'",
     "build": "bunx parcel build",
-    "prebuild": "bun run check && bun run format",
+    "b": "bun run build",
+    "prebuild": "bun check && bun format && bun lint",
     "test": "bun test --timeout 30000",
     "t": "bun run test"
   },

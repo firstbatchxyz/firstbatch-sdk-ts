@@ -1,10 +1,9 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
-import type {DistanceMetric, Vector} from '../types';
+import type {DistanceMetric, FetchResult, Vector} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
-import {FetchResult} from '../fetch';
 import {VectorStore} from './base';
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
@@ -75,7 +74,7 @@ export class Supabase extends VectorStore {
         // @ts-ignore
         scores.push(idsScore[f[0]]);
         if (query.include_metadata) {
-          vectors.push({vector: f[1], dim: f[1].length, id: f[0]});
+          vectors.push({vector: f[1], id: f[0]});
           metadata.push(new QueryMetadata(f[0], f[2]));
         }
       }
@@ -93,9 +92,9 @@ export class Supabase extends VectorStore {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         scores.push(r[0]);
-        vectors.push({vector: [], dim: 0, id: r[0]});
+        vectors.push({vector: [], id: r[0]});
         if (query.include_metadata) {
-          vectors.push({vector: r[1], dim: r[1].length, id: r[0]});
+          vectors.push({vector: r[1], id: r[0]});
         }
       }
     }
@@ -114,7 +113,6 @@ export class Supabase extends VectorStore {
     const vector: Vector = {
       vector: result[0][1],
       id: id,
-      dim: result[0][1].length,
     };
     return {vector, metadata, id};
   }

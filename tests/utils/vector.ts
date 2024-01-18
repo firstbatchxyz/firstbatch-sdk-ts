@@ -10,22 +10,21 @@ import {randomVector} from '../../src/vector/utils';
 export function generateRandomVectors(count: number, dimension: number): Vector[] {
   return Array.from({length: count}, (_, i) => ({
     vector: randomVector(dimension),
-    dim: dimension,
     id: i.toString(),
   }));
 }
 
 /** Calculate Mean Absolute Error (MAE) between two vectors. */
 export function meanAbsoluteError(a: Vector, b: Vector): number {
-  return absoluteError(a, b) / a.dim;
+  return absoluteError(a, b) / a.vector.length;
 }
 
 /** Calculate absolute error between two vectors. */
 export function absoluteError(a: Vector, b: Vector): number {
-  expect(a.dim).toBe(b.dim);
+  expect(a.vector.length).toBe(b.vector.length);
 
   let sum = 0;
-  for (let i = 0; i < a.dim; ++i) {
+  for (let i = 0; i < a.vector.length; ++i) {
     sum += Math.abs(a.vector[i] - b.vector[i]);
   }
   return sum;
