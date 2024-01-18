@@ -39,13 +39,6 @@ export class Weaviate extends VectorStore {
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {
-    if (query.search_type === 'fetch') {
-      throw new Error("search_type must be 'default' or 'sparse' to use the search method");
-    }
-    if (query.search_type === 'sparse') {
-      throw new Error('Sparse search is not supported');
-    }
-
     const vector = {vector: query.embedding.vector};
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);

@@ -32,9 +32,6 @@ export class Pinecone extends VectorStore {
   }
 
   async search(query: Query) {
-    if (query.search_type === 'fetch') throw Error("`search_type` must be 'default' or 'sparse' to use search method");
-    if (query.search_type === 'sparse') throw Error('sparse search is not implemented yet');
-
     const q = {
       vector: query.embedding.vector,
       topK: query.top_k,

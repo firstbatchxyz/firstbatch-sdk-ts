@@ -181,7 +181,7 @@ export class FirstBatch extends FirstBatchClient {
 
     const result = await this.store[sessionResponse.vdbid].fetch(contentId);
 
-    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, sessionResponse.algorithm, {
+    const algoInstance = await this.getAlgorithm(this.batchSize, sessionResponse.algorithm, {
       factoryId: sessionResponse.factory_id,
       customId: sessionResponse.custom_id,
     });
@@ -233,7 +233,7 @@ export class FirstBatch extends FirstBatchClient {
     }
     const batchSize = options?.batchSize ?? this.batchSize;
 
-    const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, batchSize, response.algorithm, {
+    const algoInstance = await this.getAlgorithm(batchSize, response.algorithm, {
       factoryId: response.factory_id,
       customId: response.custom_id,
     });
@@ -380,7 +380,6 @@ export class FirstBatch extends FirstBatchClient {
   }
 
   private async getAlgorithm(
-    embeddingSize: number,
     batchSize: number,
     algorithm: 'SIMPLE' | 'FACTORY' | 'CUSTOM',
     options?: {
@@ -390,7 +389,7 @@ export class FirstBatch extends FirstBatchClient {
   ): Promise<BaseAlgorithm> {
     switch (algorithm) {
       case 'SIMPLE': {
-        return new SimpleAlgorithm(batchSize, {embeddingSize});
+        return new SimpleAlgorithm(batchSize);
       }
       case 'CUSTOM': {
         if (!options?.customId) {
@@ -398,14 +397,14 @@ export class FirstBatch extends FirstBatchClient {
         }
 
         const blueprint = await this.getBlueprint(options.customId);
-        return new CustomAlgorithm(blueprint, batchSize, {embeddingSize});
+        return new CustomAlgorithm(blueprint, batchSize);
       }
       case 'FACTORY': {
         if (!options?.factoryId) {
           throw new Error('Expected factoryId');
         }
 
-        return new FactoryAlgorithm(options.factoryId, batchSize, {embeddingSize});
+        return new FactoryAlgorithm(options.factoryId, batchSize);
       }
       default:
         algorithm satisfies never;

@@ -43,13 +43,13 @@ export class FirstBatchClient {
   }
 
   /** Initializes vectorDB, returns error message as a response if there was one. */
-  protected async initVectordbScalar(vdbid: string, vecs: number[][], quantiles: number[]) {
+  protected async initVectordbScalar(vdbid: string, quantizedVectors: number[][], quantiles: number[]) {
     return await this.post<string>('embeddings/init_vdb', {
       key: createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'scalar',
       region: this.region,
-      quantized_vecs: vecs,
+      quantized_vecs: quantizedVectors,
       quantiles: quantiles,
     });
   }
@@ -57,10 +57,10 @@ export class FirstBatchClient {
   /** Initializes vectorDB, returns error message as a response if there was one. */
   protected async initVectordbProduct(
     vdbid: string,
-    vecs: number[][],
-    res_vecs: number[][],
+    quantizedVectors: number[][],
+    quantizedVectorResiduals: number[][],
     codebook: number[][],
-    codebook_residual: number[][],
+    codebookResidual: number[][],
     M: number,
     Ks: number,
     Ds: number
@@ -70,10 +70,10 @@ export class FirstBatchClient {
       vdbid: vdbid,
       mode: 'product',
       region: this.region,
-      quantized_vecs: vecs,
-      quantized_residuals: res_vecs,
+      quantized_vecs: quantizedVectors,
+      quantized_residuals: quantizedVectorResiduals,
       codebook: codebook,
-      codebook_residual: codebook_residual,
+      codebook_residual: codebookResidual,
       M: M,
       Ks: Ks,
       Ds: Ds,
@@ -201,16 +201,12 @@ export class FirstBatchClient {
   }
 
   protected async vdbExists(vdbid: string) {
-    const response = await this.post<boolean>('embeddings/vdb_exists', {
-      vdbid,
-    });
+    const response = await this.post<boolean>('embeddings/vdb_exists', {vdbid});
     return response.data;
   }
 
   protected async getBlueprint(customId: string) {
-    const response = await this.post<string>('embeddings/get_blueprint', {
-      id: customId,
-    });
+    const response = await this.post<string>('embeddings/get_blueprint', {id: customId});
     return response.data;
   }
 

@@ -1,34 +1,28 @@
-import constants from '../constants';
-import {maximalMarginalRelevance} from '../vector/utils';
-import {DFAParser, UserAction, Blueprint} from './blueprint';
-import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../vector';
+import constants from '../../constants';
+import {maximalMarginalRelevance} from '../../vector/utils';
+import {DFAParser, UserAction, Blueprint} from '../blueprint';
+import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../../vector';
 
 export class BaseAlgorithm {
   protected blueprint: Blueprint;
   protected includeValues: boolean;
-  type: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
-  isCustom = false;
+  algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
   batchSize: number;
-  embeddingSize: number;
 
   constructor(
-    label: string,
+    algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE',
     batchSize: number,
     args: {
       blueprint: string | object;
       batchSize?: number;
-      embeddingSize?: number;
       includeValues?: boolean;
     }
   ) {
-    label = label.toUpperCase();
     this.batchSize = batchSize;
 
     this.blueprint = new DFAParser(args.blueprint).parse();
-    this.embeddingSize = args.embeddingSize || constants.DEFAULT_EMBEDDING_SIZE;
-    this.includeValues = args.includeValues || true;
-    this.type = label === 'CUSTOM' || label === 'SIMPLE' ? label : 'FACTORY';
-    this.isCustom = this.type === 'CUSTOM';
+    this.includeValues = args.includeValues ?? true;
+    this.algorithmType = algorithmType;
   }
 
   applyAlgorithm(
