@@ -1,6 +1,6 @@
 import constants from '../../../constants';
 import type {BaseLossy} from '../../../lossy/base';
-import {BatchFetchQuery, BatchFetchResult, FetchResult} from '../../fetch';
+import {BatchFetchResult, FetchResult} from '../../fetch';
 import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../query';
 import type {MetadataFilter} from '../../metadata';
 import type {CompressedVector, DistanceMetric, Vector} from '../../types';
@@ -47,9 +47,9 @@ export abstract class VectorStore {
     return new BatchQueryResult(query.batch_size, multiResult);
   }
 
-  async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const multiResult = await Promise.all(query.ids.map(id => this.fetch(id)));
-    return new BatchFetchResult(query.batch_size, multiResult);
+  async multiFetch(ids: string[], batchSize: number): Promise<BatchFetchResult> {
+    const multiResult = await Promise.all(ids.map(id => this.fetch(id)));
+    return new BatchFetchResult(batchSize, multiResult);
   }
 
   public abstract search(query: Query): Promise<QueryResult>;

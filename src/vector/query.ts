@@ -12,9 +12,6 @@ export class Query {
   include_metadata: boolean = true;
   include_values: boolean = true;
 
-  // TODO: currently only used by postgres hybrid search, can be removed?
-  sparse_top_k?: number;
-
   constructor(vec: Vector, topK: number, includeValues: boolean, filter?: MetadataFilter) {
     this.embedding = vec;
     this.top_k = topK;

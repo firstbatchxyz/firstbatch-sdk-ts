@@ -358,10 +358,10 @@ export class FirstBatch extends FirstBatchClient {
       // if applyMMR, increase k for better results
       .map(k => (applyMMR ? k * constants.MMR_TOPK_FACTOR : k));
 
-    let metadataFilter = MetadataFilter.default();
-    if (this.enableHistory && history.length !== 0) {
-      metadataFilter = this.store[vdbid].historyFilter(history, options?.filter);
-    }
+    const hasHistory = this.enableHistory && history.length !== 0;
+    const metadataFilter = hasHistory
+      ? this.store[vdbid].historyFilter(history, options?.filter)
+      : MetadataFilter.default();
 
     const queries = response.vectors.map(
       (v, i) =>

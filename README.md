@@ -5,13 +5,13 @@
 
 The FirstBatch SDK provides an interface for integrating vector databases and powering personalized AI experiences in your application.
 
-## Key Features
-
 - Seamlessly manage user sessions with persistent IDs or temporary sessions.
 - Send signal actions like likes, clicks, etc. to update user embeddings in real-time.
 - Fetch personalized batches of data tailored to each user's embeddings.
 - Support for multiple vector database integrations: Pinecone, Weaviate, etc.
 - Built-in algorithms for common personalization use cases.
+
+For more information, see the [User Embedding Guide](https://firstbatch.gitbook.io/user-embeddings/) or [SDK Documentation](https://firstbatch.gitbook.io/firstbatch-sdk/).
 
 ## Installation
 
@@ -110,13 +110,8 @@ bun run test
 
 Bun will look for `.env.test` during the tests.
 
+## Stlying
+
 ## Support
 
 For any issues or queries contact `support@firstbatch.xyz`.
-
-## Resources
-
-- [User Embedding Guide](https://firstbatch.gitbook.io/user-embeddings/)
-- [SDK Documentation](https://firstbatch.gitbook.io/firstbatch-sdk/)
-
-Feel free to dive into the technicalities and leverage FirstBatch SDK for highly personalized user experiences.

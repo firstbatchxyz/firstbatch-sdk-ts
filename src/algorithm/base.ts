@@ -32,57 +32,42 @@ export class BaseAlgorithm {
   }
 
   /** A random batch, will delete `applyThreshold` from `options` if given. */
-  randomBatch(batch: BatchQueryResult, query: BatchQuery, options?: BatchOptions) {
-    if (options?.applyThreshold) {
+  randomBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
+    if (options.applyThreshold) {
       delete options.applyThreshold;
     }
     return BaseAlgorithm.applyParams(batch, query, options);
   }
 
-  /** A random batch, will delete `applyThreshold` from `options` if given. */
-  biasedBatch(batch: BatchQueryResult, query: BatchQuery, options?: BatchOptions) {
-    if (options?.applyMMR) {
+  /** A biased batch, will delete `applyMMR` from `options` if given. */
+  biasedBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
+    if (options.applyMMR) {
       delete options.applyMMR;
     }
     return BaseAlgorithm.applyParams(batch, query, options);
   }
 
   /** A sampled batch. */
-  sampledBatch(batch: BatchQueryResult, query: BatchQuery, options?: BatchOptions) {
+  sampledBatch(batch: BatchQueryResult, query: BatchQuery, options: BatchOptions) {
     return BaseAlgorithm.applyParams(batch, query, options);
   }
 
   private static applyParams(
     batch: BatchQueryResult,
     query: BatchQuery,
-    options?: BatchOptions
+    options: BatchOptions
   ): [string[], QueryMetadata[]] {
     if (batch.results.length !== query.queries.length) {
       throw new Error('Number of results is not equal to number of queries');
     }
 
     // apply threshold to query results if needed
-    if (options?.applyThreshold) {
-      let threshold: number;
-      let apply = true;
-
-      // this is sometimes array / float, sometimes not (in other classes)
-      if (Array.isArray(options.applyThreshold)) {
-        apply = options.applyThreshold[0];
-        threshold = options.applyThreshold[1];
-      } else if (typeof options.applyThreshold === 'number') {
-        threshold = options.applyThreshold;
-      } else {
-        throw new Error('applyThreshold must be a [bool, float] or float.');
-      }
-
-      if (apply && threshold > 0) {
-        batch.results = batch.results.map(r => r.applyThreshold(threshold));
-      }
+    if (options.applyThreshold) {
+      batch.results = batch.results.map(r => r.applyThreshold(options.applyThreshold ?? 0));
     }
 
     // apply maximal marginal relevance
-    if (options?.applyMMR) {
+    if (options.applyMMR) {
       batch.results = batch.results.map((r, i) =>
         // TODO: move 0.5 to constants
         maximalMarginalRelevance(query.queries[i].embedding, r, 0.5, query.queries[i].top_k_mmr)
@@ -90,7 +75,7 @@ export class BaseAlgorithm {
     }
 
     // filter duplicates
-    if (options?.removeDuplicates) {
+    if (options.removeDuplicates) {
       batch.removeDuplicates();
     }
 
