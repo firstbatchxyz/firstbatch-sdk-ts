@@ -1,81 +1,51 @@
 import {UserAction} from './action';
 import {Blueprint, Edge, Vertex} from './blueprint';
-import {Params, ParamsInterface} from './params';
-import {PresetSignalNames, Signal, Signals} from './signal';
+import {Params} from './params';
+import {Signal, Signals} from './signal';
+import type {DFA} from './types';
 
-export class DFAParser {
-  data: {
-    signals?: {
-      label: string;
-      weight: number;
-    }[];
-    nodes: {
-      name: string;
-      batch_type: Vertex['batchType'];
-      params: Partial<ParamsInterface>;
-    }[];
-    edges: {
-      name: string;
-      edge_type: PresetSignalNames | 'BATCH';
-      start: string;
-      end: string;
-    }[];
-  };
-  blueprint: Blueprint;
+/**
+ * Parse a given Blueprint DFA to obtain a Blueprint instance.
+ *
+ * @param dfa DFA (deterministic finite automata)
+ * @returns blueprint
+ */
+export function parseDFA(dfa: DFA): Blueprint {
+  const blueprint = new Blueprint();
 
-  constructor(blueprint: string | object) {
-    // perhaps only allow type-safe object here?
-    // let the user JSON.parse outside?
-    if (typeof blueprint === 'string') {
-      this.data = JSON.parse(blueprint);
-    } else {
-      // FIXME: can we maybe not do this type-narrow here?
-      this.data = blueprint as typeof this.data;
-    }
-    this.blueprint = new Blueprint();
+  // extends Signals // TODO: why do this?
+  if (dfa.signals) {
+    Signal.extend(Signals, dfa.signals);
   }
 
-  private validateEdges(): void {
-    for (const node of this.blueprint.vertices) {
-      // get edges that have this node as the starting node
-      const edges = this.blueprint.edges.filter(e => e.start.eq(node));
+  // add vertices (nodes)
+  dfa.nodes.forEach(node => {
+    blueprint.addVertex(new Vertex(node.name, node.batch_type, new Params(node.params)));
+  });
 
-      // check if edges that have this node as its start vertex contain 'batch' action
-      if (!edges.some(e => e.edgeType.isBatch)) {
-        throw new Error(`Node '${node.name}' is missing a 'BATCH' typed edge.`);
-      }
+  // add edges
+  dfa.edges.forEach(edge => {
+    blueprint.addEdge(
+      new Edge(edge.name, new UserAction(edge.edge_type), blueprint.map[edge.start], blueprint.map[edge.end])
+    );
+  });
 
-      // within all action types of these edges, we must either have all signals; or some amount of signals along with the DEFAULT signal
-      const actionTypes = edges.filter(e => !e.edgeType.isBatch).map(e => e.edgeType.actionType);
-      if (!actionTypes.some(e => e.eq(Signals.DEFAULT)) && actionTypes.length !== Object.keys(Signals).length) {
-        throw new Error(`Node '${node.name}' does not have all signals covered, or is missing the default signal.`);
-      }
-    }
-  }
+  // validate connections
+  blueprint.vertices.forEach(node => {
+    // get edges that have this node as the starting node
+    const edges = blueprint.edges.filter(e => e.start.eq(node));
 
-  parse(): Blueprint {
-    if (this.data.signals) {
-      Signal.extend(Signals, this.data.signals);
-    }
-
-    if (!this.data.nodes) throw new Error("Expected 'nodes' in data.");
-    for (const node of this.data.nodes) {
-      this.blueprint.addVertex(new Vertex(node.name, node.batch_type, new Params(node.params)));
+    // check if edges that have this node as its start vertex contain 'batch' action
+    if (!edges.some(e => e.edgeType.isBatch)) {
+      throw new Error(`Node '${node.name}' is missing a 'BATCH' typed edge.`);
     }
 
-    if (!this.data.edges) throw new Error("Expected 'edges' in data.");
-    for (const edge of this.data.edges) {
-      this.blueprint.addEdge(
-        new Edge(
-          edge.name,
-          new UserAction(edge.edge_type),
-          this.blueprint.map[edge.start],
-          this.blueprint.map[edge.end]
-        )
-      );
+    // within all action types of these edges, we must either have all signals; or some amount of signals along with the DEFAULT signal
+    const actionTypes = edges.filter(e => !e.edgeType.isBatch).map(e => e.edgeType.actionType);
+    if (!actionTypes.some(e => e.eq(Signals.DEFAULT)) && actionTypes.length !== Object.keys(Signals).length) {
+      throw new Error(`Node '${node.name}' does not have all signals covered, or is missing the default signal.`);
     }
+  });
 
-    this.validateEdges();
-    return this.blueprint;
-  }
+  return blueprint;
 }

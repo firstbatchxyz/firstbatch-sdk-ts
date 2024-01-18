@@ -3,7 +3,7 @@ import {createHash} from 'crypto';
 import constants from '../constants';
 import {BatchResponse} from './types';
 import {Params} from '../algorithm/blueprint/params';
-import {Vertex} from '../algorithm';
+import {DFA, Vertex} from '../algorithm';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -193,8 +193,14 @@ export class FirstBatchClient {
     return response.data;
   }
 
+  /**
+   * Retrieve the blueprint of some custom id.
+   *
+   * @param customId algorithm id
+   * @returns a DFA (TODO: is this a string & object or always an object?)
+   */
   protected async getBlueprint(customId: string) {
-    const response = await this.post<string>('embeddings/get_blueprint', {id: customId});
+    const response = await this.post<DFA | string>('embeddings/get_blueprint', {id: customId});
     return response.data;
   }
 

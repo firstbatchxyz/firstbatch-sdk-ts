@@ -1,4 +1,4 @@
-import {Signal, Signals, PresetSignalNames} from './signal';
+import {Signal, Signals} from './signal';
 
 /** A user action.
  *
@@ -14,7 +14,7 @@ export class UserAction {
   readonly isBatch: boolean = false;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  constructor(action: Signal | PresetSignalNames | 'BATCH') {
+  constructor(action: Signal | string | 'BATCH') {
     if (action instanceof Signal) {
       this.actionType = action;
     } else if (action === 'BATCH') {

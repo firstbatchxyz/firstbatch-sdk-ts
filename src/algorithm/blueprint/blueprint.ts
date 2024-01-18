@@ -69,7 +69,7 @@ export class Blueprint {
       this.edges.find(e => Signals.DEFAULT.eq(e.edgeType.actionType));
 
     if (!edge) {
-      // this should never happen if `DFAParser.validateEdges` works correctly
+      // this should never happen if DFA parser works correctly
       throw new Error('Expected to find an edge');
     }
 

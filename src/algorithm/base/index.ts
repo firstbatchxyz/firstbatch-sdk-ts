@@ -1,13 +1,13 @@
 import {maximalMarginalRelevance} from '../../vector/utils';
-import {DFAParser, UserAction, Blueprint} from '../blueprint';
+import {UserAction, Blueprint, parseDFA, DFA} from '../blueprint';
 import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../../vector';
 
 export class BaseAlgorithm {
   protected blueprint: Blueprint;
   algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
 
-  constructor(algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE', blueprint: string | object) {
-    this.blueprint = new DFAParser(blueprint).parse();
+  constructor(algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE', blueprint: DFA) {
+    this.blueprint = parseDFA(blueprint);
     this.algorithmType = algorithmType;
   }
 

@@ -391,7 +391,7 @@ export class FirstBatch extends FirstBatchClient {
         }
 
         const blueprint = await this.getBlueprint(options.customId);
-        return new CustomAlgorithm(blueprint);
+        return new CustomAlgorithm(typeof blueprint === 'string' ? JSON.parse(blueprint) : blueprint);
       }
       case 'FACTORY': {
         if (!options?.factoryId) {

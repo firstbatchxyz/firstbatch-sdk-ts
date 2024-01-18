@@ -1,14 +1,13 @@
 import {describe, expect, test} from 'bun:test';
 import testLibrary from './data/blueprints';
 import mainLibrary from '../src/algorithm/blueprint/library';
-import {DFAParser} from '../src/algorithm/blueprint/parser';
+import {parseDFA} from '../src/algorithm/blueprint/parser';
 import {UserAction} from '../src/algorithm/blueprint/action';
 import {Signal, Signals} from '../src/algorithm/blueprint/signal';
 
 describe('parser & blueprint', () => {
   test('batch step', () => {
-    const parser = new DFAParser(testLibrary.example2);
-    const blueprint = parser.parse();
+    const blueprint = parseDFA(testLibrary.example2);
 
     expect(blueprint.vertices.length).toBe(4);
     expect(blueprint.edges.length).toBe(8);
@@ -19,8 +18,7 @@ describe('parser & blueprint', () => {
   });
 
   test('real blueprint', () => {
-    const parser = new DFAParser(mainLibrary.UNIQUE_JOURNEYS);
-    const blueprint = parser.parse();
+    const blueprint = parseDFA(mainLibrary.UNIQUE_JOURNEYS);
 
     expect(blueprint.vertices.length).toBe(6);
     expect(blueprint.edges.length).toBe(12);
@@ -30,8 +28,7 @@ describe('parser & blueprint', () => {
   });
 
   test('new signal', () => {
-    const parser = new DFAParser(testLibrary.example1);
-    const blueprint = parser.parse();
+    const blueprint = parseDFA(testLibrary.example1);
 
     expect(blueprint.vertices.length).toBe(3);
     expect(blueprint.edges.length).toBe(9);

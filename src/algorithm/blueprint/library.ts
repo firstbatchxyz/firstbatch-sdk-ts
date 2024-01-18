@@ -1,100 +1,174 @@
-const Navigable_UX: string = `{
-  "nodes": [
-      {"name": "Exploration", "batch_type": "random", "params": {"last_n":8}},
-      {"name": "Browsing", "batch_type": "sampled", "params": {"n_topics":12,"last_n":8 }},
-      {"name": "Discovery", "batch_type": "personalized", "params": {"r" : 0.2, "mu" : 0.5, "alpha" : 0.7, "apply_threshold": 0.3, "apply_mmr" :true}},
-      {"name": "Dedicated", "batch_type": "personalized", "params": {"r" : 0.1, "mu" : 0.2, "alpha" : 0.4, "apply_threshold": 0.5,"apply_mmr" :true, "last_n":5}},
-      {"name": "Focus", "batch_type": "personalized", "params": {"r" : 0.1, "mu" : 0.05, "alpha" : 0.1, "apply_threshold": 0.6, "apply_mmr" :false, "last_n":4}},
-      {"name": "Hyper_Focus", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0, "alpha" : 0, "apply_threshold": 0.7, "apply_mmr" :false, "last_n":2}}
-  ],
-  "edges": [
-      {"name": "edge1", "edge_type": "DEFAULT", "start": "Exploration", "end": "Hyper_Focus"},
-      {"name": "edge2", "edge_type": "DEFAULT", "start": "Browsing", "end": "Hyper_Focus"},
-      {"name": "edge3", "edge_type": "DEFAULT", "start": "Discovery", "end": "Hyper_Focus"},
-      {"name": "edge4", "edge_type": "DEFAULT", "start": "Dedicated", "end": "Hyper_Focus"},
-      {"name": "edge5", "edge_type": "DEFAULT", "start": "Focus", "end": "Hyper_Focus"},
-      {"name": "edge6", "edge_type": "DEFAULT", "start": "Hyper_Focus", "end": "Hyper_Focus"},
-      {"name": "edge7", "edge_type": "BATCH", "start": "Exploration", "end": "Browsing"},
-      {"name": "edge8", "edge_type": "BATCH", "start": "Browsing", "end": "Browsing"},
-      {"name": "edge9", "edge_type": "BATCH", "start": "Discovery", "end": "Discovery"},
-      {"name": "edge10", "edge_type": "BATCH", "start": "Dedicated", "end": "Discovery"},
-      {"name": "edge11", "edge_type": "BATCH", "start": "Focus", "end": "Dedicated"},
-      {"name": "edge12", "edge_type": "BATCH", "start": "Hyper_Focus", "end": "Focus"}
-  ]
-}`;
+import type {DFA} from './types';
 
-const Individually_Crafted_Recommendations: string = `{
-  "nodes": [
-      {"name": "Recommendation", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.0, "alpha" : 0, "apply_threshold": 0.7, "apply_mmr" :false, "last_n":1}},
-      {"name": "Expansion", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.05, "alpha" : 0.4, "apply_threshold": 0.7, "apply_mmr" :true, "last_n":2}},
-      {"name": "Discovery", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.1, "alpha" : 1, "apply_threshold": 0.6, "apply_mmr" :true, "last_n":4}}
+const Navigable_UX: DFA = {
+  nodes: [
+    {name: 'Exploration', batch_type: 'random', params: {last_n: 8}},
+    {name: 'Browsing', batch_type: 'sampled', params: {n_topics: 12, last_n: 8}},
+    {
+      name: 'Discovery',
+      batch_type: 'personalized',
+      params: {r: 0.2, mu: 0.5, alpha: 0.7, apply_threshold: 0.3, apply_mmr: true},
+    },
+    {
+      name: 'Dedicated',
+      batch_type: 'personalized',
+      params: {r: 0.1, mu: 0.2, alpha: 0.4, apply_threshold: 0.5, apply_mmr: true, last_n: 5},
+    },
+    {
+      name: 'Focus',
+      batch_type: 'personalized',
+      params: {r: 0.1, mu: 0.05, alpha: 0.1, apply_threshold: 0.6, apply_mmr: false, last_n: 4},
+    },
+    {
+      name: 'Hyper_Focus',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0, alpha: 0, apply_threshold: 0.7, apply_mmr: false, last_n: 2},
+    },
   ],
-  "edges": [
-      {"name": "edge1", "edge_type": "DEFAULT", "start": "Discovery", "end": "Recommendation"},
-      {"name": "edge2", "edge_type": "DEFAULT", "start": "Expansion", "end": "Recommendation"},
-      {"name": "edge3", "edge_type": "DEFAULT", "start": "Recommendation", "end": "Recommendation"},
-      {"name": "edge4", "edge_type": "BATCH", "start": "Recommendation", "end": "Expansion"},
-      {"name": "edge5", "edge_type": "BATCH", "start": "Expansion", "end": "Discovery"},
-      {"name": "edge6", "edge_type": "BATCH", "start": "Discovery", "end": "Discovery"}
-  ]
-}`;
+  edges: [
+    {name: 'edge1', edge_type: 'DEFAULT', start: 'Exploration', end: 'Hyper_Focus'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: 'Browsing', end: 'Hyper_Focus'},
+    {name: 'edge3', edge_type: 'DEFAULT', start: 'Discovery', end: 'Hyper_Focus'},
+    {name: 'edge4', edge_type: 'DEFAULT', start: 'Dedicated', end: 'Hyper_Focus'},
+    {name: 'edge5', edge_type: 'DEFAULT', start: 'Focus', end: 'Hyper_Focus'},
+    {name: 'edge6', edge_type: 'DEFAULT', start: 'Hyper_Focus', end: 'Hyper_Focus'},
+    {name: 'edge7', edge_type: 'BATCH', start: 'Exploration', end: 'Browsing'},
+    {name: 'edge8', edge_type: 'BATCH', start: 'Browsing', end: 'Browsing'},
+    {name: 'edge9', edge_type: 'BATCH', start: 'Discovery', end: 'Discovery'},
+    {name: 'edge10', edge_type: 'BATCH', start: 'Dedicated', end: 'Discovery'},
+    {name: 'edge11', edge_type: 'BATCH', start: 'Focus', end: 'Dedicated'},
+    {name: 'edge12', edge_type: 'BATCH', start: 'Hyper_Focus', end: 'Focus'},
+  ],
+};
 
-const Unique_Journeys: string = `{
-  "nodes": [
-      {"name": "Welcome", "batch_type": "biased", "params": {"r" : 0.2, "mu" : 0.2, "alpha" : 0.4, "apply_threshold": 0.7, "apply_mmr" :false, "last_n":5}},
-      {"name": "Exploration", "batch_type": "personalized", "params": {"r" : 0.3, "mu" : 0.6, "alpha" : 0.7, "apply_threshold": 0.3, "apply_mmr" :true, "last_n":8}},
-      {"name": "Discovery", "batch_type": "personalized", "params": {"r" : 0.2, "mu" : 0.4, "alpha" : 0.5, "apply_threshold": 0.3, "apply_mmr" :true, "last_n":6}},
-      {"name": "Dedicated", "batch_type": "personalized", "params": {"r" : 0.1, "mu" : 0.2, "alpha" : 0.4, "apply_threshold": 0.5,"apply_mmr" :true, "last_n":5}},
-      {"name": "Focus", "batch_type": "personalized", "params": {"r" : 0.1, "mu" : 0.05, "alpha" : 0.1, "apply_threshold": 0.6, "apply_mmr" :false, "last_n":4}},
-      {"name": "Hyper_Focus", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0, "alpha" : 0, "apply_threshold": 0.7, "apply_mmr" :false, "last_n":2}}
+const Individually_Crafted_Recommendations: DFA = {
+  nodes: [
+    {
+      name: 'Recommendation',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.0, alpha: 0, apply_threshold: 0.7, apply_mmr: false, last_n: 1},
+    },
+    {
+      name: 'Expansion',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.05, alpha: 0.4, apply_threshold: 0.7, apply_mmr: true, last_n: 2},
+    },
+    {
+      name: 'Discovery',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.1, alpha: 1, apply_threshold: 0.6, apply_mmr: true, last_n: 4},
+    },
   ],
-  "edges": [
-      {"name": "edge1", "edge_type": "DEFAULT", "start": "Welcome", "end": "Hyper_Focus"},
-      {"name": "edge2", "edge_type": "DEFAULT", "start": "Exploration", "end": "Hyper_Focus"},
-      {"name": "edge3", "edge_type": "DEFAULT", "start": "Discovery", "end": "Hyper_Focus"},
-      {"name": "edge4", "edge_type": "DEFAULT", "start": "Dedicated", "end": "Hyper_Focus"},
-      {"name": "edge5", "edge_type": "DEFAULT", "start": "Focus", "end": "Hyper_Focus"},
-      {"name": "edge6", "edge_type": "DEFAULT", "start": "Hyper_Focus", "end": "Hyper_Focus"},
-      {"name": "edge7", "edge_type": "BATCH", "start": "Welcome", "end": "Exploration"},
-      {"name": "edge8", "edge_type": "BATCH", "start": "Exploration", "end": "Welcome"},
-      {"name": "edge9", "edge_type": "BATCH", "start": "Discovery", "end": "Exploration"},
-      {"name": "edge10", "edge_type": "BATCH", "start": "Dedicated", "end": "Discovery"},
-      {"name": "edge11", "edge_type": "BATCH", "start": "Focus", "end": "Dedicated"},
-      {"name": "edge12", "edge_type": "BATCH", "start": "Hyper_Focus", "end": "Focus"}
-  ]
-}`;
+  edges: [
+    {name: 'edge1', edge_type: 'DEFAULT', start: 'Discovery', end: 'Recommendation'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: 'Expansion', end: 'Recommendation'},
+    {name: 'edge3', edge_type: 'DEFAULT', start: 'Recommendation', end: 'Recommendation'},
+    {name: 'edge4', edge_type: 'BATCH', start: 'Recommendation', end: 'Expansion'},
+    {name: 'edge5', edge_type: 'BATCH', start: 'Expansion', end: 'Discovery'},
+    {name: 'edge6', edge_type: 'BATCH', start: 'Discovery', end: 'Discovery'},
+  ],
+};
 
-const User_Centric_Promoted_Content_Curations: string = `{
-  "nodes": [
-      {"name": "Exploration", "batch_type": "sampled", "params": {"n_topics":8,"last_n": 3}},
-      {"name": "Curated", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.1, "alpha" : 0.3, "apply_threshold": 0.6, "apply_mmr" :false, "last_n":1}}
+const Unique_Journeys: DFA = {
+  nodes: [
+    {
+      name: 'Welcome',
+      batch_type: 'biased',
+      params: {r: 0.2, mu: 0.2, alpha: 0.4, apply_threshold: 0.7, apply_mmr: false, last_n: 5},
+    },
+    {
+      name: 'Exploration',
+      batch_type: 'personalized',
+      params: {r: 0.3, mu: 0.6, alpha: 0.7, apply_threshold: 0.3, apply_mmr: true, last_n: 8},
+    },
+    {
+      name: 'Discovery',
+      batch_type: 'personalized',
+      params: {r: 0.2, mu: 0.4, alpha: 0.5, apply_threshold: 0.3, apply_mmr: true, last_n: 6},
+    },
+    {
+      name: 'Dedicated',
+      batch_type: 'personalized',
+      params: {r: 0.1, mu: 0.2, alpha: 0.4, apply_threshold: 0.5, apply_mmr: true, last_n: 5},
+    },
+    {
+      name: 'Focus',
+      batch_type: 'personalized',
+      params: {r: 0.1, mu: 0.05, alpha: 0.1, apply_threshold: 0.6, apply_mmr: false, last_n: 4},
+    },
+    {
+      name: 'Hyper_Focus',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0, alpha: 0, apply_threshold: 0.7, apply_mmr: false, last_n: 2},
+    },
   ],
-  "edges": [
-      {"name": "edge1", "edge_type": "DEFAULT", "start": "Exploration", "end": "Curated"},
-      {"name": "edge2", "edge_type": "DEFAULT", "start": "Curated", "end": "Curated"},
-      {"name": "edge3", "edge_type": "BATCH", "start": "Exploration", "end": "Exploration"},
-      {"name": "edge4", "edge_type": "BATCH", "start": "Curated", "end": "Curated"}
-  ]
-}`;
+  edges: [
+    {name: 'edge1', edge_type: 'DEFAULT', start: 'Welcome', end: 'Hyper_Focus'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: 'Exploration', end: 'Hyper_Focus'},
+    {name: 'edge3', edge_type: 'DEFAULT', start: 'Discovery', end: 'Hyper_Focus'},
+    {name: 'edge4', edge_type: 'DEFAULT', start: 'Dedicated', end: 'Hyper_Focus'},
+    {name: 'edge5', edge_type: 'DEFAULT', start: 'Focus', end: 'Hyper_Focus'},
+    {name: 'edge6', edge_type: 'DEFAULT', start: 'Hyper_Focus', end: 'Hyper_Focus'},
+    {name: 'edge7', edge_type: 'BATCH', start: 'Welcome', end: 'Exploration'},
+    {name: 'edge8', edge_type: 'BATCH', start: 'Exploration', end: 'Welcome'},
+    {name: 'edge9', edge_type: 'BATCH', start: 'Discovery', end: 'Exploration'},
+    {name: 'edge10', edge_type: 'BATCH', start: 'Dedicated', end: 'Discovery'},
+    {name: 'edge11', edge_type: 'BATCH', start: 'Focus', end: 'Dedicated'},
+    {name: 'edge12', edge_type: 'BATCH', start: 'Hyper_Focus', end: 'Focus'},
+  ],
+};
 
-const User_Intent_AI_Agents: string = `{
-  "nodes": [
-      {"name": "Welcome", "batch_type": "biased", "params": {"r" : 0, "mu" : 0.1, "alpha" : 0.4, "apply_threshold": 0.8, "apply_mmr" :false, "last_n":12}},
-      {"name": "Expansion", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.2, "alpha" : 0.6, "apply_threshold": 0.6, "apply_mmr" :true, "last_n":12}},
-      {"name": "Exploration", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0.5, "alpha" : 0.6, "apply_threshold": 0.5,"apply_mmr" :true, "last_n":12}},
-      {"name": "Focus", "batch_type": "personalized", "params": {"r" : 0, "mu" : 0, "alpha" : 0, "apply_threshold": 0.8, "apply_mmr" :false, "last_n":6}}
+const User_Centric_Promoted_Content_Curations: DFA = {
+  nodes: [
+    {name: 'Exploration', batch_type: 'sampled', params: {n_topics: 8, last_n: 3}},
+    {
+      name: 'Curated',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.1, alpha: 0.3, apply_threshold: 0.6, apply_mmr: false, last_n: 1},
+    },
   ],
-  "edges": [
-      {"name": "edge1", "edge_type": "DEFAULT", "start": "Welcome", "end": "Hyper_Focus"},
-      {"name": "edge2", "edge_type": "DEFAULT", "start": "Expansion", "end": "Hyper_Focus"},
-      {"name": "edge3", "edge_type": "DEFAULT", "start": "Exploration", "end": "Hyper_Focus"},
-      {"name": "edge4", "edge_type": "DEFAULT", "start": "Focus", "end": "Hyper_Focus"},
-      {"name": "edge1", "edge_type": "BATCH", "start": "Welcome", "end": "Welcome"},
-      {"name": "edge2", "edge_type": "BATCH", "start": "Expansion", "end": "Exploration"},
-      {"name": "edge3", "edge_type": "BATCH", "start": "Exploration", "end": "Exploration"},
-      {"name": "edge4", "edge_type": "BATCH", "start": "Focus", "end": "Expansion"}
-  ]
-}`;
+  edges: [
+    {name: 'edge1', edge_type: 'DEFAULT', start: 'Exploration', end: 'Curated'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: 'Curated', end: 'Curated'},
+    {name: 'edge3', edge_type: 'BATCH', start: 'Exploration', end: 'Exploration'},
+    {name: 'edge4', edge_type: 'BATCH', start: 'Curated', end: 'Curated'},
+  ],
+};
+
+const User_Intent_AI_Agents: DFA = {
+  nodes: [
+    {
+      name: 'Welcome',
+      batch_type: 'biased',
+      params: {r: 0, mu: 0.1, alpha: 0.4, apply_threshold: 0.8, apply_mmr: false, last_n: 12},
+    },
+    {
+      name: 'Expansion',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.2, alpha: 0.6, apply_threshold: 0.6, apply_mmr: true, last_n: 12},
+    },
+    {
+      name: 'Exploration',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0.5, alpha: 0.6, apply_threshold: 0.5, apply_mmr: true, last_n: 12},
+    },
+    {
+      name: 'Focus',
+      batch_type: 'personalized',
+      params: {r: 0, mu: 0, alpha: 0, apply_threshold: 0.8, apply_mmr: false, last_n: 6},
+    },
+  ],
+  edges: [
+    {name: 'edge1', edge_type: 'DEFAULT', start: 'Welcome', end: 'Hyper_Focus'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: 'Expansion', end: 'Hyper_Focus'},
+    {name: 'edge3', edge_type: 'DEFAULT', start: 'Exploration', end: 'Hyper_Focus'},
+    {name: 'edge4', edge_type: 'DEFAULT', start: 'Focus', end: 'Hyper_Focus'},
+    {name: 'edge1', edge_type: 'BATCH', start: 'Welcome', end: 'Welcome'},
+    {name: 'edge2', edge_type: 'BATCH', start: 'Expansion', end: 'Exploration'},
+    {name: 'edge3', edge_type: 'BATCH', start: 'Exploration', end: 'Exploration'},
+    {name: 'edge4', edge_type: 'BATCH', start: 'Focus', end: 'Expansion'},
+  ],
+};
 
 export default {
   /** ### Unique Journeys

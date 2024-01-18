@@ -32,15 +32,13 @@ export class Pinecone extends VectorStore {
   }
 
   async search(query: Query) {
-    const q = {
+    const result: QueryResponse = await this.index.query({
       vector: query.embedding.vector,
       topK: query.top_k,
       filter: query.filter.filter as Record<string, any>, // TODO: type
       includeMetadata: query.include_metadata,
       includeValues: query.include_values,
-    };
-
-    const result: QueryResponse = await this.index.query(q);
+    });
     if (result.matches === undefined) throw Error('No valid match for query');
 
     const ids: string[] = [];
@@ -50,8 +48,7 @@ export class Pinecone extends VectorStore {
 
     for (const r of result.matches) {
       ids.push(r.id);
-      if (r.score != undefined) scores.push(r.score);
-      else scores.push(0);
+      scores.push(r.score ?? 0);
       vectors.push({vector: r.values, id: r.id});
       metadata.push(new QueryMetadata(r.id, r.metadata as RecordMetadata));
     }
