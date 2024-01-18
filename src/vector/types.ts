@@ -16,7 +16,7 @@ export type SearchType = 'default' | 'sparse' | 'fetch';
 
 export type BatchOptions = {
   removeDuplicates?: boolean;
-  applyThreshold?: number | [boolean, number];
+  applyThreshold?: number;
   applyMMR?: boolean;
   // shuffle?: boolean; // enabled by default until further changes
 };

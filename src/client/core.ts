@@ -257,7 +257,7 @@ export class FirstBatch extends FirstBatchClient {
         batchSize,
         vectorStore.embeddingSize,
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
-        params.apply_mmr || params.apply_threshold[0]
+        params.apply_mmr || params.apply_threshold !== 0
       );
       this.updateState(session, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
@@ -298,7 +298,7 @@ export class FirstBatch extends FirstBatchClient {
         });
         const batchQuery = this.queryWrapper(response.vdbid, algoInstance.batchSize, batchResponse, history.ids, {
           applyMMR: params.apply_mmr,
-          applyThreshold: params.apply_threshold[1],
+          applyThreshold: params.apply_threshold,
         });
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
@@ -312,7 +312,7 @@ export class FirstBatch extends FirstBatchClient {
       const batchResponse = await this.sampledBatch(session, response.vdbid, nextState.name, params.n_topics);
       const batchQuery = this.queryWrapper(response.vdbid, algoInstance.batchSize, batchResponse, history.ids, {
         applyMMR: params.apply_mmr,
-        applyThreshold: params.apply_threshold[1],
+        applyThreshold: params.apply_threshold,
       });
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 

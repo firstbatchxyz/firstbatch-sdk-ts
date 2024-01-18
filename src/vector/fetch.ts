@@ -4,20 +4,17 @@ import {SearchType, Vector} from './types';
 export class FetchQuery {
   id: string;
   search_type: SearchType = 'fetch';
-  return_fields?: string[];
 
   constructor(id: string) {
     this.id = id;
   }
 }
 
-export class FetchResult {
-  constructor(
-    readonly vector: Vector,
-    readonly metadata: QueryMetadata,
-    readonly id: string
-  ) {}
-}
+export type FetchResult = {
+  vector: Vector;
+  metadata: QueryMetadata;
+  id: string;
+};
 
 // TODO: we may not need these to be classes everywhere!
 

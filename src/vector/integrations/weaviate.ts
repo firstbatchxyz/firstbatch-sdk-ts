@@ -103,7 +103,7 @@ export class Weaviate extends VectorStore {
     const metadata = new QueryMetadata(query.id, result.properties as RecordMetadata);
     const vector: Vector = {vector: vec, id: query.id, dim: vec.length};
 
-    return new FetchResult(vector, metadata, query.id);
+    return {vector, metadata, id: query.id};
   }
 
   historyFilter(

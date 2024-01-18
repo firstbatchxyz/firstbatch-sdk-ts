@@ -85,7 +85,7 @@ export class Typesense extends VectorStore {
       }>(this.collectionName)
       .documents(query.id)
       .retrieve();
-    return new FetchResult(res.vec, res.metadata, res.id);
+    return {vector: res.vec, metadata: res.metadata, id: res.id};
   }
 
   historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string) {

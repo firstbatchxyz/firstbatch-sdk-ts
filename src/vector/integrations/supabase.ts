@@ -110,13 +110,13 @@ export class Supabase extends VectorStore {
 
   async fetch(query: FetchQuery): Promise<FetchResult> {
     const result = await this.fetchWrapper([query.id]);
-    const m: QueryMetadata = new QueryMetadata(query.id, result[0][2]);
-    const v: Vector = {
+    const metadata: QueryMetadata = new QueryMetadata(query.id, result[0][2]);
+    const vector: Vector = {
       vector: result[0][1],
       id: query.id,
       dim: result[0][1].length,
     };
-    return new FetchResult(v, m, query.id);
+    return {vector, metadata, id: query.id};
   }
 
   /** Simple SELECT query to vectors with matching ids. */

@@ -7,7 +7,6 @@ export class Query {
   embedding: Vector;
   top_k: number;
   top_k_mmr: number;
-  return_fields?: string[] = [];
   search_type: SearchType = 'default';
   filter: MetadataFilter;
   include_metadata: boolean = true;
