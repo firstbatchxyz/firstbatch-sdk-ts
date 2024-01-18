@@ -4,7 +4,7 @@ import type {DistanceMetric, Vector} from '../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
-import {FetchQuery, FetchResult} from '../fetch';
+import {FetchResult} from '../fetch';
 import {VectorStore} from './base';
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
@@ -108,15 +108,15 @@ export class Supabase extends VectorStore {
     });
   }
 
-  async fetch(query: FetchQuery): Promise<FetchResult> {
-    const result = await this.fetchWrapper([query.id]);
-    const metadata: QueryMetadata = new QueryMetadata(query.id, result[0][2]);
+  async fetch(id: string): Promise<FetchResult> {
+    const result = await this.fetchWrapper([id]);
+    const metadata: QueryMetadata = new QueryMetadata(id, result[0][2]);
     const vector: Vector = {
       vector: result[0][1],
-      id: query.id,
+      id: id,
       dim: result[0][1].length,
     };
-    return {vector, metadata, id: query.id};
+    return {vector, metadata, id};
   }
 
   /** Simple SELECT query to vectors with matching ids. */

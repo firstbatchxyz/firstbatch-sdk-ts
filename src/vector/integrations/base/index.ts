@@ -1,6 +1,6 @@
 import constants from '../../../constants';
 import type {BaseLossy} from '../../../lossy/base';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery, FetchResult} from '../../fetch';
+import {BatchFetchQuery, BatchFetchResult, FetchResult} from '../../fetch';
 import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../query';
 import type {MetadataFilter} from '../../metadata';
 import type {CompressedVector, DistanceMetric, Vector} from '../../types';
@@ -48,11 +48,11 @@ export abstract class VectorStore {
   }
 
   async multiFetch(query: BatchFetchQuery): Promise<BatchFetchResult> {
-    const multiResult = await Promise.all(query.fetches.map(q => this.fetch(q)));
+    const multiResult = await Promise.all(query.ids.map(id => this.fetch(id)));
     return new BatchFetchResult(query.batch_size, multiResult);
   }
 
   public abstract search(query: Query): Promise<QueryResult>;
-  public abstract fetch(query: FetchQuery): Promise<FetchResult>;
+  public abstract fetch(id: string): Promise<FetchResult>;
   public abstract historyFilter(ids: string[], prevFilter?: object): MetadataFilter;
 }

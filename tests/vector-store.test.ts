@@ -8,7 +8,7 @@ import {createClient as createSupabaseClient} from '@supabase/supabase-js';
 
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
-import {BatchFetchQuery, BatchFetchResult, FetchQuery} from '../src/vector/fetch';
+import {BatchFetchQuery, BatchFetchResult} from '../src/vector/fetch';
 import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
 
 describe('vector store', () => {
@@ -73,8 +73,8 @@ describe('vector store', () => {
         const query = generateQuery(1, dim, 10, true).next().value;
         const res = await vs.search(query);
         expect(res).toBeInstanceOf(QueryResult);
-        const fetch = new FetchQuery(res.ids[0]);
-        const fetchRes = await vs.fetch(fetch);
+
+        const fetchRes = await vs.fetch(res.ids[0]);
         // expect(fetchRes).toBeInstanceOf(FetchResult);
         // TODO: test
       });
@@ -91,10 +91,7 @@ describe('vector store', () => {
         expect(res).toBeInstanceOf(QueryResult);
 
         const ids = res.ids;
-        const bfq = new BatchFetchQuery(
-          10,
-          ids.map(id => new FetchQuery(id))
-        );
+        const bfq = new BatchFetchQuery(10, ids);
         const multiFetchRes = await vs.multiFetch(bfq);
         expect(multiFetchRes).toBeInstanceOf(BatchFetchResult);
       });

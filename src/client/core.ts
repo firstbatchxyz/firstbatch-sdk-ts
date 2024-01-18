@@ -7,10 +7,10 @@ import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
 import {BatchResponse, SessionObject} from './types';
-import {generateBatch, MetadataFilter, Query, QueryMetadata, FetchQuery, BatchQuery} from '../vector';
+import {generateBatch, MetadataFilter, Query, QueryMetadata, BatchQuery} from '../vector';
 import {UserAction} from '../algorithm/blueprint/action';
 
-/** Configuration for the FirstBatch core client. */
+/** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {
   batchSize: number;
   quantizerTrainSize: number;
@@ -37,7 +37,6 @@ export class FirstBatch extends FirstBatchClient {
     this.enableHistory = config?.enableHistory || constants.DEFAULT_ENABLE_HISTORY;
     this.verbose = config?.verbose || constants.DEFAULT_VERBOSE;
 
-    // setup logger
     if (this.verbose !== undefined) {
       this.logger.setLevel(this.verbose ? 'INFO' : 'WARN');
       this.logger.info('Verbose mode enabled.');
@@ -45,7 +44,6 @@ export class FirstBatch extends FirstBatchClient {
       this.logger.setLevel('WARN');
     }
 
-    // prepare quantizer
     if (this.quantizerType === 'product') {
       this.logger.warn("Product quantization not yet supported, defaulting to 'scalar'");
       this.quantizerType = 'scalar';
@@ -181,8 +179,7 @@ export class FirstBatch extends FirstBatchClient {
       throw new Error('Vector Store is undefined, have you called `addVdb` function?');
     }
 
-    const query = new FetchQuery(contentId);
-    const result = await this.store[sessionResponse.vdbid].fetch(query);
+    const result = await this.store[sessionResponse.vdbid].fetch(contentId);
 
     const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, this.batchSize, sessionResponse.algorithm, {
       factoryId: sessionResponse.factory_id,
@@ -234,7 +231,7 @@ export class FirstBatch extends FirstBatchClient {
     if (vectorStore === undefined) {
       throw new Error('Vector Store is undefined, have you called `addVdb` function?');
     }
-    const batchSize = options?.batchSize || this.batchSize;
+    const batchSize = options?.batchSize ?? this.batchSize;
 
     const algoInstance = await this.getAlgorithm(vectorStore.embeddingSize, batchSize, response.algorithm, {
       factoryId: response.factory_id,
@@ -362,16 +359,8 @@ export class FirstBatch extends FirstBatchClient {
       .map(k => (applyMMR ? k * constants.MMR_TOPK_FACTOR : k));
 
     let metadataFilter = MetadataFilter.default();
-    if (this.enableHistory) {
-      if (history.length === 0) {
-        this.logger.info('History is empty, no filter will be applied');
-      }
-
-      if (options?.filter !== undefined) {
-        metadataFilter = this.store[vdbid].historyFilter(history, options?.filter);
-      } else {
-        metadataFilter = this.store[vdbid].historyFilter(history);
-      }
+    if (this.enableHistory && history.length !== 0) {
+      metadataFilter = this.store[vdbid].historyFilter(history, options?.filter);
     }
 
     const queries = response.vectors.map(

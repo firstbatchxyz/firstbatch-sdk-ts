@@ -1,7 +1,6 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
 import type {Vector, DistanceMetric} from '../types';
 import {MetadataFilter, QueryMetadata} from '../metadata';
-import {FetchQuery} from '../fetch';
 import {Query, QueryResult} from '../query';
 import {VectorStore} from './base';
 
@@ -62,9 +61,8 @@ export class Pinecone extends VectorStore {
     return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
   }
 
-  async fetch(query: FetchQuery) {
-    if (query.id === undefined) throw Error('id must be provided for fetch query');
-    const result = await this.index.fetch([query.id]);
+  async fetch(id: string) {
+    const result = await this.index.fetch([id]);
 
     for (const key in result.records) {
       if (Object.hasOwn(result.records, key)) {

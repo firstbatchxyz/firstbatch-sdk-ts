@@ -4,7 +4,7 @@ import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
-import {FetchQuery, FetchResult} from '../fetch';
+import {FetchResult} from '../fetch';
 import {MultiSearchRequestWithPresetSchema} from 'typesense/lib/Typesense/MultiSearch';
 import {VectorStore} from './base';
 
@@ -76,14 +76,14 @@ export class Typesense extends VectorStore {
     return q;
   }
 
-  async fetch(query: FetchQuery): Promise<FetchResult> {
+  async fetch(id: string): Promise<FetchResult> {
     const res = await this.client
       .collections<{
         vec: Vector;
         metadata: QueryMetadata;
         id: string;
       }>(this.collectionName)
-      .documents(query.id)
+      .documents(id)
       .retrieve();
     return {vector: res.vec, metadata: res.metadata, id: res.id};
   }

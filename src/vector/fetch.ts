@@ -1,14 +1,5 @@
 import {QueryMetadata} from './metadata';
-import {SearchType, Vector} from './types';
-
-export class FetchQuery {
-  id: string;
-  search_type: SearchType = 'fetch';
-
-  constructor(id: string) {
-    this.id = id;
-  }
-}
+import {Vector} from './types';
 
 export type FetchResult = {
   vector: Vector;
@@ -20,11 +11,11 @@ export type FetchResult = {
 
 export class BatchFetchQuery {
   batch_size: number = 1;
-  fetches: FetchQuery[] = [];
+  ids: string[] = [];
 
-  constructor(batch_size: number, fetches: FetchQuery[] = []) {
+  constructor(batch_size: number, ids: string[] = []) {
     this.batch_size = batch_size;
-    this.fetches = fetches;
+    this.ids = ids;
   }
 }
 
