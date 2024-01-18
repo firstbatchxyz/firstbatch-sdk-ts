@@ -259,7 +259,7 @@ export class FirstBatch extends FirstBatchClient {
       this.updateState(session, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, batchSize, {
+      [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -281,7 +281,7 @@ export class FirstBatch extends FirstBatchClient {
         );
         this.updateState(session, nextState.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-        [ids, batch] = algoInstance.randomBatch(batchQueryResult, batchQuery, batchSize, {
+        [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -299,7 +299,7 @@ export class FirstBatch extends FirstBatchClient {
         });
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-        [ids, batch] = algoInstance.biasedBatch(batchQueryResult, batchQuery, algoInstance.batchSize, {
+        [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, algoInstance.batchSize, 'biased', {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -313,7 +313,7 @@ export class FirstBatch extends FirstBatchClient {
       });
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.sampledBatch(batchQueryResult, batchQuery, algoInstance.batchSize, {
+      [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, algoInstance.batchSize, 'sampled', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,

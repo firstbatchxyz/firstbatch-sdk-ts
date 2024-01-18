@@ -96,6 +96,7 @@ The following command will check the code with TSC and then build with Parcel.
 
 ```bash
 bun run build
+bun b # alternative
 ```
 
 If you get an error like "expected content key ... to exist" simply delete the `.parcel-cache` folder and build again.
@@ -106,6 +107,7 @@ Run all tests via:
 
 ```bash
 bun run test
+bun t # alternative
 ```
 
 Bun will look for `.env.test` during the tests.

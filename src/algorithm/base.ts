@@ -31,40 +31,26 @@ export class BaseAlgorithm {
     this.isCustom = this.type === 'CUSTOM';
   }
 
-  /** A random batch, will delete `applyThreshold` from `options` if given. */
-  randomBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
-    delete options.applyThreshold;
-    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
-  }
-
-  /** A biased batch, will delete `applyMMR` from `options` if given. */
-  biasedBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
-    delete options.applyMMR;
-    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
-  }
-
-  /** A sampled batch. */
-  sampledBatch(batch: BatchQueryResult, query: BatchQuery, batchSize: number, options: BatchOptions) {
-    return BaseAlgorithm.applyParams(batch, query, batchSize, options);
-  }
-
-  private static applyParams(
+  applyAlgorithm(
     batch: BatchQueryResult,
     query: BatchQuery,
     batchSize: number,
+    batchType: 'random' | 'biased' | 'sampled',
     options: BatchOptions
   ): [string[], QueryMetadata[]] {
     if (batch.results.length !== query.queries.length) {
       throw new Error('Number of results is not equal to number of queries');
     }
 
-    // apply threshold to query results if needed
-    if (options.applyThreshold) {
+    // apply threshold to query results
+    // not done for random batch
+    if (batchType !== 'random' && options.applyThreshold) {
       batch.results = batch.results.map(r => r.applyThreshold(options.applyThreshold ?? 0));
     }
 
     // apply maximal marginal relevance
-    if (options.applyMMR) {
+    // not done for biased batch
+    if (batchType !== 'biased' && options.applyMMR) {
       batch.results = batch.results.map((r, i) =>
         // TODO: move 0.5 to constants
         maximalMarginalRelevance(query.queries[i].embedding, r, 0.5, query.queries[i].top_k_mmr)
