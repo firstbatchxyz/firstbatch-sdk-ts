@@ -1,12 +1,10 @@
 import type {Vertex} from './blueprint';
 import type {ParamsInterface} from './params';
+import type {Signal} from './signal';
 
 /** A Deterministic Finite Automata. */
 export interface DFA {
-  signals?: {
-    label: string;
-    weight: number;
-  }[];
+  signals?: Signal[];
   nodes: {
     name: string;
     batch_type: Vertex['batchType'];
@@ -14,7 +12,7 @@ export interface DFA {
   }[];
   edges: {
     name: string;
-    edge_type: string;
+    edge_type: Signal['label'];
     start: string;
     end: string;
   }[];

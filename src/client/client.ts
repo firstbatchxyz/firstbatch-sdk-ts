@@ -3,7 +3,14 @@ import {createHash} from 'crypto';
 import constants from '../constants';
 import {BatchResponse} from './types';
 import {Params} from '../algorithm/blueprint/params';
-import {DFA, Vertex} from '../algorithm';
+import {DFA, Signal, Vertex} from '../algorithm';
+
+type ClientResponse<T> = {
+  success: boolean;
+  code: number;
+  message?: string | undefined;
+  data: T;
+};
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -28,12 +35,7 @@ export class FirstBatchClient {
    * @template I type of the input data field values
    */
   private async post<T, I = unknown>(url: string, data: Record<string, I>) {
-    const axiosResponse = await this.axios.post<{
-      success: boolean;
-      code: number;
-      message?: string | undefined;
-      data: T;
-    }>(url, data);
+    const axiosResponse = await this.axios.post<ClientResponse<T>>(url, data);
 
     if (axiosResponse.status != 200) {
       throw new Error(`FirstBatch API failed with ${axiosResponse.statusText} (${axiosResponse.status}) at ${url}`);
@@ -115,12 +117,12 @@ export class FirstBatchClient {
   }
 
   /** Adds a signal, returns error message as a response if there was one. */
-  protected async signal(sessionId: string, vector: number[], stateName: string, signal: number, signalLabel: string) {
+  protected async signal(sessionId: string, vector: number[], stateName: string, signal: Signal) {
     return this.post<string>('embeddings/signal', {
       id: sessionId,
       state: stateName,
-      signal: signal,
-      signal_label: signalLabel,
+      signal: signal.weight,
+      signal_label: signal.label,
       vector: vector,
     });
   }

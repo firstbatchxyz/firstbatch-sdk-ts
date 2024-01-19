@@ -1,5 +1,5 @@
 import {maximalMarginalRelevance} from '../../vector/utils';
-import {UserAction, Blueprint, parseDFA, DFA} from '../blueprint';
+import {Blueprint, parseDFA, DFA, Signal} from '../blueprint';
 import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../../vector';
 
 export class BaseAlgorithm {
@@ -74,7 +74,7 @@ export class BaseAlgorithm {
     return [ids, metadata];
   }
 
-  blueprintStep(state: string, action: UserAction) {
-    return this.blueprint.step(state, action);
+  blueprintStep(state: string, signal: Signal) {
+    return this.blueprint.step(state, signal);
   }
 }
