@@ -1,14 +1,13 @@
 import log from 'loglevel';
-import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm} from '../algorithm';
+import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm, Signals} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
 // import {ProductQuantizer} from '../lossy/product';
 import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
-import {BatchResponse} from './types';
 import {generateBatch, MetadataFilter, Query, QueryMetadata, BatchQuery} from '../vector';
-import {UserAction} from '../algorithm/blueprint/action';
+import type {BatchResponse, Signal} from '../types';
 
 /** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {
@@ -163,11 +162,11 @@ export class FirstBatch extends FirstBatchClient {
    * Add a signal to current session.
    *
    * @param session session object
-   * @param userAction user action
+   * @param signal a {@link Signal}
    * @param contentId id of a returned item from batch
    * @returns `true` is signal was added succesfully
    */
-  async addSignal(sessionId: string, userAction: UserAction, contentId: string) {
+  async addSignal(sessionId: string, signal: Signal, contentId: string) {
     const sessionResponse = await this.getSession(sessionId);
     const vectorStore = this.store[sessionResponse.vdbid];
     if (vectorStore === undefined) {
@@ -181,15 +180,9 @@ export class FirstBatch extends FirstBatchClient {
       customId: sessionResponse.custom_id,
     });
 
-    const [nextState, batchType, params] = algoInstance.blueprintStep(sessionResponse.state, userAction);
+    const [nextState, batchType, params] = algoInstance.blueprintStep(sessionResponse.state, signal);
 
-    const signalResponse = await this.signal(
-      sessionId,
-      result.vector.vector,
-      nextState.name,
-      userAction.actionType.weight,
-      userAction.actionType.label
-    );
+    const signalResponse = await this.signal(sessionId, result.vector.vector, nextState.name, signal);
 
     if (signalResponse.success && this.enableHistory) {
       await this.addHistory(sessionId, [contentId]);
@@ -232,9 +225,8 @@ export class FirstBatch extends FirstBatchClient {
       factoryId: response.factory_id,
       customId: response.custom_id,
     });
-    const userAction = UserAction.BATCH;
 
-    const [nextState, batchType, params] = algoInstance.blueprintStep(response.state, userAction);
+    const [nextState, batchType, params] = algoInstance.blueprintStep(response.state, Signals.BATCH);
 
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 

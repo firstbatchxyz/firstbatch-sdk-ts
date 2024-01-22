@@ -33,7 +33,7 @@ First, initialize a Vector Database of your choice; our SDK supports [Pinecone](
 
 ```ts
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
-import {Pinecone, FirstBatch, UserAction, Signals} from 'firstbatch';
+import {Pinecone, FirstBatch, TODO:!, Signals} from 'firstbatch';
 
 // create Pinecone client
 const pinecone = new PineconeClient({apiKey: 'pinecone-api-key', environment: 'pinecone-env'});
@@ -70,7 +70,7 @@ Suppose that the user has **liked** the **first content** from the `batch` above
 
 ```ts
 const userPick = 0; // i.e. the first content
-personalized.addSignal(sessionId, new UserAction(Signals.LIKE), ids[userPick]);
+personalized.addSignal(sessionId, new TODO:!(Signals.LIKE), ids[userPick]);
 ```
 
 ### Custom Signals
@@ -81,7 +81,7 @@ The `Signals` in the code above contains a set of signals (i.e. labels and weigh
 import {Signal} from 'firstbatch';
 
 const mySignal = new Signal('label', 0.5); // label and weight
-const userAction = new UserAction(mySignal);
+const userAction = new TODO:!(mySignal);
 ```
 
 ## Building

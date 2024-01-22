@@ -2,47 +2,49 @@ import {describe, expect, test} from 'bun:test';
 import testLibrary from './data/blueprints';
 import mainLibrary from '../src/algorithm/blueprint/library';
 import {parseDFA} from '../src/algorithm/blueprint/parser';
-import {UserAction} from '../src/algorithm/blueprint/action';
-import {Signal, Signals} from '../src/algorithm/blueprint/signal';
+import {Signals} from '../src/algorithm/blueprint';
 
-describe('parser & blueprint', () => {
-  test('batch step', () => {
-    const blueprint = parseDFA(testLibrary.example2);
+describe('blueprint parser', () => {
+  test('case: example1 with NEW_SIGNAL', () => {
+    // NEW_SIGNAL doesnt exist at first
+    expect(Signals.NEW_SIGNAL).toBeUndefined();
 
-    expect(blueprint.vertices.length).toBe(4);
-    expect(blueprint.edges.length).toBe(8);
-
-    const startState = blueprint.vertices[0];
-    const [nextState] = blueprint.step(startState.name, UserAction.BATCH);
-    expect(nextState.name).toBe(startState.name);
-  });
-
-  test('real blueprint', () => {
-    const blueprint = parseDFA(mainLibrary.UNIQUE_JOURNEYS);
-
-    expect(blueprint.vertices.length).toBe(6);
-    expect(blueprint.edges.length).toBe(12);
-
-    const [nextState] = blueprint.step('Exploration', new UserAction(Signals.REPOST));
-    expect(nextState.name).toBe('Hyper_Focus');
-  });
-
-  test('new signal', () => {
     const blueprint = parseDFA(testLibrary.example1);
 
     expect(blueprint.vertices.length).toBe(3);
     expect(blueprint.edges.length).toBe(9);
 
     // signal should be added by reading the parsed blueprint
-    const newSignal = Signals.NEW_SIGNAL;
-    expect(newSignal).toBeInstanceOf(Signal);
+    expect(Signals.NEW_SIGNAL).not.toBeUndefined();
 
     // new signal should be able to be used in step
-    const [nextState] = blueprint.step('1', new UserAction(Signals.NEW_SIGNAL));
+    const [nextState] = blueprint.step('1', Signals.NEW_SIGNAL);
     expect(nextState.name).toBe('3');
 
-    const [finalState] = blueprint.step(nextState.name, new UserAction('LIKE'));
+    const [finalState] = blueprint.step(nextState.name, Signals.LIKE);
     expect(finalState.name).toBe('1');
+  });
+
+  test('case: example2 with BATCH', () => {
+    const blueprint = parseDFA(testLibrary.example2);
+
+    expect(blueprint.vertices.length).toBe(4);
+    expect(blueprint.edges.length).toBe(8);
+
+    const startState = blueprint.vertices[0];
+    const [nextState] = blueprint.step(startState.name, Signals.BATCH);
+    expect(nextState.name).toBe(startState.name);
+  });
+
+  test('case: unique journeys', () => {
+    const dfa = mainLibrary.UNIQUE_JOURNEYS;
+    const blueprint = parseDFA(dfa);
+
+    expect(blueprint.vertices.length).toBe(dfa.nodes.length);
+    expect(blueprint.edges.length).toBe(dfa.edges.length);
+
+    const [nextState] = blueprint.step('Exploration', Signals.REPOST);
+    expect(nextState.name).toBe('Hyper_Focus');
   });
 });
 

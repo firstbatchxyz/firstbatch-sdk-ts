@@ -1,6 +1,6 @@
-import {UserAction} from './action';
 import {Signals} from './signal';
 import {Params} from './params';
+import {Signal} from '../../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -44,11 +44,7 @@ export class Blueprint {
     this.edges.push(edge);
   }
 
-  getOperation(state: string): Vertex {
-    return this.map[state];
-  }
-
-  step(state: string, action: UserAction): [Vertex, Vertex['batchType'], Params] {
+  step(state: string, signal: Signal): [Vertex, Vertex['batchType'], Params] {
     // find the vertex with this state
     let vertex: Vertex;
     if (!(state in this.map)) {
@@ -65,8 +61,9 @@ export class Blueprint {
 
     // find an edge from that vertex with the given action, or a DEFAULT edge
     const edge =
-      this.edges.find(e => e.start.eq(vertex) && e.edgeType.eq(action)) ||
-      this.edges.find(e => Signals.DEFAULT.eq(e.edgeType.actionType));
+      this.edges.find(
+        e => e.start.eq(vertex) && e.signal.label === signal.label && e.signal.weight === signal.weight
+      ) || this.edges.find(e => e.signal.label === Signals.DEFAULT.label);
 
     if (!edge) {
       // this should never happen if DFA parser works correctly
@@ -96,7 +93,7 @@ export class Vertex {
 export class Edge {
   constructor(
     readonly name: string,
-    readonly edgeType: UserAction,
+    readonly signal: Signal,
     readonly start: Vertex,
     readonly end: Vertex
   ) {}
@@ -104,7 +101,8 @@ export class Edge {
   eq(other: Edge) {
     return (
       this.name === other.name &&
-      this.edgeType.eq(other.edgeType) &&
+      this.signal.label === other.signal.label &&
+      this.signal.weight === other.signal.weight &&
       this.start.eq(other.start) &&
       this.end.eq(other.end)
     );
