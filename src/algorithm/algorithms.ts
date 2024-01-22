@@ -1,4 +1,5 @@
-import {BaseAlgorithm, DFA} from './';
+import type {DFA} from '../types';
+import {BaseAlgorithm} from './';
 import library from './blueprint/library';
 
 export class CustomAlgorithm extends BaseAlgorithm {

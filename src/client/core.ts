@@ -1,13 +1,13 @@
 import log from 'loglevel';
-import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm, Signals, Signal} from '../algorithm';
+import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm, Signals} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
 // import {ProductQuantizer} from '../lossy/product';
 import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
-import {BatchResponse} from './types';
 import {generateBatch, MetadataFilter, Query, QueryMetadata, BatchQuery} from '../vector';
+import type {BatchResponse, Signal} from '../types';
 
 /** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {

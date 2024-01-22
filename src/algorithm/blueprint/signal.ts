@@ -1,35 +1,4 @@
-export type Signal = {label: string; weight: number};
-
-// export class Signal {
-//   constructor(
-//     readonly label: string,
-//     readonly weight: number
-//   ) {}
-
-//   /** Extends a given Signal */
-//   static extend(dest: typeof Signals, signals: {label: string; weight: number}[]): typeof Signals {
-//     for (const signalObj of signals) {
-//       const signal = new Signal(signalObj.label.toUpperCase(), signalObj.weight);
-//       dest[signal.label] = signal;
-//     }
-//     return dest;
-//   }
-
-//   /** Creates an empty signal without a label and 0 weight. */
-//   static empty() {
-//     return new Signal('', 0);
-//   }
-
-//   /** Default signal. */
-//   static get DEFAULT() {
-//     return new Signal('DEFAULT', 1.0);
-//   }
-
-//   /** Equality check with another signal. */
-//   eq(other: Signal) {
-//     return this.label === other.label && this.weight === other.weight;
-//   }
-// }
+import type {Signal} from '../../types';
 
 const presetSignals = {
   DEFAULT: {label: 'DEFAULT', weight: 1.0},
@@ -77,8 +46,7 @@ const presetSignals = {
  * Each signal here has a corresponding `Signal` object that is prepared by FirstBatch.
  */
 export type PresetSignalNames = keyof typeof presetSignals;
-/**
- * Preset set of signals, you can use these or add your own signals to this object.
- */
+
+/** Preset set of signals, you can use these or add your own signals to this object. */
 export const Signals: Readonly<{[signal in PresetSignalNames]: Signal}> & {[signal: string]: Signal} =
   presetSignals as Record<PresetSignalNames, Signal>;

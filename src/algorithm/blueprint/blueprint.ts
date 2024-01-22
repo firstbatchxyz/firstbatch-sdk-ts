@@ -1,5 +1,6 @@
-import {Signal, Signals} from './signal';
+import {Signals} from './signal';
 import {Params} from './params';
+import {Signal} from '../../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -58,8 +59,6 @@ export class Blueprint {
       vertex = this.map[state];
     }
 
-    console.log(this.edges);
-    console.log(signal);
     // find an edge from that vertex with the given action, or a DEFAULT edge
     const edge =
       this.edges.find(

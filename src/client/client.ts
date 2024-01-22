@@ -1,9 +1,9 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from '../constants';
-import {BatchResponse} from './types';
 import {Params} from '../algorithm/blueprint/params';
-import {DFA, Signal, Vertex} from '../algorithm';
+import {Vertex} from '../algorithm';
+import type {BatchResponse, DFA, Signal} from '../types';
 
 type ClientResponse<T> = {
   success: boolean;

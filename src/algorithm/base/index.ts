@@ -1,6 +1,7 @@
 import {maximalMarginalRelevance} from '../../vector/utils';
-import {Blueprint, parseDFA, DFA, Signal} from '../blueprint';
-import {BatchQueryResult, BatchQuery, BatchOptions, QueryMetadata} from '../../vector';
+import {Blueprint, parseDFA} from '../blueprint';
+import {BatchQueryResult, BatchQuery, QueryMetadata} from '../../vector';
+import type {DFA, Signal} from '../../types';
 
 export class BaseAlgorithm {
   protected blueprint: Blueprint;
@@ -16,7 +17,12 @@ export class BaseAlgorithm {
     query: BatchQuery,
     batchSize: number,
     batchType: 'random' | 'biased' | 'sampled',
-    options: BatchOptions
+    options: {
+      removeDuplicates?: boolean;
+      applyThreshold?: number;
+      applyMMR?: boolean;
+      // shuffle?: boolean; // enabled by default until further changes
+    }
   ): [string[], QueryMetadata[]] {
     if (batch.results.length !== query.queries.length) {
       throw new Error('Number of results is not equal to number of queries');

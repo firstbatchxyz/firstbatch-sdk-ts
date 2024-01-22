@@ -1,5 +1,5 @@
 import {describe, beforeEach, test} from 'bun:test';
-import {Signal, Signals} from '../src/algorithm/blueprint/signal';
+import {Signals} from '../src/algorithm/blueprint/';
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
 import {Pinecone} from '../src/vector/integrations/pinecone';
 import {FirstBatchConfig, FirstBatch} from '../src';
@@ -25,16 +25,14 @@ describe('algorithms', () => {
     await pinecone.describeIndex(indexName);
     const index = pinecone.index(indexName);
 
-    const vectorStore = new Pinecone(index, {
-      embeddingSize,
-    });
+    const vectorStore = new Pinecone(index, {embeddingSize});
 
     personalized = await FirstBatch.new(constants.FIRSTBATCH.API_KEY, config);
     await personalized.addVdb(vdbid, vectorStore);
   });
 
   test('simple', async () => {
-    const signals: Signal[] = [
+    const signals = [
       {label: 'batch', weight: 0},
       {label: 'signal', weight: 2},
       {label: 'batch', weight: 0},
@@ -53,7 +51,7 @@ describe('algorithms', () => {
   });
 
   test('simple with bias vectors', async () => {
-    const signals: Signal[] = [
+    const signals = [
       {label: 'batch', weight: 0},
       {label: 'signal', weight: 2},
       {label: 'batch', weight: 0},
@@ -107,7 +105,7 @@ describe('algorithms', () => {
   });
 
   test('custom', async () => {
-    const signals: Signal[] = [
+    const signals = [
       {label: 'batch', weight: 0},
       {label: 'signal', weight: 2},
       {label: 'batch', weight: 0},

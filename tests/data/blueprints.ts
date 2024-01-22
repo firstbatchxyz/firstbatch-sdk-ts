@@ -1,4 +1,4 @@
-import {DFA} from '../../src/algorithm';
+import type {DFA} from '../../src/types';
 
 const example1: DFA = {
   signals: [{label: 'NEW_SIGNAL', weight: 1.5}],

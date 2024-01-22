@@ -1,7 +1,7 @@
 import {Blueprint, Edge, Vertex} from './blueprint';
 import {Params} from './params';
-import {Signal, Signals} from './signal';
-import type {DFA} from './types';
+import {Signals} from './signal';
+import type {DFA} from '../../types';
 
 /**
  * Parse a given Blueprint DFA to obtain a Blueprint instance.
@@ -12,10 +12,13 @@ import type {DFA} from './types';
 export function parseDFA(dfa: DFA): Blueprint {
   const blueprint = new Blueprint();
 
-  // extends Signals // TODO: why do this?
-  // if (dfa.signals) {
-  //   Signal.extend(Signals, dfa.signals);
-  // }
+  // extends Signals
+  // FIXME: doing this overwrites the weights if they are different!
+  if (dfa.signals) {
+    dfa.signals.forEach(signal => {
+      Signals[signal.label] = signal;
+    });
+  }
 
   // add vertices (nodes)
   dfa.nodes.forEach(node => {
@@ -24,9 +27,11 @@ export function parseDFA(dfa: DFA): Blueprint {
 
   // add edges
   dfa.edges.forEach(edge => {
-    blueprint.addEdge(
-      new Edge(edge.name, {label: edge.edge_type, weight: 0}, blueprint.map[edge.start], blueprint.map[edge.end])
-    );
+    if (!(edge.edge_type in Signals)) {
+      throw `No signal found for: ${edge.edge_type}`;
+    }
+    const signal = Signals[edge.edge_type];
+    blueprint.addEdge(new Edge(edge.name, signal, blueprint.map[edge.start], blueprint.map[edge.end]));
   });
 
   // validate connections

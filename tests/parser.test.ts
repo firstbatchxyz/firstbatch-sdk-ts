@@ -2,10 +2,30 @@ import {describe, expect, test} from 'bun:test';
 import testLibrary from './data/blueprints';
 import mainLibrary from '../src/algorithm/blueprint/library';
 import {parseDFA} from '../src/algorithm/blueprint/parser';
-import {Signal, Signals} from '../src/algorithm/blueprint/signal';
+import {Signals} from '../src/algorithm/blueprint';
 
-describe('parser & blueprint', () => {
-  test('batch step', () => {
+describe('blueprint parser', () => {
+  test('case: example1 with NEW_SIGNAL', () => {
+    // NEW_SIGNAL doesnt exist at first
+    expect(Signals.NEW_SIGNAL).toBeUndefined();
+
+    const blueprint = parseDFA(testLibrary.example1);
+
+    expect(blueprint.vertices.length).toBe(3);
+    expect(blueprint.edges.length).toBe(9);
+
+    // signal should be added by reading the parsed blueprint
+    expect(Signals.NEW_SIGNAL).not.toBeUndefined();
+
+    // new signal should be able to be used in step
+    const [nextState] = blueprint.step('1', Signals.NEW_SIGNAL);
+    expect(nextState.name).toBe('3');
+
+    const [finalState] = blueprint.step(nextState.name, Signals.LIKE);
+    expect(finalState.name).toBe('1');
+  });
+
+  test('case: example2 with BATCH', () => {
     const blueprint = parseDFA(testLibrary.example2);
 
     expect(blueprint.vertices.length).toBe(4);
@@ -25,25 +45,6 @@ describe('parser & blueprint', () => {
 
     const [nextState] = blueprint.step('Exploration', Signals.REPOST);
     expect(nextState.name).toBe('Hyper_Focus');
-  });
-
-  test('new signal', () => {
-    const blueprint = parseDFA(testLibrary.example1);
-
-    expect(blueprint.vertices.length).toBe(3);
-    expect(blueprint.edges.length).toBe(9);
-
-    // signal should be added by reading the parsed blueprint
-    const newSignal = Signals.NEW_SIGNAL;
-    // expect(newSignal).toBeInstanceOf(Signal);
-
-    // new signal should be able to be used in step
-    // TODO: add to signals
-    const [nextState] = blueprint.step('1', Signals.NEW_SIGNAL);
-    expect(nextState.name).toBe('3');
-
-    const [finalState] = blueprint.step(nextState.name, Signals.LIKE);
-    expect(finalState.name).toBe('1');
   });
 });
 
