@@ -1,6 +1,6 @@
 import {Signals} from './signal';
 import {Params} from './params';
-import {Signal} from '../../types';
+import type {Edge, Vertex, Signal} from '../../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -23,22 +23,13 @@ export class Blueprint {
       throw new Error('An edge with the same name exists');
     }
 
-    // check the start vertex
-    if (edge.start.name in this.map) {
-      if (!edge.start.eq(this.map[edge.start.name])) {
-        throw new Error('Start vertex is not equal to an existing vertex with the same name');
-      }
-    } else {
-      this.addVertex(edge.start);
+    // check if vertices exist
+    // we expect them to exist because vertices are added before edges in `parseDFA`
+    if (!(edge.start.name in this.map)) {
+      throw new Error('Could not find the start vertex named: ' + edge.start.name);
     }
-
-    // check the end vertex
-    if (edge.end.name in this.map) {
-      if (!edge.end.eq(this.map[edge.end.name])) {
-        throw new Error('End vertex is not equal to an existing vertex with the same name');
-      }
-    } else {
-      this.addVertex(edge.end);
+    if (!(edge.end.name in this.map)) {
+      throw new Error('Could not find the end vertex named: ' + edge.end.name);
     }
 
     this.edges.push(edge);
@@ -61,9 +52,8 @@ export class Blueprint {
 
     // find an edge from that vertex with the given action, or a DEFAULT edge
     const edge =
-      this.edges.find(
-        e => e.start.eq(vertex) && e.signal.label === signal.label && e.signal.weight === signal.weight
-      ) || this.edges.find(e => e.signal.label === Signals.DEFAULT.label);
+      this.edges.find(e => e.start.name === vertex.name && e.signal.label === signal.label) ||
+      this.edges.find(e => e.signal.label === Signals.DEFAULT.label);
 
     if (!edge) {
       // this should never happen if DFA parser works correctly
@@ -71,40 +61,5 @@ export class Blueprint {
     }
 
     return [edge.end, vertex.batchType, vertex.params];
-  }
-}
-
-export class Vertex {
-  constructor(
-    readonly name: string,
-    readonly batchType: 'biased' | 'sampled' | 'random' | 'personalized',
-    readonly params: Params
-  ) {
-    if (!['biased', 'sampled', 'random', 'personalized'].includes(this.batchType)) {
-      throw new Error('Invalid batch type: ' + this.batchType);
-    }
-  }
-
-  eq(other: Vertex) {
-    return this.name === other.name && this.batchType === other.batchType && Params.eq(this.params, other.params);
-  }
-}
-
-export class Edge {
-  constructor(
-    readonly name: string,
-    readonly signal: Signal,
-    readonly start: Vertex,
-    readonly end: Vertex
-  ) {}
-
-  eq(other: Edge) {
-    return (
-      this.name === other.name &&
-      this.signal.label === other.signal.label &&
-      this.signal.weight === other.signal.weight &&
-      this.start.eq(other.start) &&
-      this.end.eq(other.end)
-    );
   }
 }

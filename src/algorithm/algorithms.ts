@@ -20,7 +20,6 @@ export class FactoryAlgorithm extends BaseAlgorithm {
 
 export class SimpleAlgorithm extends BaseAlgorithm {
   constructor() {
-    const blueprint = library.CONTENT_CURATION; // CONTENT_CURATION is the SIMPLE algorithm.
-    super('SIMPLE', blueprint);
+    super('SIMPLE', library.SIMPLE);
   }
 }

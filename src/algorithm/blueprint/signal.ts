@@ -1,8 +1,8 @@
 import type {Signal} from '../../types';
 
 const presetSignals = {
-  DEFAULT: {label: 'DEFAULT', weight: 1.0},
-  BATCH: {label: 'BATCH', weight: 0.0},
+  DEFAULT: {label: 'DEFAULT', weight: 1},
+  BATCH: {label: 'BATCH', weight: 0},
   ADD_TO_CART: {label: 'ADD_TO_CART', weight: 16},
   ITEM_VIEW: {label: 'ITEM_VIEW', weight: 10},
   APPLY: {label: 'APPLY', weight: 18},
@@ -39,7 +39,7 @@ const presetSignals = {
   ADD_TO_LIST: {label: 'ADD_TO_LIST', weight: 12},
   FOLLOW_AUTHOR: {label: 'FOLLOW_AUTHOR', weight: 10},
   SEARCH: {label: 'SEARCH', weight: 15},
-  CLICK_AD: {label: 'CLICK_AD', weight: 6.0},
+  CLICK_AD: {label: 'CLICK_AD', weight: 6},
 };
 
 /** A union of preset signal names.

@@ -1,6 +1,6 @@
 import library from '../algorithm/blueprint/library';
 
-const presetAlgorithms: Record<keyof typeof library, string> = {
+const presetAlgorithms: Record<Exclude<keyof typeof library, 'SIMPLE'>, string> = {
   UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),
   CONTENT_CURATION: 'User_Centric_Promoted_Content_Curations'.toUpperCase(),
   AI_AGENTS: 'User_Intent_AI_Agents'.toUpperCase(),

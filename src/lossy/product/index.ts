@@ -1,9 +1,9 @@
-import {CompressedVector, Vector} from '../../vector/types';
-import {BaseLossy} from '../base';
+import {CompressedVector, Vector} from '../../types';
+import {BaseLossy} from '../interface';
 import {PQ} from './pqt';
 import {concat, Matrix, matrix} from 'mathjs';
 
-export class ProductQuantizer extends BaseLossy {
+export class ProductQuantizer implements BaseLossy {
   /** Cluster size */
   readonly ks: number;
   /** Subquantizer size */
@@ -14,7 +14,6 @@ export class ProductQuantizer extends BaseLossy {
   readonly quantizerResidual: PQ;
 
   constructor(clusterSize: number = 512, subquantizerSize: number = 32, verbose: boolean = false) {
-    super();
     this.m = subquantizerSize;
     this.ks = clusterSize;
     this.quantizer = new PQ(subquantizerSize, clusterSize, 'l2', verbose);

@@ -2,15 +2,7 @@ import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from '../constants';
 import {Params} from '../algorithm/blueprint/params';
-import {Vertex} from '../algorithm';
-import type {BatchResponse, DFA, Signal} from '../types';
-
-type ClientResponse<T> = {
-  success: boolean;
-  code: number;
-  message?: string | undefined;
-  data: T;
-};
+import type {Vertex, BatchResponse, DFA, Signal} from '../types';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -35,7 +27,12 @@ export class FirstBatchClient {
    * @template I type of the input data field values
    */
   private async post<T, I = unknown>(url: string, data: Record<string, I>) {
-    const axiosResponse = await this.axios.post<ClientResponse<T>>(url, data);
+    const axiosResponse = await this.axios.post<{
+      success: boolean;
+      code: number;
+      message?: string | undefined;
+      data: T;
+    }>(url, data);
 
     if (axiosResponse.status != 200) {
       throw new Error(`FirstBatch API failed with ${axiosResponse.statusText} (${axiosResponse.status}) at ${url}`);
@@ -93,14 +90,15 @@ export class FirstBatchClient {
     options?: {
       customId?: string;
       factoryId?: string;
+      sessionId?: string;
       hasEmbeddings?: string;
-      id?: string;
     }
   ) {
+    const sessionId = options?.sessionId ? this.teamId + '-' + options.sessionId : undefined;
     return await this.post<string>('embeddings/create_session', {
       vdbid,
       algorithm,
-      id: this.idWrapper(options?.id),
+      id: sessionId,
       custom_id: options?.customId,
       factory_id: options?.factoryId,
       has_embeddings: options?.hasEmbeddings ?? false,
@@ -259,20 +257,9 @@ export class FirstBatchClient {
       });
       this.axios.interceptors.response.use(response => {
         console.log(`RES ${response.statusText} (${response.status})`);
-        // if (response.status !== 200) {
         console.log(response.data);
-        // }
         return response;
       });
-    }
-  }
-
-  /** Attach teamID to the given ID. */
-  private idWrapper(id?: string): string | undefined {
-    if (id) {
-      return this.teamId + '-' + id;
-    } else {
-      return undefined;
     }
   }
 }

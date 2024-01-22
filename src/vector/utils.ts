@@ -1,5 +1,5 @@
 import {QueryResult} from './query';
-import {Vector} from './types';
+import {Vector} from '../types';
 import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
 
 function getRow(matrix: Matrix, ind: number): Matrix {

@@ -1,5 +1,5 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
-import type {DistanceMetric, Vector, FetchResult} from '../types';
+import type {DistanceMetric, Vector, FetchResult} from '../../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import type {RecordMetadata} from '@pinecone-database/pinecone';

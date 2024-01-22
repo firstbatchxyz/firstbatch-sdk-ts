@@ -1,10 +1,10 @@
 import {maximalMarginalRelevance} from '../../vector/utils';
 import {Blueprint, parseDFA} from '../blueprint';
 import {BatchQueryResult, BatchQuery, QueryMetadata} from '../../vector';
-import type {DFA, Signal} from '../../types';
+import type {DFA} from '../../types';
 
 export class BaseAlgorithm {
-  protected blueprint: Blueprint;
+  blueprint: Blueprint;
   algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
 
   constructor(algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE', blueprint: DFA) {
@@ -64,8 +64,7 @@ export class BaseAlgorithm {
     });
 
     // NOTE: this used to be optional, but we now have it on by default
-    // shuffled indices via Schwartzian transform
-    // works better for smaller arrays than Fisher-Yates
+    // shuffled indices via Schwartzian transform; works better for smaller arrays than Fisher-Yates
     const idx = Array.from({length: ids.length}, (_, i) => ({i, sort: Math.random()}))
       .sort((a, b) => a.sort - b.sort)
       .map(({i}) => i);
@@ -78,9 +77,5 @@ export class BaseAlgorithm {
     ids = ids.slice(0, batchSize);
     metadata = metadata.slice(0, batchSize);
     return [ids, metadata];
-  }
-
-  blueprintStep(state: string, signal: Signal) {
-    return this.blueprint.step(state, signal);
   }
 }

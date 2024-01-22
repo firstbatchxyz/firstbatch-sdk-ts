@@ -1,4 +1,4 @@
-import type {DistanceMetric, Vector, FetchResult} from '../types';
+import type {DistanceMetric, Vector, FetchResult} from '../../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';

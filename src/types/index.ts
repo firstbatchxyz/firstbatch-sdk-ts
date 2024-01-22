@@ -1,4 +1,4 @@
-import {ParamsInterface, Vertex} from '../algorithm';
+import {Params, ParamsInterface} from '../algorithm';
 import {QueryMetadata} from '../vector';
 
 export type Signal = {label: string; weight: number};
@@ -17,13 +17,6 @@ export type DFA = {
     start: string;
     end: string;
   }[];
-};
-
-export type APIResponse<T> = {
-  success: boolean;
-  code: number;
-  data: T;
-  message?: string;
 };
 
 // TODO: name this something else? this type can be used by others too
@@ -45,10 +38,21 @@ export interface CompressedVector {
 
 export type DistanceMetric = 'cosine_sim' | 'euclidean_dist' | 'dot_product';
 
-export type SearchType = 'default' | 'sparse' | 'fetch';
-
 export type FetchResult = {
   vector: Vector;
   metadata: QueryMetadata;
   id: string;
+};
+
+export type Edge = {
+  name: string;
+  signal: Signal;
+  start: Vertex;
+  end: Vertex;
+};
+
+export type Vertex = {
+  name: string;
+  batchType: 'biased' | 'sampled' | 'random' | 'personalized';
+  params: Params;
 };

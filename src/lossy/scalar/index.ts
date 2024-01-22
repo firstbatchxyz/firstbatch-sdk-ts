@@ -1,16 +1,15 @@
-import {BaseLossy} from '../base'; // Import necessary modules
-import {CompressedVector, Vector} from '../../vector/types';
+import {BaseLossy} from '../interface'; // Import necessary modules
+import type {CompressedVector, Vector} from '../../types';
 import {concatVectors} from '../../vector/utils';
 import {TDigest} from 'tdigest';
 
-export class ScalarQuantizer extends BaseLossy {
+export class ScalarQuantizer implements BaseLossy {
   private quantizer: TDigest;
   private levels: number;
   quantiles: number[] = [];
 
   constructor(levels: number = 256) {
-    super();
-    this.quantizer = new TDigest(false); // TODO: this had no arguments before
+    this.quantizer = new TDigest(false);
     this.levels = levels;
     this.quantiles = [];
   }
@@ -25,6 +24,7 @@ export class ScalarQuantizer extends BaseLossy {
     }
     this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile(i / this.levels));
   }
+
   findIndex(scalar: number): number {
     for (let i = 0; i < this.quantiles.length; i++) {
       if (scalar < this.quantiles[i]) {

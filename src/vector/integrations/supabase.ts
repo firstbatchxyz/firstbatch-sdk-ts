@@ -1,6 +1,6 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
-import type {DistanceMetric, FetchResult, Vector} from '../types';
+import type {DistanceMetric, FetchResult, Vector} from '../../types';
 import {Query, QueryResult} from '../query';
 import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';

@@ -145,7 +145,7 @@ export class FirstBatch extends FirstBatchClient {
     const label = ['SIMPLE', 'CUSTOM'].includes(algorithm) ? algorithm : 'FACTORY';
 
     const sessionResponse = await this.createSession(label, vdbid, {
-      id: options?.sessionId,
+      sessionId: options?.sessionId,
       customId: label == 'CUSTOM' ? options?.customId : undefined,
       factoryId: label == 'FACTORY' ? algorithm : undefined,
     });
@@ -180,7 +180,7 @@ export class FirstBatch extends FirstBatchClient {
       customId: sessionResponse.custom_id,
     });
 
-    const [nextState, batchType, params] = algoInstance.blueprintStep(sessionResponse.state, signal);
+    const [nextState, batchType, params] = algoInstance.blueprint.step(sessionResponse.state, signal);
 
     const signalResponse = await this.signal(sessionId, result.vector.vector, nextState.name, signal);
 
@@ -226,7 +226,7 @@ export class FirstBatch extends FirstBatchClient {
       customId: response.custom_id,
     });
 
-    const [nextState, batchType, params] = algoInstance.blueprintStep(response.state, Signals.BATCH);
+    const [nextState, batchType, params] = algoInstance.blueprint.step(response.state, Signals.BATCH);
 
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 

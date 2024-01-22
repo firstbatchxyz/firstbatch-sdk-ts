@@ -1,5 +1,5 @@
 import {expect} from 'bun:test';
-import {Vector} from '../../src/vector/types';
+import type {Vector} from '../../src/types';
 import {randomVector} from '../../src/vector/utils';
 
 /**

@@ -289,4 +289,6 @@ export default {
    * - Conversion rate of anonymous sessions
    */
   NAVIGATION: Navigable_UX,
+  /** Alias for {@link User_Centric_Promoted_Content_Curations} algorithm. */
+  SIMPLE: User_Centric_Promoted_Content_Curations,
 } as const;

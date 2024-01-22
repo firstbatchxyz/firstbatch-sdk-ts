@@ -21,16 +21,13 @@ function chooseNextCenter(data: Point[], probabilities: number[]): Point {
 // KMeans++ initialization algorithm for centroids.
 function kMeansPlusPlus(data: Point[], k: number): Point[] {
   const centroids: Point[] = [];
-  // Start by randomly selecting the first centroid from the data points.
+  // start by randomly selecting the first centroid from the data points.
   centroids.push(data[Math.floor(Math.random() * data.length)]);
 
   for (let c = 1; c < k; c++) {
-    const dists = data.map(point => {
-      return Math.min(...centroids.map(center => distanceSquared(center, point)));
-    });
+    const dists = data.map(point => Math.min(...centroids.map(center => distanceSquared(center, point))));
 
-    const nextCenter = chooseNextCenter(data, dists);
-    centroids.push(nextCenter);
+    centroids.push(chooseNextCenter(data, dists));
   }
 
   return centroids;
@@ -42,13 +39,13 @@ export function kMeans(data: Point[], k: number, maxIterations: number): Point[]
   let previousCentroids: Point[] = [];
   let iterations = 0;
 
-  // Continue until centroids don't change or max iterations reached.
+  // continue until centroids don't change or max iterations reached.
   while (iterations < maxIterations && !isEqual(centroids, previousCentroids)) {
     const clusters: Point[][] = Array(k)
       .fill([])
       .map(() => []);
 
-    // Assign each data point to the nearest centroid.
+    // assign each data point to the nearest centroid.
     for (const point of data) {
       const closestCentroidIndex = centroids
         .map((centroid, index) => [distanceSquared(centroid, point), index])
@@ -57,7 +54,7 @@ export function kMeans(data: Point[], k: number, maxIterations: number): Point[]
     }
 
     previousCentroids = centroids;
-    // Recalculate the centroids as the mean of all points in the cluster.
+    // recalculate the centroids as the mean of all points in the cluster.
     centroids = clusters.map(cluster => {
       return cluster.reduce((a, b) => a.map((val, i) => val + b[i])).map(val => val / cluster.length);
     });

@@ -1,4 +1,4 @@
-import {Blueprint, Edge, Vertex} from './blueprint';
+import {Blueprint} from './blueprint';
 import {Params} from './params';
 import {Signals} from './signal';
 import type {DFA} from '../../types';
@@ -22,7 +22,7 @@ export function parseDFA(dfa: DFA): Blueprint {
 
   // add vertices (nodes)
   dfa.nodes.forEach(node => {
-    blueprint.addVertex(new Vertex(node.name, node.batch_type, new Params(node.params)));
+    blueprint.addVertex({name: node.name, batchType: node.batch_type, params: new Params(node.params)});
   });
 
   // add edges
@@ -30,15 +30,21 @@ export function parseDFA(dfa: DFA): Blueprint {
     if (!(edge.edge_type in Signals)) {
       throw `No signal found for: ${edge.edge_type}`;
     }
-    const signal = Signals[edge.edge_type];
-    blueprint.addEdge(new Edge(edge.name, signal, blueprint.map[edge.start], blueprint.map[edge.end]));
+
+    blueprint.addEdge({
+      name: edge.name,
+      signal: Signals[edge.edge_type],
+      start: blueprint.map[edge.start],
+      end: blueprint.map[edge.end],
+    });
   });
 
   // validate connections
   blueprint.vertices.forEach(node => {
     // get edges that have this node as the starting node
-    const edges = blueprint.edges.filter(e => e.start.eq(node));
+    const edges = blueprint.edges.filter(e => e.start.name === node.name);
 
+    // find edges that are not BATCH actions
     const nonBatchEdges = edges.filter(e => e.signal.label !== 'BATCH');
 
     // check if edges that have this node as its start vertex contain 'batch' action
