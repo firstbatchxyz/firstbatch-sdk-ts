@@ -98,7 +98,7 @@ export function maximalMarginalRelevance(
     ids: indices.map(i => batch.ids[i]),
     scores: indices.map(i => batch.scores[i]),
     vectors: indices.map(i => batch.vectors[i]),
-    metadata: indices.map(i => batch.metadata[i]),
+    metadatas: indices.map(i => batch.metadatas[i]),
   });
 }
 

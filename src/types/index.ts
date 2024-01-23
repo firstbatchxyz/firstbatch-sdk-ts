@@ -1,9 +1,6 @@
 export type MetadataFilter = Record<string, any>;
 
-export type QueryMetadata = {
-  id: string;
-  data: Record<string, any>; // TODO: type
-};
+export type QueryMetadata = Record<string, any>; // TODO: type
 
 export interface ParamsInterface {
   mu: number;

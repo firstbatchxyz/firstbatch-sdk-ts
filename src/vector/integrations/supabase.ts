@@ -68,7 +68,7 @@ export class Supabase extends VectorStore {
         scores.push(idsScore[f[0]]);
         if (query.include_metadata) {
           vectors.push({vector: f[1], id: f[0]});
-          metadata.push({id: f[0], data: f[2]});
+          metadata.push(f[2]);
         }
       }
     } else {
@@ -96,7 +96,7 @@ export class Supabase extends VectorStore {
 
   async fetch(id: string): Promise<FetchResult> {
     const result = await this.fetchWrapper([id]);
-    const metadata: QueryMetadata = {id, data: result[0][2]};
+    const metadata: QueryMetadata = result[0][2];
     const vector: Vector = {
       vector: result[0][1],
       id: id,

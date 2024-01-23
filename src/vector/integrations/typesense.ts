@@ -53,10 +53,10 @@ export class Typesense extends VectorStore {
     const ids: string[] = [];
     const scores: number[] = [];
     const vectors: Vector[] = [];
-    const metadata: QueryMetadata[] = [];
+    const metadatas: QueryMetadata[] = [];
     const metadataObject: Record<string, any> = {};
 
-    const q = new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
+    const q = new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
     const hits = res.results[0]['hits'] as any[];
     for (let i = 0; i < hits.length; i++) {
       const document = res.results[0]['hits'][i];
@@ -66,8 +66,7 @@ export class Typesense extends VectorStore {
         }
       }
       const vecObj: number[] = document['vec'];
-      // FIXME: a very smelly line here
-      q.metadata.push({id: '', data: metadataObject as object});
+      q.metadatas.push(metadataObject);
       q.vectors.push({vector: vecObj, dim: vecObj.length, id: document['id']} as Vector);
       q.scores.push(document['vector_distance']);
       q.ids.push(document['id']);

@@ -53,14 +53,14 @@ export class BaseAlgorithm {
 
     // get ids and metadata from each result, topK many
     let ids: string[] = [];
-    let metadata: QueryMetadata[] = [];
+    let metadatas: QueryMetadata[] = [];
     batch.results.forEach((result, i) => {
       const k = query.queries[i].top_k;
 
       // FIXME: why do we have `undefined` here sometimes? we shouldnt have
       // to do this filtering everytime
       ids = ids.concat(result.ids.slice(0, k).filter(r => r !== undefined));
-      metadata = metadata.concat(result.metadata.slice(0, k).filter(r => r !== undefined));
+      metadatas = metadatas.concat(result.metadatas.slice(0, k).filter(r => r !== undefined));
     });
 
     // NOTE: this used to be optional, but we now have it on by default
@@ -70,12 +70,12 @@ export class BaseAlgorithm {
       .map(({i}) => i);
 
     ids = ids.map((_, i, self) => self[idx[i]]);
-    metadata = metadata.map((_, i, self) => self[idx[i]]);
+    metadatas = metadatas.map((_, i, self) => self[idx[i]]);
 
     // finally, get batchSize many items for each
     // TODO: this happens outside as well
     ids = ids.slice(0, batchSize);
-    metadata = metadata.slice(0, batchSize);
-    return [ids, metadata];
+    metadatas = metadatas.slice(0, batchSize);
+    return [ids, metadatas];
   }
 }

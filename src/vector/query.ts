@@ -15,26 +15,26 @@ export class Query {
     this.top_k = topK;
     this.top_k_mmr = topK; // defaults to topK
     this.include_values = includeValues;
-    this.filter = filter || {}; // default
+    this.filter = filter || {}; // FIXME: default, but can it be undefined?
   }
 }
 
 export class QueryResult {
   vectors: Vector[];
-  metadata: QueryMetadata[];
+  metadatas: QueryMetadata[];
   scores: number[];
   ids: string[];
   distanceMetric: DistanceMetric;
 
   constructor(args: {
     vectors?: Vector[];
-    metadata?: QueryMetadata[];
+    metadatas?: QueryMetadata[];
     scores?: number[];
     ids?: string[];
     distanceMetric?: DistanceMetric;
   }) {
     this.vectors = args.vectors || [];
-    this.metadata = args.metadata || [];
+    this.metadatas = args.metadatas || [];
     this.scores = args.scores || [];
     this.ids = args.ids || [];
     this.distanceMetric = args.distanceMetric || 'cosine_sim';
@@ -76,7 +76,7 @@ export class QueryResult {
   private createFilteredResult(indices: number[]): QueryResult {
     return new QueryResult({
       vectors: indices.map(i => this.vectors.at(i)).filter((v): v is Vector => v !== undefined),
-      metadata: indices.map(i => this.metadata.at(i)).filter((m): m is QueryMetadata => m !== undefined),
+      metadatas: indices.map(i => this.metadatas.at(i)).filter((m): m is QueryMetadata => m !== undefined),
       scores: indices.map(i => this.scores.at(i)).filter((s): s is number => s !== undefined),
       ids: indices.map(i => this.ids.at(i)).filter((id): id is string => id !== undefined),
     });
@@ -86,7 +86,7 @@ export class QueryResult {
   concat(other: QueryResult): QueryResult {
     return new QueryResult({
       vectors: this.vectors.concat(other.vectors),
-      metadata: this.metadata.concat(other.metadata),
+      metadatas: this.metadatas.concat(other.metadatas),
       scores: this.scores.concat(other.scores),
       ids: this.ids.concat(other.ids),
     });
@@ -147,7 +147,7 @@ export class BatchQueryResult {
 
       // sort everything else w.r.t these indices
       result.ids = result.ids.map((_, i, self) => self[idx[i]]);
-      result.metadata = result.metadata.map((_, i, self) => self[idx[i]]);
+      result.metadatas = result.metadatas.map((_, i, self) => self[idx[i]]);
       result.scores = result.scores.map((_, i, self) => self[idx[i]]);
       result.vectors = result.vectors.map((_, i, self) => self[idx[i]]);
     });
@@ -166,7 +166,7 @@ export class BatchQueryResult {
 
     this.results.forEach(result => {
       result.ids = idx.map(i => result.ids[i]);
-      result.metadata = idx.map(i => result.metadata[i]);
+      result.metadatas = idx.map(i => result.metadatas[i]);
       result.scores = idx.map(i => result.scores[i]);
       result.vectors = idx.map(i => result.vectors[i]);
     });

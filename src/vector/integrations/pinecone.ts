@@ -43,15 +43,15 @@ export class Pinecone extends VectorStore {
     const ids: string[] = [];
     const scores: number[] = [];
     const vectors: Vector[] = [];
-    const metadata: QueryMetadata[] = [];
+    const metadatas: QueryMetadata[] = [];
 
     for (const r of result.matches) {
       ids.push(r.id);
       scores.push(r.score ?? 0);
       vectors.push({vector: r.values, id: r.id});
-      metadata.push({id: r.id, data: r.metadata as RecordMetadata});
+      metadatas.push(r.metadata as RecordMetadata);
     }
-    return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
+    return new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
   }
 
   async fetch(id: string) {

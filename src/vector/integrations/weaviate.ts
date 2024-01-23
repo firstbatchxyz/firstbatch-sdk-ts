@@ -43,7 +43,7 @@ export class Weaviate extends VectorStore {
     queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
 
-    // FIXME: wth is this check?
+    // FIXME: why is this check done?
     if (typeof query.filter === 'object') {
       queryObject = queryObject.withWhere({
         operands: query.filter['operands'],
@@ -66,29 +66,29 @@ export class Weaviate extends VectorStore {
     const ids: string[] = [];
     const scores: number[] = [];
     const vectors: Vector[] = [];
-    const metadata: QueryMetadata[] = [];
+    const metadatas: QueryMetadata[] = [];
     const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
     for (const res of data) {
-      const _id = res['_additional'].id;
-      ids.push(_id);
+      const id = res['_additional'].id;
+      ids.push(id);
 
-      const m: Record<string, any> = {};
+      const metadata: Record<string, any> = {};
       for (const k of this.outputFields) {
-        m[k] = res[k];
-        delete res[k];
+        metadata[k] = res[k];
+        delete res[k]; // FIXME: why????
       }
 
-      metadata.push({id: _id, data: m});
+      metadatas.push(metadata);
       scores.push(res['_additional'].distance);
       if (query.include_values) {
-        vectors.push({vector: res['_additional'].vector, id: _id});
+        vectors.push({vector: res['_additional'].vector, id});
       } else {
-        vectors.push({vector: [], id: _id});
+        vectors.push({vector: [], id});
       }
     }
 
-    return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
+    return new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
   }
 
   async fetch(id: string): Promise<FetchResult> {

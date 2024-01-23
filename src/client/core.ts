@@ -231,7 +231,7 @@ export class FirstBatch extends FirstBatchClient {
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 
     let ids: string[];
-    let batch: QueryMetadata[];
+    let metadatas: QueryMetadata[];
 
     this.logger.info(
       `Session: ${response.algorithm} ${response.factory_id} ${response.custom_id}\t(${batchType} ${batchSize})`
@@ -246,7 +246,7 @@ export class FirstBatch extends FirstBatchClient {
       this.updateState(sessionId, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
+      [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -268,7 +268,7 @@ export class FirstBatch extends FirstBatchClient {
         );
         this.updateState(sessionId, nextState.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-        [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
+        [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -286,7 +286,7 @@ export class FirstBatch extends FirstBatchClient {
         });
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-        [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'biased', {
+        [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'biased', {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -300,7 +300,7 @@ export class FirstBatch extends FirstBatchClient {
       });
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, batch] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'sampled', {
+      [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'sampled', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -313,13 +313,13 @@ export class FirstBatch extends FirstBatchClient {
     // take only `batchSize` many results
     // FIXME: this might be happening multiple times without being necessary
     ids = ids.slice(0, batchSize);
-    batch = batch.slice(0, batchSize);
+    metadatas = metadatas.slice(0, batchSize);
 
     if (this.enableHistory) {
       await this.addHistory(sessionId, ids);
     }
 
-    return [ids, batch];
+    return [ids, metadatas];
   }
 
   private queryWrapper(
@@ -347,7 +347,7 @@ export class FirstBatch extends FirstBatchClient {
       .map(k => (applyMMR ? k * constants.MMR_TOPK_FACTOR : k));
 
     const hasHistory = this.enableHistory && history.length !== 0;
-    const metadataFilter = hasHistory ? this.store[vdbid].historyFilter(history, options?.filter) : {}; // default
+    const metadataFilter = hasHistory ? this.store[vdbid].historyFilter(history, options?.filter) : {}; // FIXME: default, but can it be undefined?
 
     const queries = response.vectors.map(
       (vector, i) => new Query({vector, id: ''}, Math.max(topKs[i], constants.MIN_TOPK), includeValues, metadataFilter)
