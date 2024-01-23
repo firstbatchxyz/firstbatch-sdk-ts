@@ -1,6 +1,5 @@
-import type {DistanceMetric, Vector, FetchResult} from '../../types';
+import type {MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../../types';
 import {Query, QueryResult} from '../query';
-import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
@@ -67,7 +66,8 @@ export class Typesense extends VectorStore {
         }
       }
       const vecObj: number[] = document['vec'];
-      q.metadata.push(new QueryMetadata('', metadataObject as object));
+      // FIXME: a very smelly line here
+      q.metadata.push({id: '', data: metadataObject as object});
       q.vectors.push({vector: vecObj, dim: vecObj.length, id: document['id']} as Vector);
       q.scores.push(document['vector_distance']);
       q.ids.push(document['id']);
@@ -87,16 +87,16 @@ export class Typesense extends VectorStore {
     return {vector: res.vec, metadata: res.metadata, id: res.id};
   }
 
-  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string) {
+  historyFilter(ids: string[], prevFilter?: {[key: string]: any} | string): MetadataFilter {
     if (this.historyField !== '_id') {
       throw new Error("TypeSense doesn't allow filtering on id field. Try duplicating id in another field like _id.");
     }
 
-    let filter_ = `${this.historyField}:!=[${ids.join(',')}]`;
+    let filter = `${this.historyField}:!=[${ids.join(',')}]`;
 
     if (prevFilter !== undefined && typeof prevFilter === 'string') {
-      filter_ += ` && ${prevFilter}`;
+      filter += ` && ${prevFilter}`;
     }
-    return new MetadataFilter('History', filter_);
+    return {name: 'History', filter};
   }
 }

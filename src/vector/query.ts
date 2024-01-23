@@ -1,6 +1,5 @@
 import {matrix, Matrix, mean} from 'mathjs';
-import {MetadataFilter, QueryMetadata} from './metadata';
-import type {DistanceMetric, Vector} from '../types';
+import type {DistanceMetric, Vector, MetadataFilter, QueryMetadata} from '../types';
 import {generateVectors} from './utils';
 
 export class Query {
@@ -16,7 +15,7 @@ export class Query {
     this.top_k = topK;
     this.top_k_mmr = topK; // defaults to topK
     this.include_values = includeValues;
-    this.filter = filter || MetadataFilter.default();
+    this.filter = filter || {name: '', filter: {}}; // default
   }
 }
 

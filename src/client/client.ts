@@ -200,6 +200,7 @@ export class FirstBatchClient {
    */
   protected async getBlueprint(customId: string) {
     const response = await this.post<DFA>('embeddings/get_blueprint', {id: customId});
+    // FIXME: do we ever receive a string here?
     return response.data;
   }
 

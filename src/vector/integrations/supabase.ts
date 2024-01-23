@@ -1,8 +1,7 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
-import type {DistanceMetric, FetchResult, Vector} from '../../types';
+import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector} from '../../types';
 import {Query, QueryResult} from '../query';
-import {MetadataFilter, QueryMetadata} from '../metadata';
 import constants from '../../constants';
 import {VectorStore} from './base';
 
@@ -73,7 +72,7 @@ export class Supabase extends VectorStore {
         scores.push(idsScore[f[0]]);
         if (query.include_metadata) {
           vectors.push({vector: f[1], id: f[0]});
-          metadata.push(new QueryMetadata(f[0], f[2]));
+          metadata.push({id: f[0], data: f[2]});
         }
       }
     } else {
@@ -105,7 +104,7 @@ export class Supabase extends VectorStore {
 
   async fetch(id: string): Promise<FetchResult> {
     const result = await this.fetchWrapper([id]);
-    const metadata: QueryMetadata = new QueryMetadata(id, result[0][2]);
+    const metadata: QueryMetadata = {id, data: result[0][2]};
     const vector: Vector = {
       vector: result[0][1],
       id: id,
@@ -153,7 +152,7 @@ export class Supabase extends VectorStore {
     return results.map(r => [r.id.toString(), r.embedding, r.metadata]);
   }
 
-  historyFilter(ids: string[], prevFilter?: Record<string, any>) {
+  historyFilter(ids: string[], prevFilter?: Record<string, any>): MetadataFilter {
     // TODO: is there a better query option instead of `and`ing `ne`s?
     // TODO: these two branches are the same, just assign exisrting filter at first if there is one
     if (prevFilter) {
@@ -161,13 +160,13 @@ export class Supabase extends VectorStore {
       for (const id in ids) {
         prevFilter['$and'].push({id_field: {$ne: id}});
       }
-      return new MetadataFilter('', prevFilter);
+      return {name: '', filter: prevFilter};
     } else {
       const filter: Record<string, any> = {$and: []};
       for (const id in ids) {
         filter['$and'].push({id_field: {$ne: id}});
       }
-      return new MetadataFilter('History', filter);
+      return {name: 'History', filter};
     }
   }
 }

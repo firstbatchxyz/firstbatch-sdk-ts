@@ -1,4 +1,12 @@
-import {QueryMetadata} from '../vector';
+export type MetadataFilter = {
+  name: string;
+  filter: Record<string, any> | string; // TODO: type
+};
+
+export type QueryMetadata = {
+  id: string;
+  data: Record<string, any>; // TODO: type
+};
 
 export interface ParamsInterface {
   mu: number;
@@ -35,16 +43,16 @@ export type BatchResponse = {
   weights: number[];
 };
 
-export interface Vector {
+export type Vector = {
   id: string;
   vector: number[];
-}
+};
 
-export interface CompressedVector {
+export type CompressedVector = {
   id: string;
   vector: number[];
   residual?: number[];
-}
+};
 
 export type DistanceMetric = 'cosine_sim' | 'euclidean_dist' | 'dot_product';
 

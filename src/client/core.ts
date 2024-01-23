@@ -6,8 +6,8 @@ import constants from '../constants';
 import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
-import {generateBatch, MetadataFilter, Query, QueryMetadata, BatchQuery} from '../vector';
-import type {BatchResponse, Signal} from '../types';
+import {generateBatch, Query, BatchQuery} from '../vector';
+import type {BatchResponse, Signal, QueryMetadata} from '../types';
 
 /** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {
@@ -349,7 +349,7 @@ export class FirstBatch extends FirstBatchClient {
     const hasHistory = this.enableHistory && history.length !== 0;
     const metadataFilter = hasHistory
       ? this.store[vdbid].historyFilter(history, options?.filter)
-      : MetadataFilter.default();
+      : {name: '', filter: {}}; // default
 
     const queries = response.vectors.map(
       (vector, i) => new Query({vector, id: ''}, Math.max(topKs[i], constants.MIN_TOPK), includeValues, metadataFilter)

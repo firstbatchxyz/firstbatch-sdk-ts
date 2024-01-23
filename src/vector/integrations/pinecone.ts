@@ -1,8 +1,7 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
-import {MetadataFilter, QueryMetadata} from '../metadata';
 import {Query, QueryResult} from '../query';
 import {VectorStore} from './base';
-import {DistanceMetric, Vector} from '../../types';
+import {QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../../types';
 
 export class Pinecone extends VectorStore {
   index: Index;
@@ -50,7 +49,7 @@ export class Pinecone extends VectorStore {
       ids.push(r.id);
       scores.push(r.score ?? 0);
       vectors.push({vector: r.values, id: r.id});
-      metadata.push(new QueryMetadata(r.id, r.metadata as RecordMetadata));
+      metadata.push({id: r.id, data: r.metadata as RecordMetadata});
     }
     return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
   }
@@ -62,7 +61,7 @@ export class Pinecone extends VectorStore {
       if (Object.hasOwn(result.records, key)) {
         const v = result.records[key];
         const vector: Vector = {vector: v.values, id: key};
-        const metadata = new QueryMetadata(key, v.metadata as RecordMetadata);
+        const metadata = {id: key, data: v.metadata as RecordMetadata};
         return {vector, metadata, id: key};
       }
     }
@@ -70,7 +69,7 @@ export class Pinecone extends VectorStore {
     throw new Error('Could not find a result.');
   }
 
-  historyFilter(ids: string[], prevFilter?: object) {
+  historyFilter(ids: string[], prevFilter?: object): MetadataFilter {
     const filter = {
       [this.historyField]: {$nin: ids},
     };
@@ -92,9 +91,9 @@ export class Pinecone extends VectorStore {
         }
       }
 
-      return new MetadataFilter('history', merged);
+      return {name: 'history', filter: merged};
     } else {
-      return new MetadataFilter('History', filter);
+      return {name: 'History', filter};
     }
   }
 }

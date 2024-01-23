@@ -1,7 +1,7 @@
 import {maximalMarginalRelevance} from '../../vector/utils';
 import {Blueprint, parseDFA} from '../blueprint';
-import {BatchQueryResult, BatchQuery, QueryMetadata} from '../../vector';
-import type {DFA} from '../../types';
+import {BatchQueryResult, BatchQuery} from '../../vector';
+import type {DFA, QueryMetadata} from '../../types';
 
 export class BaseAlgorithm {
   blueprint: Blueprint;
