@@ -42,10 +42,12 @@ export class Weaviate extends VectorStore {
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
-    if (query.filter.name && typeof query.filter.filter === 'object') {
+
+    // FIXME: wth is this check?
+    if (typeof query.filter === 'object') {
       queryObject = queryObject.withWhere({
-        operands: query.filter.filter['operands'],
-        operator: query.filter.filter['operator'],
+        operands: query.filter['operands'],
+        operator: query.filter['operator'],
       });
     }
 
@@ -81,7 +83,9 @@ export class Weaviate extends VectorStore {
       scores.push(res['_additional'].distance);
       if (query.include_values) {
         vectors.push({vector: res['_additional'].vector, id: _id});
-      } else vectors.push({vector: [], id: _id});
+      } else {
+        vectors.push({vector: [], id: _id});
+      }
     }
 
     return new QueryResult({vectors, metadata, scores, ids, distanceMetric: this.distanceMetric});
@@ -115,6 +119,6 @@ export class Weaviate extends VectorStore {
       filter.operands.push(f);
     }
 
-    return {name: 'History', filter};
+    return filter;
   }
 }

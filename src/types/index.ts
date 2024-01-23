@@ -1,7 +1,4 @@
-export type MetadataFilter = {
-  name: string;
-  filter: Record<string, any> | string; // TODO: type
-};
+export type MetadataFilter = Record<string, any>;
 
 export type QueryMetadata = {
   id: string;

@@ -34,7 +34,7 @@ export class Typesense extends VectorStore {
 
   async search(query: Query): Promise<QueryResult> {
     let queryObj;
-    if (query.filter?.filter) {
+    if (query.filter) {
       queryObj = {
         q: '*',
         vector_query: 'vec:({query.embedding.vector}, k:{query.top_k})',
@@ -45,7 +45,7 @@ export class Typesense extends VectorStore {
         q: '*',
         vector_query: 'vec:({query.embedding.vector}, k:{query.top_k})',
         collection: this.collectionName,
-        filter_by: query.filter.filter,
+        filter_by: query.filter,
       };
     }
     const res = await this.client.multiSearch.perform({searches: [queryObj as MultiSearchRequestWithPresetSchema]}, {});
@@ -97,6 +97,8 @@ export class Typesense extends VectorStore {
     if (prevFilter !== undefined && typeof prevFilter === 'string') {
       filter += ` && ${prevFilter}`;
     }
-    return {name: 'History', filter};
+
+    // FIXME: implement this later
+    return {};
   }
 }

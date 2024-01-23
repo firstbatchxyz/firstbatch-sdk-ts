@@ -34,7 +34,7 @@ export class Pinecone extends VectorStore {
     const result: QueryResponse = await this.index.query({
       vector: query.embedding.vector,
       topK: query.top_k,
-      filter: query.filter.filter as Record<string, any>, // TODO: type
+      filter: query.filter,
       includeMetadata: query.include_metadata,
       includeValues: query.include_values,
     });
@@ -91,9 +91,9 @@ export class Pinecone extends VectorStore {
         }
       }
 
-      return {name: 'history', filter: merged};
+      return merged;
     } else {
-      return {name: 'History', filter};
+      return filter;
     }
   }
 }

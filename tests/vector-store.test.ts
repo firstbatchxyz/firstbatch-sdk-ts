@@ -9,13 +9,14 @@ import {createClient as createSupabaseClient} from '@supabase/supabase-js';
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
 import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
+import {VectorStore} from '../src/vector';
 
 describe('vector store', () => {
-  let vs: Weaviate | Pinecone | Typesense | Supabase;
+  let vs: VectorStore;
   let dim: number;
 
-  ['weavitate', 'pinecone' /* 'typesense', 'supabase' */].map(vsname => {
-    (vsname == 'typesense' || vsname == 'supabase' ? describe.todo : describe)(vsname, () => {
+  ['weavitate', 'pinecone'].map(vsname => {
+    describe(vsname, () => {
       beforeAll(async () => {
         if (vsname === 'weavitate') {
           const client = weaviate.client({
@@ -49,7 +50,6 @@ describe('vector store', () => {
           });
           const health = await client.health.retrieve();
           expect(health.ok).toBeTrue();
-
           vs = new Typesense(client);
         } else if (vsname === 'supabase') {
           const client = createSupabaseClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
@@ -63,13 +63,13 @@ describe('vector store', () => {
       });
 
       test('search', async () => {
-        const query = generateQuery(1, dim, 10, true).next().value;
+        const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
         expect(res).toBeInstanceOf(QueryResult);
       });
 
       test('fetch', async () => {
-        const query = generateQuery(1, dim, 10, true).next().value;
+        const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
         expect(res).toBeInstanceOf(QueryResult);
 
@@ -85,7 +85,7 @@ describe('vector store', () => {
       });
 
       test('multi-fetch', async () => {
-        const query = generateQuery(1, dim, 10, true).next().value;
+        const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
         expect(res).toBeInstanceOf(QueryResult);
 
@@ -94,7 +94,7 @@ describe('vector store', () => {
       });
 
       test('history', async () => {
-        const query = generateQuery(1, dim, 10, false).next().value;
+        const query = generateQuery(1, dim, 10, false);
         const res = await vs.search(query);
         query.filter = vs.historyFilter(res.ids);
         const res_ = await vs.search(query);

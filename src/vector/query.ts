@@ -15,7 +15,7 @@ export class Query {
     this.top_k = topK;
     this.top_k_mmr = topK; // defaults to topK
     this.include_values = includeValues;
-    this.filter = filter || {name: '', filter: {}}; // default
+    this.filter = filter || {}; // default
   }
 }
 
@@ -94,12 +94,11 @@ export class QueryResult {
 }
 
 // Generate an iterable of Query objects.
-export function* generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Generator<Query> {
-  for (const vec of generateVectors(dim, numVecs)) {
-    const query = new Query(vec, topK, includeValues);
-    query.top_k_mmr = Math.floor(topK / 2); // TODO: move this to constant
-    yield query;
-  }
+export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean) {
+  const vec = generateVectors(dim, 1)[0];
+  const query = new Query(vec, topK, includeValues);
+  query.top_k_mmr = Math.floor(topK / 2); // TODO: move this to constant
+  return query;
 }
 
 export class BatchQuery {
@@ -174,9 +173,8 @@ export class BatchQueryResult {
   }
 }
 
-/** Generate a BatchQuery object containing a batch of Query objects. */
 // TODO: instead of random_batch_request with defaults, have the defaults apply here?
 export function generateBatch(numVecs: number, dim: number, topK: number, includeValues: boolean): BatchQuery {
-  const queries = [...generateQuery(numVecs, dim, topK, includeValues)];
+  const queries = Array.from({length: numVecs}, () => generateQuery(numVecs, dim, topK, includeValues));
   return new BatchQuery(queries, numVecs);
 }

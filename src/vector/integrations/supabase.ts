@@ -56,11 +56,7 @@ export class Supabase extends VectorStore {
     const metadata: QueryMetadata[] = [];
 
     if (query.include_values) {
-      const result = await this.queryWrapper(
-        query.embedding.vector,
-        query.top_k,
-        query.filter.filter as SupabaseFilter
-      );
+      const result = await this.queryWrapper(query.embedding.vector, query.top_k, query.filter as SupabaseFilter);
 
       const idsScore: Record<string, number[]> = Object.fromEntries(result.map(r => [r[0], r[1]]));
       const fetches = await this.fetchWrapper(Object.keys(idsScore));
@@ -76,11 +72,7 @@ export class Supabase extends VectorStore {
         }
       }
     } else {
-      const results = await this.queryWrapper(
-        query.embedding.vector,
-        query.top_k,
-        query.filter.filter as Record<string, any>
-      );
+      const results = await this.queryWrapper(query.embedding.vector, query.top_k, query.filter);
       for (const r of results) {
         ids.push(r[0]);
         // FIXME: bad type
@@ -160,13 +152,13 @@ export class Supabase extends VectorStore {
       for (const id in ids) {
         prevFilter['$and'].push({id_field: {$ne: id}});
       }
-      return {name: '', filter: prevFilter};
+      return prevFilter;
     } else {
       const filter: Record<string, any> = {$and: []};
       for (const id in ids) {
         filter['$and'].push({id_field: {$ne: id}});
       }
-      return {name: 'History', filter};
+      return filter;
     }
   }
 }
