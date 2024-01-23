@@ -1,6 +1,5 @@
 import {Signals} from './signal';
-import {Params} from './params';
-import type {Edge, Vertex, Signal} from '../../types';
+import type {Edge, Vertex, Signal, ParamsInterface} from '../../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -35,7 +34,7 @@ export class Blueprint {
     this.edges.push(edge);
   }
 
-  step(state: string, signal: Signal): [Vertex, Vertex['batchType'], Params] {
+  step(state: string, signal: Signal): [Vertex, Vertex['batchType'], ParamsInterface] {
     // find the vertex with this state
     let vertex: Vertex;
     if (!(state in this.map)) {

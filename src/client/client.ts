@@ -1,8 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from '../constants';
-import {Params} from '../algorithm/blueprint/params';
-import type {Vertex, BatchResponse, DFA, Signal} from '../types';
+import type {Vertex, BatchResponse, DFA, Signal, ParamsInterface} from '../types';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -132,7 +131,7 @@ export class FirstBatchClient {
     options?: {
       biasVectors?: number[][];
       biasWeights?: number[];
-      params?: Params;
+      params?: ParamsInterface;
     }
   ) {
     const response = await this.post<BatchResponse>('embeddings/biased_batch', {

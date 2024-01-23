@@ -20,6 +20,7 @@ export class FactoryAlgorithm extends BaseAlgorithm {
 
 export class SimpleAlgorithm extends BaseAlgorithm {
   constructor() {
-    super('SIMPLE', library.SIMPLE);
+    // CONTENT_CURATION is used for the SIMPLE algorithm.
+    super('SIMPLE', library.CONTENT_CURATION);
   }
 }

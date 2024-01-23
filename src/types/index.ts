@@ -1,5 +1,15 @@
-import {Params, ParamsInterface} from '../algorithm';
 import {QueryMetadata} from '../vector';
+
+export interface ParamsInterface {
+  mu: number;
+  alpha: number;
+  r: number;
+  last_n: number;
+  n_topics: number;
+  remove_duplicates: boolean;
+  apply_threshold: number;
+  apply_mmr: boolean;
+}
 
 export type Signal = {label: string; weight: number};
 
@@ -54,5 +64,5 @@ export type Edge = {
 export type Vertex = {
   name: string;
   batchType: 'biased' | 'sampled' | 'random' | 'personalized';
-  params: Params;
+  params: ParamsInterface;
 };

@@ -1,7 +1,17 @@
 import {Blueprint} from './blueprint';
-import {Params} from './params';
 import {Signals} from './signal';
-import type {DFA} from '../../types';
+import type {DFA, ParamsInterface} from '../../types';
+
+const defaultNodeParams: ParamsInterface = {
+  mu: 0,
+  alpha: 0,
+  r: 0,
+  last_n: 0,
+  n_topics: 0,
+  remove_duplicates: true,
+  apply_threshold: 0,
+  apply_mmr: false,
+};
 
 /**
  * Parse a given Blueprint DFA to obtain a Blueprint instance.
@@ -22,7 +32,14 @@ export function parseDFA(dfa: DFA): Blueprint {
 
   // add vertices (nodes)
   dfa.nodes.forEach(node => {
-    blueprint.addVertex({name: node.name, batchType: node.batch_type, params: new Params(node.params)});
+    blueprint.addVertex({
+      name: node.name,
+      batchType: node.batch_type,
+      params: {
+        ...defaultNodeParams,
+        ...node.params,
+      },
+    });
   });
 
   // add edges
