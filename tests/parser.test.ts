@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'bun:test';
 import testLibrary from './data/blueprints';
 import mainLibrary from '../src/constants/library';
-import {parseDFA} from '../src/algorithm/blueprint/parser';
+import {parseDFA} from '../src/algorithm/parser';
 import {Signals} from '../src';
 
 describe('blueprint parser', () => {

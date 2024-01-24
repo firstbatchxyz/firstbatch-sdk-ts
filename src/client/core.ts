@@ -1,5 +1,5 @@
 import log from 'loglevel';
-import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm} from '../algorithm';
+import {Blueprint, parseDFA, applyAlgorithm} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
 // import {ProductQuantizer} from '../lossy/product';
@@ -9,6 +9,7 @@ import {adjustWeights} from '../vector/utils';
 import {generateBatch, Query, BatchQuery} from '../vector';
 import type {WeightedVectors, Signal, QueryMetadata} from '../types';
 import {Signals} from '../constants/signal';
+import library from '../constants/library';
 
 /** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {
@@ -176,12 +177,12 @@ export class FirstBatch extends FirstBatchClient {
 
     const result = await vectorStore.fetch(contentId);
 
-    const algoInstance = await this.getAlgorithm(sessionResponse.algorithm, {
+    const blueprint = await this.getAlgorithm(sessionResponse.algorithm, {
       factoryId: sessionResponse.factory_id,
       customId: sessionResponse.custom_id,
     });
 
-    const [nextState, batchType, params] = algoInstance.blueprint.step(sessionResponse.state, signal);
+    const [nextState, batchType, params] = blueprint.step(sessionResponse.state, signal);
 
     const signalResponse = await this.signal(sessionId, result.vector.vector, nextState.name, signal);
 
@@ -219,12 +220,12 @@ export class FirstBatch extends FirstBatchClient {
     }
     const batchSize = options?.batchSize ?? this.batchSize;
 
-    const algoInstance = await this.getAlgorithm(response.algorithm, {
+    const blueprint = await this.getAlgorithm(response.algorithm, {
       factoryId: response.factory_id,
       customId: response.custom_id,
     });
 
-    const [nextState, batchType, params] = algoInstance.blueprint.step(response.state, Signals.BATCH);
+    const [nextState, batchType, params] = blueprint.step(response.state, Signals.BATCH);
 
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 
@@ -244,7 +245,7 @@ export class FirstBatch extends FirstBatchClient {
       this.updateState(sessionId, nextState.name, 'random'); // TODO: await?
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
+      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -266,7 +267,7 @@ export class FirstBatch extends FirstBatchClient {
         );
         this.updateState(sessionId, nextState.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-        [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
+        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -283,7 +284,7 @@ export class FirstBatch extends FirstBatchClient {
         });
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-        [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'biased', {
+        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'biased', {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold,
           removeDuplicates: params.remove_duplicates,
@@ -297,7 +298,7 @@ export class FirstBatch extends FirstBatchClient {
       });
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, metadatas] = algoInstance.applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'sampled', {
+      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'sampled', {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
         removeDuplicates: params.remove_duplicates,
@@ -367,10 +368,10 @@ export class FirstBatch extends FirstBatchClient {
       factoryId?: string;
       customId?: string;
     }
-  ): Promise<BaseAlgorithm> {
+  ): Promise<Blueprint> {
     switch (algorithm) {
       case 'SIMPLE': {
-        return new SimpleAlgorithm();
+        return parseDFA(library.CONTENT_CURATION);
       }
       case 'CUSTOM': {
         if (!options?.customId) {
@@ -378,14 +379,18 @@ export class FirstBatch extends FirstBatchClient {
         }
 
         const blueprint = await this.getBlueprint(options.customId);
-        return new CustomAlgorithm(blueprint);
+        return parseDFA(blueprint);
       }
       case 'FACTORY': {
         if (!options?.factoryId) {
           throw new Error('Expected factoryId');
         }
+        const blueprint = library[options.factoryId as keyof typeof library];
+        if (!blueprint) {
+          throw new Error('Could not find a DFA with label: ' + options.factoryId);
+        }
 
-        return new FactoryAlgorithm(options.factoryId);
+        return parseDFA(blueprint);
       }
       default:
         algorithm satisfies never;

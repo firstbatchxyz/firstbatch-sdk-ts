@@ -1,5 +1,5 @@
-import {Signals} from '../../constants/signal';
-import type {Edge, Vertex, Signal, ParamsInterface} from '../../types';
+import {Signals} from '../constants/signal';
+import type {Edge, Vertex, Signal, ParamsInterface} from '../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];

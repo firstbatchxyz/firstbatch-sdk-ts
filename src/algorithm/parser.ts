@@ -1,6 +1,6 @@
 import {Blueprint} from './blueprint';
-import {Signals} from '../../constants/signal';
-import type {DFA, ParamsInterface} from '../../types';
+import {Signals} from '../constants/signal';
+import type {DFA, ParamsInterface} from '../types';
 
 const defaultNodeParams: ParamsInterface = {
   mu: 0,
