@@ -5,11 +5,9 @@ import type {DFA, QueryMetadata} from '../../types';
 
 export class BaseAlgorithm {
   blueprint: Blueprint;
-  algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE';
 
-  constructor(algorithmType: 'FACTORY' | 'CUSTOM' | 'SIMPLE', blueprint: DFA) {
+  constructor(blueprint: DFA) {
     this.blueprint = parseDFA(blueprint);
-    this.algorithmType = algorithmType;
   }
 
   applyAlgorithm(

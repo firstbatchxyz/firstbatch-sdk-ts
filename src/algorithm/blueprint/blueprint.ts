@@ -1,4 +1,4 @@
-import {Signals} from './signal';
+import {Signals} from '../../constants/signal';
 import type {Edge, Vertex, Signal, ParamsInterface} from '../../types';
 
 export class Blueprint {

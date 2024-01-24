@@ -1,4 +1,4 @@
-import type {DFA} from '../../types';
+import type {DFA} from '../types';
 
 const Navigable_UX: DFA = {
   nodes: [

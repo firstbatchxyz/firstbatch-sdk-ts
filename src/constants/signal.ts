@@ -1,4 +1,4 @@
-import type {Signal} from '../../types';
+import type {Signal} from '../types';
 
 const presetSignals = {
   DEFAULT: {label: 'DEFAULT', weight: 1},
@@ -42,11 +42,6 @@ const presetSignals = {
   CLICK_AD: {label: 'CLICK_AD', weight: 6},
 };
 
-/** A union of preset signal names.
- * Each signal here has a corresponding `Signal` object that is prepared by FirstBatch.
- */
-export type PresetSignalNames = keyof typeof presetSignals;
-
 /** Preset set of signals, you can use these or add your own signals to this object. */
-export const Signals: Readonly<{[signal in PresetSignalNames]: Signal}> & {[signal: string]: Signal} =
-  presetSignals as Record<PresetSignalNames, Signal>;
+export const Signals: Readonly<{[signal in keyof typeof presetSignals]: Signal}> & {[signal: string]: Signal} =
+  presetSignals as Record<keyof typeof presetSignals, Signal>;

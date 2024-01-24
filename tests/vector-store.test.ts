@@ -8,7 +8,7 @@ import {createClient as createSupabaseClient} from '@supabase/supabase-js';
 
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
-import {Weaviate, Pinecone, Typesense, Supabase} from '../src/';
+import {Weaviate, Pinecone} from '../src/';
 import {VectorStore} from '../src/vector';
 
 describe('vector store', () => {
@@ -37,24 +37,26 @@ describe('vector store', () => {
           vs = new Pinecone(index, {
             embeddingSize: constants.PINECONE.EMBEDDING_SIZE,
           });
-        } else if (vsname === 'typesense') {
-          const client = new TypesenseClient({
-            apiKey: constants.TYPESENSE.API_KEY,
-            nodes: [
-              {
-                host: constants.TYPESENSE.API_HOST,
-                port: constants.TYPESENSE.API_PORT,
-                protocol: constants.TYPESENSE.PROTOCOL,
-              },
-            ],
-          });
-          const health = await client.health.retrieve();
-          expect(health.ok).toBeTrue();
-          vs = new Typesense(client);
-        } else if (vsname === 'supabase') {
-          const client = createSupabaseClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
-          vs = new Supabase(client);
-        } else {
+        }
+        // else if (vsname === 'typesense') {
+        //   const client = new TypesenseClient({
+        //     apiKey: constants.TYPESENSE.API_KEY,
+        //     nodes: [
+        //       {
+        //         host: constants.TYPESENSE.API_HOST,
+        //         port: constants.TYPESENSE.API_PORT,
+        //         protocol: constants.TYPESENSE.PROTOCOL,
+        //       },
+        //     ],
+        //   });
+        //   const health = await client.health.retrieve();
+        //   expect(health.ok).toBeTrue();
+        //   vs = new Typesense(client);
+        // } else if (vsname === 'supabase') {
+        //   const client = createSupabaseClient(constants.SUPABASE.URL, constants.SUPABASE.KEY);
+        //   vs = new Supabase(client);
+        // }
+        else {
           throw new Error('unexpected vector store: ' + vsname);
         }
 

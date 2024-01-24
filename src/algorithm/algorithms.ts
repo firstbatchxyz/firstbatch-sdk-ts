@@ -1,10 +1,10 @@
 import type {DFA} from '../types';
 import {BaseAlgorithm} from './';
-import library from './blueprint/library';
+import library from '../constants/library';
 
 export class CustomAlgorithm extends BaseAlgorithm {
   constructor(blueprint: DFA) {
-    super('CUSTOM', blueprint);
+    super(blueprint);
   }
 }
 
@@ -14,13 +14,13 @@ export class FactoryAlgorithm extends BaseAlgorithm {
     if (!blueprint) {
       throw new Error('Could not find a DFA with label: ' + label);
     }
-    super('FACTORY', blueprint);
+    super(blueprint);
   }
 }
 
 export class SimpleAlgorithm extends BaseAlgorithm {
   constructor() {
     // CONTENT_CURATION is used for the SIMPLE algorithm.
-    super('SIMPLE', library.CONTENT_CURATION);
+    super(library.CONTENT_CURATION);
   }
 }

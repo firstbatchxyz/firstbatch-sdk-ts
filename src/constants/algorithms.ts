@@ -1,4 +1,4 @@
-import library from '../algorithm/blueprint/library';
+import library from './library';
 
 export const presetAlgorithms: Record<keyof typeof library, string> = {
   UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),

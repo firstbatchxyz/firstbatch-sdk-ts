@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from '../constants';
-import type {Vertex, BatchResponse, DFA, Signal, ParamsInterface} from '../types';
+import type {Vertex, WeightedVectors, DFA, Signal, ParamsInterface} from '../types';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -129,18 +129,17 @@ export class FirstBatchClient {
     vdbid: string,
     state: string,
     options?: {
-      biasVectors?: number[][];
-      biasWeights?: number[];
+      bias?: WeightedVectors;
       params?: ParamsInterface;
     }
   ) {
-    const response = await this.post<BatchResponse>('embeddings/biased_batch', {
+    const response = await this.post<WeightedVectors>('embeddings/biased_batch', {
       id: sessionId,
       vdbid: vdbid,
       state: state,
       params: options?.params,
-      bias_vectors: options?.biasVectors,
-      bias_weights: options?.biasWeights,
+      bias_vectors: options?.bias?.vectors,
+      bias_weights: options?.bias?.weights,
     });
     return response.data;
   }
@@ -152,7 +151,7 @@ export class FirstBatchClient {
     nTopics: number,
     params?: Record<string, number>
   ) {
-    const response = await this.post<BatchResponse>('embeddings/sampled_batch', {
+    const response = await this.post<WeightedVectors>('embeddings/sampled_batch', {
       id: sessionId,
       n: nTopics,
       vdbid: vdbid,
@@ -180,7 +179,7 @@ export class FirstBatchClient {
   }
 
   protected async getUserEmbeddings(sessionId: string, lastN?: number) {
-    const response = await this.post<BatchResponse>('embeddings/get_embeddings', {
+    const response = await this.post<WeightedVectors>('embeddings/get_embeddings', {
       id: sessionId,
       last_n: lastN ?? constants.DEFAULT_EMBEDDING_LAST_N,
     });

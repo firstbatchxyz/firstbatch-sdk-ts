@@ -1,5 +1,5 @@
 import log from 'loglevel';
-import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm, Signals} from '../algorithm';
+import {BaseAlgorithm, SimpleAlgorithm, CustomAlgorithm, FactoryAlgorithm} from '../algorithm';
 import {FirstBatchClient} from './client';
 import constants from '../constants';
 // import {ProductQuantizer} from '../lossy/product';
@@ -7,7 +7,8 @@ import {ScalarQuantizer} from '../lossy/scalar';
 import {VectorStore} from '../vector/integrations/base';
 import {adjustWeights} from '../vector/utils';
 import {generateBatch, Query, BatchQuery} from '../vector';
-import type {BatchResponse, Signal, QueryMetadata} from '../types';
+import type {WeightedVectors, Signal, QueryMetadata} from '../types';
+import {Signals} from '../constants/signal';
 
 /** Configuration for the FirstBatch User Embeddings SDK. */
 export interface FirstBatchConfig {
@@ -208,10 +209,7 @@ export class FirstBatch extends FirstBatchClient {
     sessionId: string,
     options?: {
       batchSize?: number;
-      bias?: {
-        vectors: number[][];
-        weights: number[];
-      };
+      bias?: WeightedVectors;
     }
   ): Promise<[string[], QueryMetadata[]]> {
     const response = await this.getSession(sessionId);
@@ -277,8 +275,7 @@ export class FirstBatch extends FirstBatchClient {
         // act like biased batch
         const batchResponse = await this.biasedBatch(sessionId, response.vdbid, nextState.name, {
           params,
-          biasVectors: options?.bias?.vectors,
-          biasWeights: options?.bias?.weights,
+          bias: options?.bias,
         });
         const batchQuery = this.queryWrapper(response.vdbid, batchSize, batchResponse, history.ids, {
           applyMMR: params.apply_mmr,
@@ -325,7 +322,7 @@ export class FirstBatch extends FirstBatchClient {
   private queryWrapper(
     vdbid: string,
     batchSize: number,
-    response: BatchResponse,
+    response: WeightedVectors,
     history: string[],
     options?: {
       applyMMR?: boolean | number;

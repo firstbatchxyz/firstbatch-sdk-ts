@@ -32,7 +32,7 @@ export type DFA = {
 };
 
 // TODO: name this something else? this type can be used by others too
-export type BatchResponse = {
+export type WeightedVectors = {
   vectors: number[][];
   weights: number[];
 };

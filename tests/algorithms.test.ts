@@ -1,8 +1,7 @@
 import {describe, beforeEach, test} from 'bun:test';
-import {Signals} from '../src/algorithm/blueprint/';
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
 import {Pinecone} from '../src/vector/integrations/pinecone';
-import {FirstBatchConfig, FirstBatch} from '../src';
+import {FirstBatchConfig, FirstBatch, Signals} from '../src';
 import {generateVectors} from '../src/vector';
 import constants from './constants';
 
