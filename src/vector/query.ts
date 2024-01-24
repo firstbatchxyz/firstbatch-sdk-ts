@@ -1,23 +1,6 @@
 import {matrix, Matrix, mean} from 'mathjs';
-import type {DistanceMetric, Vector, MetadataFilter, QueryMetadata} from '../types';
+import type {Query, DistanceMetric, Vector, QueryMetadata} from '../types';
 import {generateVectors} from './utils';
-
-export class Query {
-  embedding: Vector;
-  top_k: number;
-  top_k_mmr: number;
-  filter: MetadataFilter;
-  include_metadata: boolean = true;
-  include_values: boolean = true;
-
-  constructor(vec: Vector, topK: number, includeValues: boolean, filter?: MetadataFilter) {
-    this.embedding = vec;
-    this.top_k = topK;
-    this.top_k_mmr = topK; // defaults to topK
-    this.include_values = includeValues;
-    this.filter = filter || {}; // FIXME: default, but can it be undefined?
-  }
-}
 
 export class QueryResult {
   vectors: Vector[];
@@ -93,12 +76,15 @@ export class QueryResult {
   }
 }
 
-// Generate an iterable of Query objects.
-export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean) {
-  const vec = generateVectors(dim, 1)[0];
-  const query = new Query(vec, topK, includeValues);
-  query.top_k_mmr = Math.floor(topK / 2); // TODO: move this to constant
-  return query;
+export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Query {
+  return {
+    embedding: generateVectors(dim, 1)[0],
+    top_k: topK,
+    top_k_mmr: Math.floor(topK / 2), // TODO: move this to constant,
+    include_values: includeValues,
+    filter: {},
+    include_metadata: true,
+  };
 }
 
 export class BatchQuery {

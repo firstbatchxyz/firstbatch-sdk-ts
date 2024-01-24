@@ -1,7 +1,7 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
-import {Query, QueryResult} from '../vector/query';
+import type {Query, QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../types';
+import {QueryResult} from '../vector/query';
 import {VectorStore} from './base';
-import {QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../types';
 
 export class Pinecone extends VectorStore {
   index: Index;

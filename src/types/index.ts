@@ -4,6 +4,15 @@ export type QueryMetadata = Record<string, any>; // TODO: type
 
 export type Signal = {label: string; weight: number};
 
+export type Query = {
+  embedding: Vector;
+  top_k: number;
+  top_k_mmr: number;
+  filter: MetadataFilter;
+  include_metadata: boolean;
+  include_values: boolean;
+};
+
 /** A Deterministic Finite Automata. */
 export type DFA = {
   signals?: Signal[];

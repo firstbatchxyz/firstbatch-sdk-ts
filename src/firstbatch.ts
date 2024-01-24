@@ -6,8 +6,8 @@ import constants from './constants';
 import {ScalarQuantizer} from './lossy/scalar';
 import {VectorStore} from './integrations/base';
 import {adjustWeights} from './vector/utils';
-import {generateBatch, Query, BatchQuery} from './vector';
-import type {WeightedVectors, Signal, QueryMetadata, FirstBatchConfig} from './types';
+import {generateBatch, BatchQuery} from './vector';
+import type {WeightedVectors, Signal, QueryMetadata, FirstBatchConfig, Query} from './types';
 import {Signals} from './constants/signal';
 import library from './constants/library';
 
@@ -340,17 +340,19 @@ export class FirstBatch extends FirstBatchClient {
     const hasHistory = this.enableHistory && history.length !== 0;
     const metadataFilter = hasHistory ? this.store[vdbid].historyFilter(history, options?.filter) : {}; // FIXME: default, but can it be undefined?
 
-    const queries = response.vectors.map(
-      (vector, i) => new Query({vector, id: ''}, Math.max(topKs[i], constants.MIN_TOPK), includeValues, metadataFilter)
-    );
+    const queries: Query[] = response.vectors.map((vector, i) => {
+      const topK = Math.max(topKs[i], constants.MIN_TOPK);
 
-    // if apply MMR, increase top_k for MMR to work better
-    if (applyMMR) {
-      queries.forEach(q => {
-        q.top_k_mmr = q.top_k;
-        q.top_k *= 2;
-      });
-    }
+      return {
+        embedding: {vector, id: ''},
+        top_k: applyMMR ? topK * 2 : topK,
+        // FIXME: is this correct?
+        top_k_mmr: applyMMR ? topK : Math.floor(topK / 2),
+        include_metadata: true,
+        include_values: includeValues,
+        filter: metadataFilter,
+      };
+    });
 
     return new BatchQuery(queries, batchSize);
   }

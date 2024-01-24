@@ -1,6 +1,14 @@
 import constants from '../../constants';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../vector/query';
-import type {MetadataFilter, CompressedVector, DistanceMetric, Vector, FetchResult, BaseLossy} from '../../types';
+import {BatchQuery, BatchQueryResult, QueryResult} from '../../vector/query';
+import type {
+  MetadataFilter,
+  Query,
+  CompressedVector,
+  DistanceMetric,
+  Vector,
+  FetchResult,
+  BaseLossy,
+} from '../../types';
 
 export abstract class VectorStore {
   public embeddingSize: number;

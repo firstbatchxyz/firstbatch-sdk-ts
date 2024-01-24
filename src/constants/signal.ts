@@ -40,7 +40,7 @@ const presetSignals = {
   FOLLOW_AUTHOR: {label: 'FOLLOW_AUTHOR', weight: 10},
   SEARCH: {label: 'SEARCH', weight: 15},
   CLICK_AD: {label: 'CLICK_AD', weight: 6},
-};
+} as const;
 
 /** Preset set of signals, you can use these or add your own signals to this object. */
 export const Signals: Readonly<{[signal in keyof typeof presetSignals]: Signal}> & {[signal: string]: Signal} =
