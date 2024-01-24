@@ -1,4 +1,4 @@
-import {presetAlgorithms} from './algorithms';
+import library from './library';
 
 export default {
   /** Endpoint to get region. */
@@ -33,5 +33,11 @@ export default {
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
   // presets
-  PRESET_ALGORITHMS: presetAlgorithms,
+  PRESET_ALGORITHMS: {
+    UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),
+    CONTENT_CURATION: 'User_Centric_Promoted_Content_Curations'.toUpperCase(),
+    AI_AGENTS: 'User_Intent_AI_Agents'.toUpperCase(),
+    RECOMMENDATIONS: 'Individually_Crafted_Recommendations'.toUpperCase(),
+    NAVIGATION: 'Navigable_UX'.toUpperCase(),
+  } satisfies Record<keyof typeof library, string>,
 } as const;

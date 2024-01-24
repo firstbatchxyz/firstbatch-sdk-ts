@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
-import constants from '../constants';
-import type {Vertex, WeightedVectors, DFA, Signal, ParamsInterface} from '../types';
+import constants from './constants';
+import type {Vertex, WeightedVectors, DFA, Signal} from './types';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -130,7 +130,7 @@ export class FirstBatchClient {
     state: string,
     options?: {
       bias?: WeightedVectors;
-      params?: ParamsInterface;
+      params?: Vertex['params'];
     }
   ) {
     const response = await this.post<WeightedVectors>('embeddings/biased_batch', {

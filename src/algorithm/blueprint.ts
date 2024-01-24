@@ -1,5 +1,5 @@
 import {Signals} from '../constants/signal';
-import type {Edge, Vertex, Signal, ParamsInterface} from '../types';
+import type {Edge, Vertex, Signal} from '../types';
 
 export class Blueprint {
   vertices: Vertex[] = [];
@@ -34,24 +34,30 @@ export class Blueprint {
     this.edges.push(edge);
   }
 
-  step(state: string, signal: Signal): [Vertex, Vertex['batchType'], ParamsInterface] {
+  /**
+   *
+   * @param state name of the current state (vertex)
+   * @param signal signal to be applied
+   * @returns the source and destination vertices
+   */
+  step(state: string, signal: Signal): {source: Vertex; destination: Vertex} {
     // find the vertex with this state
-    let vertex: Vertex;
+    let source: Vertex;
     if (!(state in this.map)) {
       if (state === '0') {
         // FIXME: edge case until API is fixed
         // API will request the state 0 referring to the first state.
-        vertex = this.vertices[0];
+        source = this.vertices[0];
       } else {
         throw new Error('No vertex found for ' + state);
       }
     } else {
-      vertex = this.map[state];
+      source = this.map[state];
     }
 
     // find an edge from that vertex with the given action, or a DEFAULT edge
     const edge =
-      this.edges.find(e => e.start.name === vertex.name && e.signal.label === signal.label) ||
+      this.edges.find(e => e.start.name === source.name && e.signal.label === signal.label) ||
       this.edges.find(e => e.signal.label === Signals.DEFAULT.label);
 
     if (!edge) {
@@ -59,6 +65,8 @@ export class Blueprint {
       throw new Error('Expected to find an edge');
     }
 
-    return [edge.end, vertex.batchType, vertex.params];
+    const destination = edge.end;
+
+    return {source, destination};
   }
 }

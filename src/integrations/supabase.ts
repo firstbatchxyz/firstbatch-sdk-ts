@@ -1,8 +1,8 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
-import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector} from '../../types';
-import {Query, QueryResult} from '../query';
-import constants from '../../constants';
+import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector} from '../types';
+import {Query, QueryResult} from '../vector/query';
+import constants from '../constants';
 import {VectorStore} from './base';
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any

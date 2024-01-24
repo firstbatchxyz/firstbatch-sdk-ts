@@ -1,9 +1,9 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
-import type {MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../../types';
-import {Query, QueryResult} from '../query';
+import type {MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
+import {Query, QueryResult} from '../vector/query';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
-import constants from '../../constants';
+import constants from '../constants';
 
 export class Weaviate extends VectorStore {
   private client: WeaviateClient;

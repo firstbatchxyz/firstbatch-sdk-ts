@@ -1,7 +1,6 @@
-import constants from '../../../constants';
-import type {BaseLossy} from '../../../lossy/interface';
-import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../query';
-import type {MetadataFilter, CompressedVector, DistanceMetric, Vector, FetchResult} from '../../../types';
+import constants from '../../constants';
+import {BatchQuery, BatchQueryResult, Query, QueryResult} from '../../vector/query';
+import type {MetadataFilter, CompressedVector, DistanceMetric, Vector, FetchResult, BaseLossy} from '../../types';
 
 export abstract class VectorStore {
   public embeddingSize: number;

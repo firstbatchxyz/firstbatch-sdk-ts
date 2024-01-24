@@ -2,17 +2,6 @@ export type MetadataFilter = Record<string, any>;
 
 export type QueryMetadata = Record<string, any>; // TODO: type
 
-export interface ParamsInterface {
-  mu: number;
-  alpha: number;
-  r: number;
-  last_n: number;
-  n_topics: number;
-  remove_duplicates: boolean;
-  apply_threshold: number;
-  apply_mmr: boolean;
-}
-
 export type Signal = {label: string; weight: number};
 
 /** A Deterministic Finite Automata. */
@@ -21,7 +10,7 @@ export type DFA = {
   nodes: {
     name: string;
     batch_type: Vertex['batchType'];
-    params: Partial<ParamsInterface>;
+    params: Partial<Vertex['params']>;
   }[];
   edges: {
     name: string;
@@ -66,5 +55,30 @@ export type Edge = {
 export type Vertex = {
   name: string;
   batchType: 'biased' | 'sampled' | 'random' | 'personalized';
-  params: ParamsInterface;
+  params: {
+    mu: number;
+    alpha: number;
+    r: number;
+    last_n: number;
+    n_topics: number;
+    remove_duplicates: boolean;
+    apply_threshold: number;
+    apply_mmr: boolean;
+  };
 };
+
+/** Base class for lossy compression algorithms. */
+export interface BaseLossy {
+  train(data: Vector[]): void;
+  compress(data: Vector): CompressedVector;
+  decompress(data: CompressedVector): Vector;
+}
+
+/** Configuration for the FirstBatch User Embeddings SDK. */
+export type FirstBatchConfig = Partial<{
+  batchSize: number;
+  quantizerTrainSize: number;
+  quantizerType: 'scalar' | 'product';
+  enableHistory: boolean;
+  verbose: boolean;
+}>;

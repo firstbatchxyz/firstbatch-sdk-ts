@@ -1,24 +1,15 @@
 import log from 'loglevel';
-import {Blueprint, parseDFA, applyAlgorithm} from '../algorithm';
+import {Blueprint, parseDFA, applyAlgorithm} from './algorithm';
 import {FirstBatchClient} from './client';
-import constants from '../constants';
+import constants from './constants';
 // import {ProductQuantizer} from '../lossy/product';
-import {ScalarQuantizer} from '../lossy/scalar';
-import {VectorStore} from '../vector/integrations/base';
-import {adjustWeights} from '../vector/utils';
-import {generateBatch, Query, BatchQuery} from '../vector';
-import type {WeightedVectors, Signal, QueryMetadata} from '../types';
-import {Signals} from '../constants/signal';
-import library from '../constants/library';
-
-/** Configuration for the FirstBatch User Embeddings SDK. */
-export interface FirstBatchConfig {
-  batchSize: number;
-  quantizerTrainSize: number;
-  quantizerType: 'scalar' | 'product';
-  enableHistory: boolean;
-  verbose: boolean;
-}
+import {ScalarQuantizer} from './lossy/scalar';
+import {VectorStore} from './integrations/base';
+import {adjustWeights} from './vector/utils';
+import {generateBatch, Query, BatchQuery} from './vector';
+import type {WeightedVectors, Signal, QueryMetadata, FirstBatchConfig} from './types';
+import {Signals} from './constants/signal';
+import library from './constants/library';
 
 export class FirstBatch extends FirstBatchClient {
   readonly batchSize: number;
@@ -29,7 +20,7 @@ export class FirstBatch extends FirstBatchClient {
   readonly verbose: boolean;
   logger: log.Logger = log.getLogger('FirstBatchLogger');
 
-  private constructor(apiKey: string, config?: Partial<FirstBatchConfig>) {
+  private constructor(apiKey: string, config?: FirstBatchConfig) {
     super(apiKey);
     this.store = {};
     this.batchSize = config?.batchSize ?? constants.DEFAULT_BATCH_SIZE;
@@ -45,7 +36,7 @@ export class FirstBatch extends FirstBatchClient {
     }
   }
 
-  static async new(apiKey: string, config?: Partial<FirstBatchConfig>): Promise<FirstBatch> {
+  static async new(apiKey: string, config?: FirstBatchConfig): Promise<FirstBatch> {
     const personalized = new FirstBatch(apiKey, config);
     await personalized.init();
 
@@ -182,20 +173,17 @@ export class FirstBatch extends FirstBatchClient {
       customId: sessionResponse.custom_id,
     });
 
-    const [nextState, batchType, params] = blueprint.step(sessionResponse.state, signal);
+    const {source, destination} = blueprint.step(sessionResponse.state, signal);
 
-    const signalResponse = await this.signal(sessionId, result.vector.vector, nextState.name, signal);
-
+    const signalResponse = await this.signal(sessionId, result.vector.vector, destination.name, signal);
     if (signalResponse.success && this.enableHistory) {
       await this.addHistory(sessionId, [contentId]);
     }
 
     return {
+      source,
+      destination,
       success: signalResponse.success,
-      source: sessionResponse.state,
-      destination: nextState.name,
-      batchType,
-      params,
     };
   }
 
@@ -225,7 +213,10 @@ export class FirstBatch extends FirstBatchClient {
       customId: response.custom_id,
     });
 
-    const [nextState, batchType, params] = blueprint.step(response.state, Signals.BATCH);
+    const {
+      source: {params, batchType},
+      destination,
+    } = blueprint.step(response.state, Signals.BATCH);
 
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 
@@ -242,7 +233,9 @@ export class FirstBatch extends FirstBatchClient {
         constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
         params.apply_mmr || params.apply_threshold !== 0
       );
-      this.updateState(sessionId, nextState.name, 'random'); // TODO: await?
+
+      await this.updateState(sessionId, destination.name, 'random');
+
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
       [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
@@ -265,7 +258,7 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
           true // apply_mmr: true
         );
-        this.updateState(sessionId, nextState.name, 'personalized'); // TODO: await?
+        this.updateState(sessionId, destination.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
         [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
           applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
@@ -274,7 +267,7 @@ export class FirstBatch extends FirstBatchClient {
         });
       } else {
         // act like biased batch
-        const batchResponse = await this.biasedBatch(sessionId, response.vdbid, nextState.name, {
+        const batchResponse = await this.biasedBatch(sessionId, response.vdbid, destination.name, {
           params,
           bias: options?.bias,
         });
@@ -291,7 +284,7 @@ export class FirstBatch extends FirstBatchClient {
         });
       }
     } else if (batchType === 'sampled') {
-      const batchResponse = await this.sampledBatch(sessionId, response.vdbid, nextState.name, params.n_topics);
+      const batchResponse = await this.sampledBatch(sessionId, response.vdbid, destination.name, params.n_topics);
       const batchQuery = this.queryWrapper(response.vdbid, batchSize, batchResponse, history.ids, {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
@@ -375,7 +368,7 @@ export class FirstBatch extends FirstBatchClient {
       }
       case 'CUSTOM': {
         if (!options?.customId) {
-          throw new Error('Expected customId');
+          throw new Error('Expected customId for CUSTOM algorithm.');
         }
 
         const blueprint = await this.getBlueprint(options.customId);
@@ -383,7 +376,7 @@ export class FirstBatch extends FirstBatchClient {
       }
       case 'FACTORY': {
         if (!options?.factoryId) {
-          throw new Error('Expected factoryId');
+          throw new Error('Expected factoryId for FACTORY algorithm.');
         }
         const blueprint = library[options.factoryId as keyof typeof library];
         if (!blueprint) {

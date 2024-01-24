@@ -1,3 +1,4 @@
 export {Signals} from './constants/signal';
-export {FirstBatch, type FirstBatchConfig} from './client';
-export {Pinecone, Weaviate} from './vector';
+export {FirstBatch} from './firstbatch';
+export {Pinecone, Weaviate} from './integrations';
+export type {FirstBatchConfig} from './types';

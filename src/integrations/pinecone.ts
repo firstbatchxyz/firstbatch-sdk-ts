@@ -1,11 +1,10 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
-import {Query, QueryResult} from '../query';
+import {Query, QueryResult} from '../vector/query';
 import {VectorStore} from './base';
-import {QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../../types';
+import {QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../types';
 
 export class Pinecone extends VectorStore {
   index: Index;
-  private namespace: string | undefined;
 
   /**
    * @param index a Pinecone index
@@ -15,7 +14,6 @@ export class Pinecone extends VectorStore {
   constructor(
     index: Index,
     kwargs?: {
-      namespace?: string;
       historyField?: string;
       embeddingSize?: number;
       distanceMetric?: DistanceMetric;
@@ -27,7 +25,6 @@ export class Pinecone extends VectorStore {
       historyField: kwargs?.historyField,
     });
     this.index = index;
-    this.namespace = kwargs?.namespace;
   }
 
   async search(query: Query) {

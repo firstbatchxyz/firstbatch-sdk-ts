@@ -1,15 +1,11 @@
 import {beforeAll, describe, expect, test} from 'bun:test';
-
-// clients
-import weaviate, {ApiKey} from 'weaviate-ts-client';
-import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
-import {Client as TypesenseClient} from 'typesense';
-import {createClient as createSupabaseClient} from '@supabase/supabase-js';
-
 import constants from './constants';
 import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
 import {Weaviate, Pinecone} from '../src/';
-import {VectorStore} from '../src/vector';
+import type {VectorStore} from '../src/integrations';
+
+import weaviate, {ApiKey} from 'weaviate-ts-client';
+import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
 
 describe('vector store', () => {
   let vs: VectorStore;

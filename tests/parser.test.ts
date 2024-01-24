@@ -18,11 +18,11 @@ describe('blueprint parser', () => {
     expect(Signals.NEW_SIGNAL).not.toBeUndefined();
 
     // new signal should be able to be used in step
-    const [nextState] = blueprint.step('1', Signals.NEW_SIGNAL);
-    expect(nextState.name).toBe('3');
+    const {destination} = blueprint.step('1', Signals.NEW_SIGNAL);
+    expect(destination.name).toBe('3');
 
-    const [finalState] = blueprint.step(nextState.name, Signals.LIKE);
-    expect(finalState.name).toBe('1');
+    const {destination: destination2} = blueprint.step(destination.name, Signals.LIKE);
+    expect(destination2.name).toBe('1');
   });
 
   test('case: example2 with BATCH', () => {
@@ -32,8 +32,8 @@ describe('blueprint parser', () => {
     expect(blueprint.edges.length).toBe(8);
 
     const startState = blueprint.vertices[0];
-    const [nextState] = blueprint.step(startState.name, Signals.BATCH);
-    expect(nextState.name).toBe(startState.name);
+    const {destination} = blueprint.step(startState.name, Signals.BATCH);
+    expect(destination.name).toBe(startState.name);
   });
 
   test('case: unique journeys', () => {
@@ -43,8 +43,8 @@ describe('blueprint parser', () => {
     expect(blueprint.vertices.length).toBe(dfa.nodes.length);
     expect(blueprint.edges.length).toBe(dfa.edges.length);
 
-    const [nextState] = blueprint.step('Exploration', Signals.REPOST);
-    expect(nextState.name).toBe('Hyper_Focus');
+    const {destination} = blueprint.step('Exploration', Signals.REPOST);
+    expect(destination.name).toBe('Hyper_Focus');
   });
 });
 

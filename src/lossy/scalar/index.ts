@@ -1,5 +1,4 @@
-import {BaseLossy} from '../interface'; // Import necessary modules
-import type {CompressedVector, Vector} from '../../types';
+import type {BaseLossy, CompressedVector, Vector} from '../../types';
 import {concatVectors} from '../../vector/utils';
 import {TDigest} from 'tdigest';
 

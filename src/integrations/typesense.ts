@@ -1,6 +1,6 @@
-import type {MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../../types';
-import {Query, QueryResult} from '../query';
-import constants from '../../constants';
+import type {MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
+import {Query, QueryResult} from '../vector/query';
+import constants from '../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
 import {MultiSearchRequestWithPresetSchema} from 'typesense/lib/Typesense/MultiSearch';

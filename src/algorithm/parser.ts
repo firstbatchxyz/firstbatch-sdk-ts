@@ -1,8 +1,8 @@
 import {Blueprint} from './blueprint';
 import {Signals} from '../constants/signal';
-import type {DFA, ParamsInterface} from '../types';
+import type {DFA, Vertex} from '../types';
 
-const defaultNodeParams: ParamsInterface = {
+const defaultNodeParams: Vertex['params'] = {
   mu: 0,
   alpha: 0,
   r: 0,
