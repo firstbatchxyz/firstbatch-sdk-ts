@@ -1,6 +1,7 @@
 import {matrix, Matrix, mean} from 'mathjs';
 import type {Query, DistanceMetric, Vector, QueryMetadata} from '../types';
 import {generateVectors} from './utils';
+import constants from '../constants';
 
 export class QueryResult {
   vectors: Vector[];
@@ -80,7 +81,7 @@ export function generateQuery(numVecs: number, dim: number, topK: number, includ
   return {
     embedding: generateVectors(dim, 1)[0],
     top_k: topK,
-    top_k_mmr: Math.floor(topK / 2), // TODO: move this to constant,
+    top_k_mmr: Math.floor(topK / constants.MMR_TOPK_FACTOR),
     include_values: includeValues,
     filter: {},
     include_metadata: true,

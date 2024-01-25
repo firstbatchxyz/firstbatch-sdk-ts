@@ -1,5 +1,5 @@
 import type {DFA, Edge, Vertex, Signal} from './types';
-import {Signals} from './constants/signal';
+import {Signals} from './signals';
 import constants from './constants';
 
 export class Blueprint {
@@ -22,7 +22,7 @@ export class Blueprint {
         name: node.name,
         batchType: node.batch_type,
         params: {
-          ...constants.DEFAULT_PARAMS,
+          ...constants.DEFAULTS.PARAMS,
           ...node.params,
         },
       });

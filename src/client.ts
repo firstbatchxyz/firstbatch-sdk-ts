@@ -212,7 +212,7 @@ export class FirstBatchClient {
   protected async getUserEmbeddings(sessionId: string, lastN?: number) {
     const response = await this.post<WeightedVectors>('embeddings/get_embeddings', {
       id: sessionId,
-      last_n: lastN ?? constants.DEFAULT_EMBEDDING_LAST_N,
+      last_n: lastN ?? constants.DEFAULTS.EMBEDDING_LAST_N,
     });
     return response.data;
   }

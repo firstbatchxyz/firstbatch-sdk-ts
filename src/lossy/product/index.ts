@@ -1,8 +1,8 @@
-import {BaseLossy, CompressedVector, Vector} from '../../types';
+import {Quantizer, CompressedVector, Vector} from '../../types';
 import {PQ} from './pqt';
 import {concat, Matrix, matrix} from 'mathjs';
 
-export class ProductQuantizer implements BaseLossy {
+export class ProductQuantizer implements Quantizer {
   /** Cluster size */
   readonly ks: number;
   /** Subquantizer size */

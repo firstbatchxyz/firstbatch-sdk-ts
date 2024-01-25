@@ -1,15 +1,15 @@
 import {maximalMarginalRelevance} from './vector/utils';
-import {BatchQueryResult, BatchQuery} from './vector';
-import type {BatchType, QueryMetadata} from './types';
+import {BatchQueryResult} from './vector';
+import type {BatchType, Query, QueryMetadata} from './types';
 
 export function applyAlgorithm(
   batch: BatchQueryResult,
-  query: BatchQuery,
+  queries: Query[],
   batchType: BatchType,
   options: {
-    removeDuplicates?: boolean;
-    applyThreshold?: number;
-    applyMMR?: boolean;
+    removeDuplicates: boolean;
+    applyThreshold: number;
+    applyMMR: boolean;
     // shuffle?: boolean; // enabled by default until further changes
   }
 ): [string[], QueryMetadata[]] {
@@ -17,7 +17,7 @@ export function applyAlgorithm(
   if (batchType === 'personalized') {
     batchType = 'random';
   }
-  if (batch.results.length !== query.queries.length) {
+  if (batch.results.length !== queries.length) {
     throw new Error('Number of results is not equal to number of queries');
   }
 
@@ -32,7 +32,7 @@ export function applyAlgorithm(
   if (batchType !== 'biased' && options.applyMMR) {
     batch.results = batch.results.map((r, i) =>
       // TODO: move 0.5 to constants
-      maximalMarginalRelevance(query.queries[i].embedding, r, 0.5, query.queries[i].top_k_mmr)
+      maximalMarginalRelevance(queries[i].embedding, r, 0.5, queries[i].top_k_mmr)
     );
   }
 
@@ -48,7 +48,7 @@ export function applyAlgorithm(
   let ids: string[] = [];
   let metadatas: QueryMetadata[] = [];
   batch.results.forEach((result, i) => {
-    const k = query.queries[i].top_k;
+    const k = queries[i].top_k;
 
     // FIXME: why do we have `undefined` here sometimes? we shouldnt have
     // to do this filtering everytime

@@ -15,30 +15,32 @@ import type {
   FirstBatchConfig,
   Query,
   AlgorithmType,
-  QuantizerType,
+  QuantizationType,
 } from './types';
-import {Signals} from './constants/signal';
+import {Signals} from './signals';
 import library from './constants/library';
 
 export class FirstBatch extends FirstBatchClient {
   readonly batchSize: number;
   readonly quantizerTrainSize: number;
-  readonly quantizerType: QuantizerType;
+  readonly quantizerType: QuantizationType;
   readonly enableHistory: boolean;
-  readonly store: Record<string, VectorStore>;
   readonly verbose: boolean;
+
+  private readonly store: Record<string, VectorStore> = {};
   logger: log.Logger = log.getLogger('FirstBatchLogger');
 
-  private constructor(apiKey: string, config?: FirstBatchConfig) {
+  constructor(apiKey: string, config?: FirstBatchConfig) {
     super(apiKey);
-    this.store = {};
-    this.batchSize = config?.batchSize ?? constants.DEFAULT_BATCH_SIZE;
-    this.quantizerTrainSize = config?.quantizerTrainSize ?? constants.DEFAULT_QUANTIZER_TRAIN_SIZE;
-    this.quantizerType = config?.quantizerType ?? constants.DEFAULT_QUANTIZER_TYPE;
-    this.enableHistory = config?.enableHistory ?? constants.DEFAULT_ENABLE_HISTORY;
-    this.verbose = config?.verbose ?? constants.DEFAULT_VERBOSE;
+
+    this.batchSize = config?.batchSize ?? constants.DEFAULTS.BATCH_SIZE;
+    this.enableHistory = config?.enableHistory ?? constants.DEFAULTS.ENABLE_HISTORY;
+    this.verbose = config?.verbose ?? constants.DEFAULTS.VERBOSE;
+
     this.logger.setLevel(this.verbose ? 'INFO' : 'WARN');
 
+    this.quantizerTrainSize = config?.quantizerTrainSize ?? constants.DEFAULTS.QUANTIZER_TRAIN_SIZE;
+    this.quantizerType = config?.quantizerType ?? constants.DEFAULTS.QUANTIZER_TYPE;
     if (this.quantizerType === 'product') {
       this.logger.warn("Product quantization not yet supported, defaulting to 'scalar'");
       this.quantizerType = 'scalar';
@@ -48,65 +50,53 @@ export class FirstBatch extends FirstBatchClient {
   static async new(apiKey: string, config?: FirstBatchConfig): Promise<FirstBatch> {
     const personalized = new FirstBatch(apiKey, config);
     await personalized.init();
-
     personalized.logger.info('Using: ' + personalized.url);
     return personalized;
   }
 
   /** Add a vector store to the container.
    *
-   * Behind the lines, this function makes an API call to the Embedding API
-   * to see if the vector store exists; if is doesn't exist, it will be "sketched"
-   * with respect to the `quantizerType`, which may take some time.
-   *
-   * If you would are CERTAIN that the vector store exists & would like to skip this
-   * existence-check API call, you can simply do:
-   *
-   * ```ts
-   * sdk.store[vdbid] = vectorStore
-   * ```
-   *
-   * Most of the times you will not need to do so, but it may save a few milliseconds in
-   * a serverless setting where the SDK is created on each function invocation.
+   * If this vector store has not beed registered to the API before,
+   * it will be "sketched" with respect to the `quantizerType`, which may take some time.
    *
    * @param vdbid vectorDB ID of your choice
    * @param vectorStore a `VectorStore` instance
    */
   async addVectorStore(name: string, vectorStore: VectorStore) {
-    // if the given vector store is registered already, dont bother
-    if (vectorStore.registered) return;
-
     if (await this.vdbExists(name)) {
       // Vector store already exists, no need to add it to the API again.
       // We can simply update the mapping and mark this store as registered.
       this.store[name] = vectorStore;
-      vectorStore.registered = true;
     } else {
-      this.logger.info(`VectorDB with name ${name} not found, sketching a new VectorDB.`);
+      this.logger.info(`Vector store with name ${name} not found, sketching a new one.`);
+      if (vectorStore.quantizer === undefined) {
+        throw new Error('Vector store already has a quantizer in it!');
+      }
+
       if (this.quantizerType === 'scalar') {
-        // FIXME: THIS IS DANGEROUS, it is a side effect on vector store and may cause problems
-        // in particular, if the same vector store is used for different `vdbid`'s, it will cause
-        // the quantizer to be overwritten in the same process.
-        //
-        // on the other hand, this quantizer is not used outside this function, so perhaps we
-        // can have the quantizer as a separate object?
-        vectorStore.quantizer = new ScalarQuantizer(256);
-        vectorStore.registered = true;
+        const quantizer = new ScalarQuantizer(256);
 
-        const trainSize = Math.min(
-          Math.floor(this.quantizerTrainSize / constants.DEFAULT_QUANTIZER_TOPK),
-          constants.MIN_TRAIN_SIZE
-        );
-        const batch = generateBatch(trainSize, vectorStore.embeddingSize, constants.DEFAULT_QUANTIZER_TOPK, true);
+        const vectors = await vectorStore
+          .multiSearch(
+            generateBatch(
+              Math.min(
+                Math.floor(this.quantizerTrainSize / constants.DEFAULTS.QUANTIZER_TOPK),
+                constants.MIN_TRAIN_SIZE
+              ),
+              vectorStore.embeddingSize,
+              constants.DEFAULTS.QUANTIZER_TOPK,
+              true
+            )
+          )
+          .then(result => result.vectors());
+        quantizer.train(vectors);
 
-        const results = await vectorStore.multiSearch(batch);
-        vectorStore.trainQuantizer(results.vectors());
-
-        const quantizedVectors = results.vectors().map(v => vectorStore.quantizeVector(v).vector);
+        const quantizedVectors = vectors.map(v => quantizer.compress(v).vector);
 
         this.logger.info('Initializing with scalar quantizer, might take some time...');
-        await this.initVectordbScalar(name, quantizedVectors, (vectorStore.quantizer as ScalarQuantizer).quantiles);
+        await this.initVectordbScalar(name, quantizedVectors, quantizer.quantiles);
 
+        vectorStore.quantizer = quantizer;
         this.store[name] = vectorStore;
       } else if (this.quantizerType === 'product') {
         throw new Error('Product quantization is not supported yet');
@@ -268,7 +258,7 @@ export class FirstBatch extends FirstBatchClient {
     await this.updateState(sessionId, destination.name, batchType);
     const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-    [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchType, algorithmOptions);
+    [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery.queries, batchType, algorithmOptions);
 
     // take only `batchSize` many results
     ids = ids.slice(0, batchSize);
@@ -298,7 +288,7 @@ export class FirstBatch extends FirstBatchClient {
     const topKs = adjustWeights(
       response.weights,
       batchSize,
-      Math.max(batchSize * constants.DEFAULT_CONFIDENCE_INTERVAL_RATIO, 1)
+      Math.max(batchSize * constants.DEFAULTS.CONFIDENCE_INTERVAL_RATIO, 1)
     )
       // ensure that topK is at least some value, otherwise too small values cause problems
       .map(k => Math.max(k, constants.MIN_TOPK))

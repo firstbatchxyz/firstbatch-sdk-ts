@@ -1,8 +1,8 @@
-import type {BaseLossy, CompressedVector, Vector} from '../../types';
+import type {Quantizer, CompressedVector, Vector} from '../../types';
 import {concatVectors} from '../../vector/utils';
 import {TDigest} from 'tdigest';
 
-export class ScalarQuantizer implements BaseLossy {
+export class ScalarQuantizer implements Quantizer {
   private quantizer: TDigest;
   private levels: number;
   quantiles: number[] = [];

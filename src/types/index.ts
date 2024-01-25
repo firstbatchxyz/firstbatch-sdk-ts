@@ -48,7 +48,7 @@ export type WeightedVectors = {
   weights: number[];
 };
 
-export type QuantizerType = 'scalar' | 'product';
+export type QuantizationType = 'scalar' | 'product';
 
 export type Vector = {
   id: string;
@@ -96,7 +96,7 @@ export type Vertex = {
 };
 
 /** Base class for lossy compression algorithms. */
-export interface BaseLossy {
+export interface Quantizer {
   train(data: Vector[]): void;
   compress(data: Vector): CompressedVector;
   decompress(data: CompressedVector): Vector;

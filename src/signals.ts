@@ -1,4 +1,4 @@
-import type {Signal} from '../types';
+import type {Signal} from './types';
 
 const presetSignals = {
   DEFAULT: {label: 'DEFAULT', weight: 1},

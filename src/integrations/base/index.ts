@@ -7,31 +7,30 @@ import type {
   DistanceMetric,
   Vector,
   FetchResult,
-  BaseLossy,
+  Quantizer,
 } from '../../types';
 
 export abstract class VectorStore {
   public embeddingSize: number;
   public distanceMetric: DistanceMetric;
-  public registered: boolean = false;
 
   protected readonly historyField: string;
 
-  private _quantizer?: BaseLossy;
+  private _quantizer?: Quantizer;
 
   constructor(options?: {embeddingSize?: number; distanceMetric?: DistanceMetric; historyField?: string}) {
-    this.embeddingSize = options?.embeddingSize || constants.DEFAULT_EMBEDDING_SIZE;
-    this.distanceMetric = options?.distanceMetric || constants.DEFAULT_DISTANCE_METRIC;
-    this.historyField = options?.historyField || constants.DEFAULT_HISTORY_FIELD;
+    this.embeddingSize = options?.embeddingSize || constants.DEFAULTS.EMBEDDING_SIZE;
+    this.distanceMetric = options?.distanceMetric || constants.DEFAULTS.DISTANCE_METRIC;
+    this.historyField = options?.historyField || constants.DEFAULTS.HISTORY_FIELD;
   }
 
   get quantizer() {
     if (!this._quantizer) {
-      throw new Error('Quantizer not set');
+      throw new Error('Quantizer not set!');
     }
     return this._quantizer;
   }
-  set quantizer(value: BaseLossy) {
+  set quantizer(value: Quantizer) {
     this._quantizer = value;
   }
 
