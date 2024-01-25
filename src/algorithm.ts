@@ -5,7 +5,6 @@ import type {QueryMetadata} from './types';
 export function applyAlgorithm(
   batch: BatchQueryResult,
   query: BatchQuery,
-  batchSize: number,
   batchType: 'random' | 'biased' | 'sampled',
   options: {
     removeDuplicates?: boolean;
@@ -62,9 +61,5 @@ export function applyAlgorithm(
   ids = ids.map((_, i, self) => self[idx[i]]);
   metadatas = metadatas.map((_, i, self) => self[idx[i]]);
 
-  // finally, get batchSize many items for each
-  // TODO: this happens outside as well
-  ids = ids.slice(0, batchSize);
-  metadatas = metadatas.slice(0, batchSize);
   return [ids, metadatas];
 }

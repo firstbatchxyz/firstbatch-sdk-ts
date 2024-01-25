@@ -27,7 +27,7 @@ describe('algorithms', () => {
     const vectorStore = new Pinecone(index, {embeddingSize});
 
     personalized = await FirstBatch.new(constants.FIRSTBATCH.API_KEY, config);
-    await personalized.addVdb(vdbid, vectorStore);
+    await personalized.addVectorStore(vdbid, vectorStore);
   });
 
   test('simple', async () => {

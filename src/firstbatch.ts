@@ -64,17 +64,17 @@ export class FirstBatch extends FirstBatchClient {
    * @param vdbid vectorDB ID of your choice
    * @param vectorStore a `VectorStore` instance
    */
-  async addVdb(vdbid: string, vectorStore: VectorStore) {
+  async addVectorStore(name: string, vectorStore: VectorStore) {
     // if the given vector store is registered already, dont bother
     if (vectorStore.registered) return;
 
-    const exists = await this.vdbExists(vdbid);
+    const exists = await this.vdbExists(name);
 
     if (exists) {
-      this.store[vdbid] = vectorStore;
+      this.store[name] = vectorStore;
       vectorStore.registered = true;
     } else {
-      this.logger.info(`VectorDB with id ${vdbid} not found, sketching a new VectorDB.`);
+      this.logger.info(`VectorDB with name ${name} not found, sketching a new VectorDB.`);
       if (this.quantizerType === 'scalar') {
         // FIXME: THIS IS DANGEROUS, it is a side effect on vector store and may cause problems
         // in particular, if the same vector store is used for different `vdbid`'s, it will cause
@@ -97,9 +97,9 @@ export class FirstBatch extends FirstBatchClient {
         const quantizedVectors = results.vectors().map(v => vectorStore.quantizeVector(v).vector);
 
         this.logger.info('Initializing with scalar quantizer, might take some time...');
-        await this.initVectordbScalar(vdbid, quantizedVectors, (vectorStore.quantizer as ScalarQuantizer).quantiles);
+        await this.initVectordbScalar(name, quantizedVectors, (vectorStore.quantizer as ScalarQuantizer).quantiles);
 
-        this.store[vdbid] = vectorStore;
+        this.store[name] = vectorStore;
       } else if (this.quantizerType === 'product') {
         throw new Error('Product quantization is not supported yet');
       } else {
@@ -164,7 +164,7 @@ export class FirstBatch extends FirstBatchClient {
     const sessionResponse = await this.getSession(sessionId);
     const vectorStore = this.store[sessionResponse.vdbid];
     if (vectorStore === undefined) {
-      throw new Error('Vector Store is undefined, have you called `addVdb` function?');
+      throw new Error('Vector Store is undefined, have you called `addVectorStore` function?');
     }
 
     const result = await vectorStore.fetch(contentId);
@@ -205,7 +205,7 @@ export class FirstBatch extends FirstBatchClient {
     const response = await this.getSession(sessionId);
     const vectorStore = this.store[response.vdbid];
     if (vectorStore === undefined) {
-      throw new Error('Vector Store is undefined, have you called `addVdb` function?');
+      throw new Error('Vector Store is undefined, you should add it.'); // FIXME: better msg
     }
     const batchSize = options?.batchSize ?? this.batchSize;
 
@@ -218,7 +218,13 @@ export class FirstBatch extends FirstBatchClient {
       source: {params, batchType},
       destination,
     } = blueprint.step(response.state, Signals.BATCH);
+    const algorithmOptions = {
+      applyMMR: params.apply_mmr,
+      applyThreshold: params.apply_threshold,
+      removeDuplicates: params.remove_duplicates,
+    };
 
+    // FIXME: why not just ids? or with history field perhaps
     const history = this.enableHistory ? await this.getHistory(sessionId) : {ids: []};
 
     let ids: string[];
@@ -235,15 +241,10 @@ export class FirstBatch extends FirstBatchClient {
         params.apply_mmr || params.apply_threshold !== 0
       );
 
+      // BLOCK
       await this.updateState(sessionId, destination.name, 'random');
-
       const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-
-      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
-        applyMMR: params.apply_mmr,
-        applyThreshold: params.apply_threshold,
-        removeDuplicates: params.remove_duplicates,
-      });
+      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, 'random', algorithmOptions);
     } else if (batchType === 'biased' || batchType === 'personalized') {
       // check if bias exists
       if (batchType === 'biased' && options?.bias === undefined) {
@@ -259,13 +260,11 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TOPK * constants.MMR_TOPK_FACTOR,
           true // apply_mmr: true
         );
+
+        // BLOCK
         this.updateState(sessionId, destination.name, 'personalized'); // TODO: await?
         const batchQueryResult = await vectorStore.multiSearch(batchQuery);
-        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'random', {
-          applyMMR: params.apply_mmr, // TODO: this is supposed to be always true above?
-          applyThreshold: params.apply_threshold,
-          removeDuplicates: params.remove_duplicates,
-        });
+        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, 'random', algorithmOptions);
       } else {
         // act like biased batch
         const batchResponse = await this.biasedBatch(sessionId, response.vdbid, destination.name, {
@@ -276,13 +275,11 @@ export class FirstBatch extends FirstBatchClient {
           applyMMR: params.apply_mmr,
           applyThreshold: params.apply_threshold,
         });
-        const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'biased', {
-          applyMMR: params.apply_mmr,
-          applyThreshold: params.apply_threshold,
-          removeDuplicates: params.remove_duplicates,
-        });
+        // BLOCK
+        await this.updateState(sessionId, destination.name, 'biased');
+        const batchQueryResult = await vectorStore.multiSearch(batchQuery);
+        [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, 'biased', algorithmOptions);
       }
     } else if (batchType === 'sampled') {
       const batchResponse = await this.sampledBatch(sessionId, response.vdbid, destination.name, params.n_topics);
@@ -290,20 +287,17 @@ export class FirstBatch extends FirstBatchClient {
         applyMMR: params.apply_mmr,
         applyThreshold: params.apply_threshold,
       });
-      const batchQueryResult = await vectorStore.multiSearch(batchQuery);
 
-      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, batchSize, 'sampled', {
-        applyMMR: params.apply_mmr,
-        applyThreshold: params.apply_threshold,
-        removeDuplicates: params.remove_duplicates,
-      });
+      // BLOCK
+      await this.updateState(sessionId, destination.name, 'sampled');
+      const batchQueryResult = await vectorStore.multiSearch(batchQuery);
+      [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery, 'sampled', algorithmOptions);
     } else {
       batchType satisfies never;
       throw new Error('Invalid batch type: ' + batchType);
     }
 
     // take only `batchSize` many results
-    // FIXME: this might be happening multiple times without being necessary
     ids = ids.slice(0, batchSize);
     metadatas = metadatas.slice(0, batchSize);
 
@@ -320,12 +314,12 @@ export class FirstBatch extends FirstBatchClient {
     response: WeightedVectors,
     history: string[],
     options?: {
-      applyMMR?: boolean | number;
+      applyMMR?: boolean;
       applyThreshold?: number;
       filter?: Record<string, string>;
     }
   ): BatchQuery {
-    const applyMMR = options?.applyMMR ? options.applyMMR == true || options.applyMMR == 1 : false;
+    const applyMMR = options?.applyMMR ?? false;
     const includeValues = applyMMR || options?.applyThreshold !== undefined;
 
     const topKs = adjustWeights(
@@ -345,9 +339,8 @@ export class FirstBatch extends FirstBatchClient {
       const topK = Math.max(topKs[i], constants.MIN_TOPK);
 
       return {
-        embedding: {vector, id: ''},
+        embedding: {vector, id: ''}, // FIXME: id empty, smelly!
         top_k: applyMMR ? topK * constants.MMR_TOPK_FACTOR : topK,
-        // FIXME: is this correct?
         top_k_mmr: applyMMR ? topK : Math.floor(topK / 2),
         include_metadata: true,
         include_values: includeValues,

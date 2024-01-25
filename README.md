@@ -50,7 +50,7 @@ const personalized = await FirstBatch.new('firstbatch-api-key');
 // add client to SDK
 const vectorStore = new Pinecone(index);
 const vdbid = 'pinecone-example-db';
-await personalized.addVdb(vdbid, vectorStore);
+await personalized.addVectorStore(vdbid, vectorStore);
 ```
 
 ### Personalization
