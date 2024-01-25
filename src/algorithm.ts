@@ -1,6 +1,6 @@
-import {maximalMarginalRelevance} from '../vector/utils';
-import {BatchQueryResult, BatchQuery} from '../vector';
-import type {QueryMetadata} from '../types';
+import {maximalMarginalRelevance} from './vector/utils';
+import {BatchQueryResult, BatchQuery} from './vector';
+import type {QueryMetadata} from './types';
 
 export function applyAlgorithm(
   batch: BatchQueryResult,

@@ -1,3 +1,4 @@
+import type {Vertex} from '../types';
 import library from './library';
 
 export default {
@@ -29,6 +30,16 @@ export default {
   DEFAULT_ENABLE_HISTORY: false,
   DEFAULT_VERBOSE: false,
   MINIMUM_TRAIN_SIZE: 500,
+  DEFAULT_PARAMS: {
+    mu: 0,
+    alpha: 0,
+    r: 0,
+    last_n: 0,
+    n_topics: 0,
+    remove_duplicates: true,
+    apply_threshold: 0,
+    apply_mmr: false,
+  } satisfies Vertex['params'],
   // topK parameters
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,

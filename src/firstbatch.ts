@@ -1,5 +1,6 @@
 import log from 'loglevel';
-import {Blueprint, parseDFA, applyAlgorithm} from './algorithm';
+import {applyAlgorithm} from './algorithm';
+import {Blueprint} from './blueprint';
 import {FirstBatchClient} from './client';
 import constants from './constants';
 // import {ProductQuantizer} from '../lossy/product';
@@ -230,7 +231,7 @@ export class FirstBatch extends FirstBatchClient {
       const batchQuery = generateBatch(
         batchSize,
         vectorStore.embeddingSize,
-        constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
+        constants.MIN_TOPK * constants.MMR_TOPK_FACTOR,
         params.apply_mmr || params.apply_threshold !== 0
       );
 
@@ -255,7 +256,7 @@ export class FirstBatch extends FirstBatchClient {
         const batchQuery = generateBatch(
           batchSize,
           vectorStore.embeddingSize,
-          constants.MIN_TOPK * 2, // TODO: 2 is related to MMR factor here?
+          constants.MIN_TOPK * constants.MMR_TOPK_FACTOR,
           true // apply_mmr: true
         );
         this.updateState(sessionId, destination.name, 'personalized'); // TODO: await?
@@ -345,7 +346,7 @@ export class FirstBatch extends FirstBatchClient {
 
       return {
         embedding: {vector, id: ''},
-        top_k: applyMMR ? topK * 2 : topK,
+        top_k: applyMMR ? topK * constants.MMR_TOPK_FACTOR : topK,
         // FIXME: is this correct?
         top_k_mmr: applyMMR ? topK : Math.floor(topK / 2),
         include_metadata: true,
@@ -366,7 +367,7 @@ export class FirstBatch extends FirstBatchClient {
   ): Promise<Blueprint> {
     switch (algorithm) {
       case 'SIMPLE': {
-        return parseDFA(library.CONTENT_CURATION);
+        return new Blueprint(library.CONTENT_CURATION);
       }
       case 'CUSTOM': {
         if (!options?.customId) {
@@ -374,7 +375,7 @@ export class FirstBatch extends FirstBatchClient {
         }
 
         const blueprint = await this.getBlueprint(options.customId);
-        return parseDFA(blueprint);
+        return new Blueprint(blueprint);
       }
       case 'FACTORY': {
         if (!options?.factoryId) {
@@ -385,7 +386,7 @@ export class FirstBatch extends FirstBatchClient {
           throw new Error('Could not find a DFA with label: ' + options.factoryId);
         }
 
-        return parseDFA(blueprint);
+        return new Blueprint(blueprint);
       }
       default:
         algorithm satisfies never;

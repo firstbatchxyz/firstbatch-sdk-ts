@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'bun:test';
 import testLibrary from './data/blueprints';
 import mainLibrary from '../src/constants/library';
-import {parseDFA} from '../src/algorithm/parser';
+import {Blueprint} from '../src/blueprint';
 import {Signals} from '../src';
 
 describe('blueprint parser', () => {
@@ -9,7 +9,7 @@ describe('blueprint parser', () => {
     // NEW_SIGNAL doesnt exist at first
     expect(Signals.NEW_SIGNAL).toBeUndefined();
 
-    const blueprint = parseDFA(testLibrary.example1);
+    const blueprint = new Blueprint(testLibrary.example1);
 
     expect(blueprint.vertices.length).toBe(3);
     expect(blueprint.edges.length).toBe(9);
@@ -26,7 +26,7 @@ describe('blueprint parser', () => {
   });
 
   test('case: example2 with BATCH', () => {
-    const blueprint = parseDFA(testLibrary.example2);
+    const blueprint = new Blueprint(testLibrary.example2);
 
     expect(blueprint.vertices.length).toBe(4);
     expect(blueprint.edges.length).toBe(8);
@@ -38,7 +38,7 @@ describe('blueprint parser', () => {
 
   test('case: unique journeys', () => {
     const dfa = mainLibrary.UNIQUE_JOURNEYS;
-    const blueprint = parseDFA(dfa);
+    const blueprint = new Blueprint(dfa);
 
     expect(blueprint.vertices.length).toBe(dfa.nodes.length);
     expect(blueprint.edges.length).toBe(dfa.edges.length);
