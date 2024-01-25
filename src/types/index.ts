@@ -4,6 +4,19 @@ export type QueryMetadata = Record<string, any>; // TODO: type
 
 export type Signal = {label: string; weight: number};
 
+export type AlgorithmType =
+  | {
+      type: 'SIMPLE';
+    }
+  | {
+      type: 'CUSTOM';
+      customId: string;
+    }
+  | {
+      type: 'FACTORY';
+      factoryId: string;
+    };
+
 export type Query = {
   embedding: Vector;
   top_k: number;
@@ -18,12 +31,12 @@ export type DFA = {
   signals?: Signal[];
   nodes: {
     name: string;
-    batch_type: Vertex['batchType'];
-    params: Partial<Vertex['params']>;
+    batch_type: BatchType;
+    params: Partial<VertexParameters>;
   }[];
   edges: {
     name: string;
-    edge_type: Signal['label'];
+    edge_type: 'BATCH' | 'DEFAULT' | (string & NonNullable<unknown>); // little trick to get auto-completed strings
     start: string;
     end: string;
   }[];
@@ -34,6 +47,8 @@ export type WeightedVectors = {
   vectors: number[][];
   weights: number[];
 };
+
+export type QuantizerType = 'scalar' | 'product';
 
 export type Vector = {
   id: string;
@@ -61,19 +76,23 @@ export type Edge = {
   end: Vertex;
 };
 
+export type BatchType = 'biased' | 'sampled' | 'random' | 'personalized';
+
+export type VertexParameters = {
+  mu: number;
+  alpha: number;
+  r: number;
+  last_n: number;
+  n_topics: number;
+  remove_duplicates: boolean;
+  apply_threshold: number;
+  apply_mmr: boolean;
+};
+
 export type Vertex = {
   name: string;
-  batchType: 'biased' | 'sampled' | 'random' | 'personalized';
-  params: {
-    mu: number;
-    alpha: number;
-    r: number;
-    last_n: number;
-    n_topics: number;
-    remove_duplicates: boolean;
-    apply_threshold: number;
-    apply_mmr: boolean;
-  };
+  batchType: BatchType;
+  params: VertexParameters;
 };
 
 /** Base class for lossy compression algorithms. */

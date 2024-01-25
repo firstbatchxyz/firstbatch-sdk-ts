@@ -1,11 +1,11 @@
 import {maximalMarginalRelevance} from './vector/utils';
 import {BatchQueryResult, BatchQuery} from './vector';
-import type {QueryMetadata} from './types';
+import type {BatchType, QueryMetadata} from './types';
 
 export function applyAlgorithm(
   batch: BatchQueryResult,
   query: BatchQuery,
-  batchType: 'random' | 'biased' | 'sampled',
+  batchType: BatchType,
   options: {
     removeDuplicates?: boolean;
     applyThreshold?: number;
@@ -13,6 +13,10 @@ export function applyAlgorithm(
     // shuffle?: boolean; // enabled by default until further changes
   }
 ): [string[], QueryMetadata[]] {
+  // TODO: can we do this in a better way
+  if (batchType === 'personalized') {
+    batchType = 'random';
+  }
   if (batch.results.length !== query.queries.length) {
     throw new Error('Number of results is not equal to number of queries');
   }

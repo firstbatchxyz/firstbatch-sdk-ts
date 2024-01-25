@@ -2,7 +2,6 @@ import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
 import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector, Query} from '../types';
 import {QueryResult} from '../vector/query';
-import constants from '../constants';
 import {VectorStore} from './base';
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
@@ -45,8 +44,8 @@ export class Supabase extends VectorStore {
       historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.collectionName = kwargs?.collectionName || constants.DEFAULT_SUPABASE_COLLECTION;
-    this.queryName = kwargs?.queryName || constants.DEFAULT_SUPABASE_QUERY_NAME;
+    this.collectionName = kwargs?.collectionName || 'documents';
+    this.queryName = kwargs?.queryName || 'match_documents';
   }
 
   async search(query: Query): Promise<QueryResult> {

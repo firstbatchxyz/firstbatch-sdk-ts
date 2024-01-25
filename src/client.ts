@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
 import constants from './constants';
-import type {Vertex, WeightedVectors, DFA, Signal} from './types';
+import type {Vertex, WeightedVectors, DFA, Signal, AlgorithmType} from './types';
 
 export class FirstBatchClient {
   /** API key of this client. */
@@ -170,12 +170,43 @@ export class FirstBatchClient {
       factory_id?: string;
       custom_id?: string;
     }>('embeddings/get_session', {id: sessionId});
-    return response.data;
+
+    const data = response.data;
+
+    let algorithm: AlgorithmType = {
+      type: 'SIMPLE',
+    };
+
+    if (data.algorithm === 'FACTORY') {
+      if (data.factory_id === undefined) {
+        throw new Error('Did not get factory_id from API for a FACTORY algorithm.');
+      }
+
+      algorithm = {
+        type: 'FACTORY',
+        factoryId: data.factory_id,
+      };
+    }
+
+    if (data.algorithm === 'CUSTOM') {
+      if (data.custom_id === undefined) {
+        throw new Error('Did not get custom_id from API for a CUSTOM algorithm.');
+      }
+      algorithm = {
+        type: 'CUSTOM',
+        customId: data.custom_id,
+      };
+    }
+
+    return {
+      ...data,
+      algorithm,
+    };
   }
 
   protected async getHistory(sessionId: string) {
     const response = await this.post<{ids: string[]}>('embeddings/get_history', {id: sessionId});
-    return response.data;
+    return response.data.ids;
   }
 
   protected async getUserEmbeddings(sessionId: string, lastN?: number) {
@@ -197,7 +228,7 @@ export class FirstBatchClient {
    * @param customId algorithm id
    * @returns a DFA (TODO: is this a string & object or always an object?)
    */
-  protected async getBlueprint(customId: string) {
+  protected async getCustomBlueprint(customId: string) {
     const response = await this.post<DFA>('embeddings/get_blueprint', {id: customId});
     // FIXME: do we ever receive a string here?
     return response.data;

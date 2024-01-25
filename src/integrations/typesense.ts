@@ -24,10 +24,10 @@ export class Typesense extends VectorStore {
     super({
       embeddingSize: kwargs?.embeddingSize,
       distanceMetric: kwargs?.distanceMetric,
-      historyField: kwargs?.historyField || constants.DEFAULT_TYPESENSE_HISTORY_FIELD,
+      historyField: kwargs?.historyField || '_id',
     });
     this.client = client;
-    this.collectionName = kwargs?.collectionName || constants.DEFAULT_TYPESENSE_COLLECTION;
+    this.collectionName = kwargs?.collectionName || 'my_collection';
     this.collection = client.collections(this.collectionName);
     this.metadataKey = 'metadata';
   }

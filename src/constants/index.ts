@@ -1,5 +1,5 @@
-import type {Vertex} from '../types';
-import library from './library';
+import type {DistanceMetric, QuantizerType, VertexParameters} from '../types';
+import type library from './library';
 
 export default {
   /** Endpoint to get region. */
@@ -13,23 +13,17 @@ export default {
   },
   // defaults
   DEFAULT_QUANTIZER_TRAIN_SIZE: 100,
-  DEFAULT_QUANTIZER_TYPE: 'scalar',
+  DEFAULT_QUANTIZER_TYPE: 'scalar' satisfies QuantizerType,
+  DEFAULT_QUANTIZER_TOPK: 5,
   DEFAULT_EMBEDDING_LAST_N: 50,
   DEFAULT_EMBEDDING_SIZE: 1536,
-  DEFAULT_DISTANCE_METRIC: 'cosine_sim',
+  DEFAULT_DISTANCE_METRIC: 'cosine_sim' satisfies DistanceMetric,
   DEFAULT_CONFIDENCE_INTERVAL_RATIO: 0.15,
-  DEFAULT_TYPESENSE_COLLECTION: 'my_collection',
-  DEFAULT_TYPESENSE_HISTORY_FIELD: '_id',
-  DEFAULT_WEAVIATE_CLASS_NAME: 'my_collection',
-  DEFAULT_SUPABASE_COLLECTION: 'documents',
-  DEFAULT_SUPABASE_QUERY_NAME: 'match_documents',
   DEFAULT_HISTORY_FIELD: 'id',
   DEFAULT_BATCH_SIZE: 10,
   DEFAULT_KEY: 'text',
-  DEFAULT_TOPK_QUANT: 5,
   DEFAULT_ENABLE_HISTORY: false,
   DEFAULT_VERBOSE: false,
-  MINIMUM_TRAIN_SIZE: 500,
   DEFAULT_PARAMS: {
     mu: 0,
     alpha: 0,
@@ -39,10 +33,11 @@ export default {
     remove_duplicates: true,
     apply_threshold: 0,
     apply_mmr: false,
-  } satisfies Vertex['params'],
+  } satisfies VertexParameters,
   // topK parameters
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
+  MIN_TRAIN_SIZE: 500,
   // presets
   PRESET_ALGORITHMS: {
     UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),

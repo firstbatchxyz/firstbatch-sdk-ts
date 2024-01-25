@@ -33,7 +33,7 @@ export class Weaviate extends VectorStore {
       historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.className = kwargs?.className || constants.DEFAULT_WEAVIATE_CLASS_NAME;
+    this.className = kwargs?.className || 'my_collection';
     this.outputFields = kwargs?.outputFields || ['text'];
   }
 

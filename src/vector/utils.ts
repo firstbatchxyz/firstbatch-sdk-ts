@@ -30,16 +30,16 @@ export function generateVectors(dim: number, numVectors: number): Vector[] {
 }
 
 // Adjust weights to meet batch size requirements.
-export function adjustWeights(weights: number[], batchSize: number, c: number): number[] {
+export function adjustWeights(weights: number[], batchSize: number, confidenceInterval: number): number[] {
   const minWeight = Math.min(...weights);
   if (minWeight < 1) {
     const diff = 1 - minWeight;
     weights = weights.map(w => w + diff);
   }
 
-  const currentSum = weights.reduce((sum, w) => sum + w, 0);
-  if (!(batchSize - c <= currentSum && currentSum <= batchSize + c)) {
-    const scaleFactor = batchSize / currentSum;
+  const sum = weights.reduce((sum, w) => sum + w, 0);
+  if (!(batchSize - confidenceInterval <= sum && sum <= batchSize + confidenceInterval)) {
+    const scaleFactor = batchSize / sum;
     weights = weights.map(w => Math.ceil(w * scaleFactor));
   }
 
