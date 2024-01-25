@@ -1,11 +1,12 @@
 import {beforeAll, describe, expect, test} from 'bun:test';
 import constants from './constants';
-import {BatchQueryResult, QueryResult, generateBatch, generateQuery} from '../src/vector/query';
+import {BatchQueryResult, QueryResult} from '../src/vector/query';
 import {Weaviate, Pinecone} from '../src/';
 import type {VectorStore} from '../src/integrations';
 
 import weaviate, {ApiKey} from 'weaviate-ts-client';
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
+import {generateBatch, generateQuery} from '../src/utils';
 
 describe('vector store', () => {
   let vs: VectorStore;
@@ -77,8 +78,8 @@ describe('vector store', () => {
       });
 
       test('multi-search', async () => {
-        const batch = generateBatch(10, dim, 10, true);
-        const res = await vs.multiSearch(batch);
+        const queries = generateBatch(10, dim, 10, true);
+        const res = await vs.multiSearch(queries, 10);
         expect(res).toBeInstanceOf(BatchQueryResult);
       });
 

@@ -6,8 +6,7 @@ import constants from './constants';
 // import {ProductQuantizer} from '../lossy/product';
 import {ScalarQuantizer} from './lossy/scalar';
 import {VectorStore} from './integrations/base';
-import {adjustWeights} from './vector/utils';
-import {generateBatch, BatchQuery} from './vector';
+import {generateBatch, adjustWeights} from './utils';
 import type {
   WeightedVectors,
   Signal,
@@ -75,18 +74,14 @@ export class FirstBatch extends FirstBatchClient {
 
       if (this.quantizerType === 'scalar') {
         const quantizer = new ScalarQuantizer(256);
-
+        const batchSize = Math.min(
+          Math.floor(this.quantizerTrainSize / constants.DEFAULTS.QUANTIZER_TOPK),
+          constants.MIN_TRAIN_SIZE
+        );
         const vectors = await vectorStore
           .multiSearch(
-            generateBatch(
-              Math.min(
-                Math.floor(this.quantizerTrainSize / constants.DEFAULTS.QUANTIZER_TOPK),
-                constants.MIN_TRAIN_SIZE
-              ),
-              vectorStore.embeddingSize,
-              constants.DEFAULTS.QUANTIZER_TOPK,
-              true
-            )
+            generateBatch(batchSize, vectorStore.embeddingSize, constants.DEFAULTS.QUANTIZER_TOPK, true),
+            batchSize
           )
           .then(result => result.vectors());
         quantizer.train(vectors);
@@ -142,7 +137,7 @@ export class FirstBatch extends FirstBatchClient {
       factoryId: label == 'FACTORY' ? algorithm : undefined,
     });
 
-    // TODO: we have the following statement here originally:
+    // TODO: we had the following statement here originally:
     // `isPersistent: options?.sessionId !== undefined`
     // this is added to session object, but is not used.
     // if the time comes, keep this in mind.
@@ -201,6 +196,7 @@ export class FirstBatch extends FirstBatchClient {
     if (vectorStore === undefined) {
       throw new Error('Vector Store is undefined, you should add it.'); // FIXME: better msg
     }
+
     const batchSize = options?.batchSize ?? this.batchSize;
     const historyIds = this.enableHistory ? await this.getHistory(sessionId) : [];
     const blueprint = await this.getBlueprint(response.algorithm);
@@ -215,12 +211,10 @@ export class FirstBatch extends FirstBatchClient {
 
     this.logger.info(`Session: ${JSON.stringify(response.algorithm)}\t(${batchType} ${batchSize})`);
 
-    let ids: string[];
-    let metadatas: QueryMetadata[];
-    let batchQuery: BatchQuery;
+    let queries: Query[];
 
     if (batchType === 'random') {
-      batchQuery = generateBatch(
+      queries = generateBatch(
         batchSize,
         vectorStore.embeddingSize,
         constants.MIN_TOPK * constants.MMR_TOPK_FACTOR,
@@ -235,7 +229,7 @@ export class FirstBatch extends FirstBatchClient {
       if (!response.has_embeddings && batchType === 'personalized') {
         // act like random batch
         this.logger.warn('No embeddings found for personalized batch, switching to random batch.');
-        batchQuery = generateBatch(
+        queries = generateBatch(
           batchSize,
           vectorStore.embeddingSize,
           constants.MIN_TOPK * constants.MMR_TOPK_FACTOR,
@@ -245,20 +239,20 @@ export class FirstBatch extends FirstBatchClient {
         // act like biased batch
         const biasOptions = {params, bias: options?.bias};
         const batchResponse = await this.biasedBatch(sessionId, response.vdbid, destination.name, biasOptions);
-        batchQuery = this.queryWrapper(response.vdbid, batchSize, batchResponse, historyIds, algorithmOptions);
+        queries = this.queryWrapper(response.vdbid, batchSize, batchResponse, historyIds, algorithmOptions);
       }
     } else if (batchType === 'sampled') {
       const batchResponse = await this.sampledBatch(sessionId, response.vdbid, destination.name, params.n_topics);
-      batchQuery = this.queryWrapper(response.vdbid, batchSize, batchResponse, historyIds, algorithmOptions);
+      queries = this.queryWrapper(response.vdbid, batchSize, batchResponse, historyIds, algorithmOptions);
     } else {
       batchType satisfies never;
       throw new Error('Invalid batch type: ' + batchType);
     }
 
     await this.updateState(sessionId, destination.name, batchType);
-    const batchQueryResult = await vectorStore.multiSearch(batchQuery);
+    const batchQueryResult = await vectorStore.multiSearch(queries, batchSize);
 
-    [ids, metadatas] = applyAlgorithm(batchQueryResult, batchQuery.queries, batchType, algorithmOptions);
+    let [ids, metadatas] = applyAlgorithm(batchQueryResult, queries, batchType, algorithmOptions);
 
     // take only `batchSize` many results
     ids = ids.slice(0, batchSize);
@@ -281,7 +275,7 @@ export class FirstBatch extends FirstBatchClient {
       applyThreshold?: number;
       filter?: Record<string, string>;
     }
-  ): BatchQuery {
+  ): Query[] {
     const applyMMR = options?.applyMMR ?? false;
     const includeValues = applyMMR || options?.applyThreshold !== undefined;
 
@@ -298,20 +292,18 @@ export class FirstBatch extends FirstBatchClient {
     const hasHistory = this.enableHistory && history.length !== 0;
     const metadataFilter = hasHistory ? this.store[vdbid].historyFilter(history, options?.filter) : {}; // FIXME: default, but can it be undefined?
 
-    const queries: Query[] = response.vectors.map((vector, i) => {
+    return response.vectors.map((vector, i): Query => {
       const topK = Math.max(topKs[i], constants.MIN_TOPK);
 
       return {
         embedding: {vector, id: ''}, // FIXME: id empty, smelly!
         top_k: applyMMR ? topK * constants.MMR_TOPK_FACTOR : topK,
-        top_k_mmr: applyMMR ? topK : Math.floor(topK / 2),
+        top_k_mmr: applyMMR ? topK : Math.floor(topK / constants.MMR_TOPK_FACTOR),
         include_metadata: true,
         include_values: includeValues,
         filter: metadataFilter,
       };
     });
-
-    return new BatchQuery(queries, batchSize);
   }
 
   private async getBlueprint(algorithm: AlgorithmType): Promise<Blueprint> {

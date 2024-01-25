@@ -1,5 +1,5 @@
 import constants from '../../constants';
-import {BatchQuery, BatchQueryResult, QueryResult} from '../../vector/query';
+import {BatchQueryResult, QueryResult} from '../../vector/query';
 import type {
   MetadataFilter,
   Query,
@@ -46,9 +46,9 @@ export abstract class VectorStore {
     return this.quantizer.decompress(vector);
   }
 
-  async multiSearch(query: BatchQuery): Promise<BatchQueryResult> {
-    const multiResult = await Promise.all(query.queries.map(q => this.search(q)));
-    return new BatchQueryResult(query.batch_size, multiResult);
+  async multiSearch(queries: Query[], batchSize: number): Promise<BatchQueryResult> {
+    const multiResult = await Promise.all(queries.map(q => this.search(q)));
+    return new BatchQueryResult(batchSize, multiResult);
   }
 
   async multiFetch(ids: string[]): Promise<FetchResult[]> {

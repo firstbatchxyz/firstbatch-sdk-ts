@@ -1,7 +1,5 @@
 import {matrix, Matrix, mean} from 'mathjs';
-import type {Query, DistanceMetric, Vector, QueryMetadata} from '../types';
-import {generateVectors} from './utils';
-import constants from '../constants';
+import type {DistanceMetric, Vector, QueryMetadata} from '../types';
 
 export class QueryResult {
   vectors: Vector[];
@@ -77,26 +75,6 @@ export class QueryResult {
   }
 }
 
-export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Query {
-  return {
-    embedding: generateVectors(dim, 1)[0],
-    top_k: topK,
-    top_k_mmr: Math.floor(topK / constants.MMR_TOPK_FACTOR),
-    include_values: includeValues,
-    filter: {},
-    include_metadata: true,
-  };
-}
-
-export class BatchQuery {
-  batch_size: number = 1;
-  queries: Query[] = [];
-  constructor(queries: Query[], numVecs: number) {
-    this.queries = queries;
-    this.batch_size = numVecs;
-  }
-}
-
 export class BatchQueryResult {
   batch_size: number = 1;
   results: QueryResult[] = [];
@@ -158,10 +136,4 @@ export class BatchQueryResult {
       result.vectors = idx.map(i => result.vectors[i]);
     });
   }
-}
-
-// TODO: instead of random_batch_request with defaults, have the defaults apply here?
-export function generateBatch(numVecs: number, dim: number, topK: number, includeValues: boolean): BatchQuery {
-  const queries = Array.from({length: numVecs}, () => generateQuery(numVecs, dim, topK, includeValues));
-  return new BatchQuery(queries, numVecs);
 }

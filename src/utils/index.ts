@@ -1,6 +1,7 @@
-import {QueryResult} from './query';
-import {Vector} from '../types';
+import {QueryResult} from '../vector/query';
+import {Query, Vector} from '../types';
 import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
+import constants from '../constants';
 
 function getRow(matrix: Matrix, ind: number): Matrix {
   return matrix.subset(index(ind, range(0, matrix.size()[1])));
@@ -27,6 +28,22 @@ export function generateVectors(dim: number, numVectors: number): Vector[] {
     const vector = randomVector(dim);
     return {vector, dim, id: i.toString()};
   });
+}
+
+export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Query {
+  return {
+    embedding: generateVectors(dim, 1)[0],
+    top_k: topK,
+    top_k_mmr: Math.floor(topK / constants.MMR_TOPK_FACTOR),
+    include_values: includeValues,
+    filter: {},
+    include_metadata: true,
+  };
+}
+
+// TODO: instead of random_batch_request with defaults, have the defaults apply here?
+export function generateBatch(numVecs: number, dim: number, topK: number, includeValues: boolean): Query[] {
+  return Array.from({length: numVecs}, () => generateQuery(numVecs, dim, topK, includeValues));
 }
 
 // Adjust weights to meet batch size requirements.

@@ -1,4 +1,4 @@
-import {maximalMarginalRelevance} from './vector/utils';
+import {maximalMarginalRelevance} from './utils';
 import {BatchQueryResult} from './vector';
 import type {BatchType, Query, QueryMetadata} from './types';
 

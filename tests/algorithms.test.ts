@@ -2,8 +2,8 @@ import {describe, beforeEach, test} from 'bun:test';
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
 import {Pinecone} from '../src/integrations/pinecone';
 import {FirstBatchConfig, FirstBatch, Signals} from '../src';
-import {generateVectors} from '../src/vector';
 import constants from './constants';
+import {generateVectors} from '../src/utils';
 
 describe('algorithms', () => {
   let personalized: FirstBatch;

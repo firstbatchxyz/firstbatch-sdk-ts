@@ -1,6 +1,6 @@
 import {expect} from 'bun:test';
 import type {Vector} from '../../src/types';
-import {randomVector} from '../../src/vector/utils';
+import {randomVector} from '../../src/utils';
 
 /**
  * Generate `count` vectors, each with the given `dimension`.

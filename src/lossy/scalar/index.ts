@@ -1,5 +1,5 @@
 import type {Quantizer, CompressedVector, Vector} from '../../types';
-import {concatVectors} from '../../vector/utils';
+import {concatVectors} from '../../utils';
 import {TDigest} from 'tdigest';
 
 export class ScalarQuantizer implements Quantizer {
