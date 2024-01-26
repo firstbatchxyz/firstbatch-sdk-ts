@@ -1,9 +1,8 @@
 import log from 'loglevel';
-import {applyAlgorithm} from './algorithm';
-import {Blueprint} from './blueprint';
-import {FirstBatchClient} from './client';
+import {applyAlgorithm} from './algorithm/apply';
+import {Blueprint} from './algorithm/blueprint';
+import {FirstBatchAPI} from './api';
 import constants from './constants';
-// import {ProductQuantizer} from '../lossy/product';
 import {ScalarQuantizer} from './lossy/scalar';
 import {VectorStore} from './integrations/base';
 import {generateBatch, adjustWeights} from './utils';
@@ -16,10 +15,10 @@ import type {
   AlgorithmType,
   QuantizationType,
 } from './types';
-import {Signals} from './signals';
+import {Signals} from './algorithm/signals';
 import library from './constants/library';
 
-export class FirstBatch extends FirstBatchClient {
+export class FirstBatch extends FirstBatchAPI {
   readonly batchSize: number;
   readonly quantizerTrainSize: number;
   readonly quantizerType: QuantizationType;
@@ -79,11 +78,8 @@ export class FirstBatch extends FirstBatchClient {
           constants.MIN_TRAIN_SIZE
         );
         const vectors = await vectorStore
-          .multiSearch(
-            generateBatch(batchSize, vectorStore.embeddingSize, constants.DEFAULTS.QUANTIZER_TOPK, true),
-            batchSize
-          )
-          .then(multiSearchResult => multiSearchResult.results.flatMap(result => result.map(r => r.vector)));
+          .multiSearch(generateBatch(batchSize, vectorStore.embeddingSize, constants.DEFAULTS.QUANTIZER_TOPK, true))
+          .then(results => results.flatMap(result => result.map(r => r.vector)));
         quantizer.train(vectors);
 
         const quantizedVectors = vectors.map(v => quantizer.compress(v).vector);
@@ -251,9 +247,9 @@ export class FirstBatch extends FirstBatchClient {
     }
 
     await this.updateState(sessionId, destination.name, batchType);
-    const batchQueryResult = await vectorStore.multiSearch(queries, batchSize);
+    const searchResults = await vectorStore.multiSearch(queries);
 
-    let [ids, metadatas] = applyAlgorithm(batchQueryResult, queries, batchType, algorithmOptions);
+    let [ids, metadatas] = applyAlgorithm(searchResults, queries, batchType, algorithmOptions);
 
     // take only `batchSize` many results
     ids = ids.slice(0, batchSize);

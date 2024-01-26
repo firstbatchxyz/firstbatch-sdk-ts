@@ -1,31 +1,30 @@
-import {maximalMarginalRelevance} from './utils';
-import {BatchQueryResult, applyThreshold} from './query';
-import type {BatchType, DistanceMetric, Query, QueryMetadata} from './types';
+import {maximalMarginalRelevance, applyThreshold} from '../utils';
+import type {BatchType, DistanceMetric, Query, QueryMetadata, QueryResult} from '../types';
 
 export function applyAlgorithm(
-  batch: BatchQueryResult,
+  results: QueryResult[][],
   queries: Query[],
   batchType: BatchType,
   options: {
     removeDuplicates: boolean;
     applyThreshold: number;
     applyMMR: boolean;
-    // shuffle?: boolean; // enabled by default until further changes
     distanceMetric: DistanceMetric;
+    // shuffle?: boolean; // enabled by default until further changes
   }
 ): [string[], QueryMetadata[]] {
-  // TODO: can we do this in a better way
+  // TODO: can we do this in a better way?
   if (batchType === 'personalized') {
     batchType = 'random';
   }
-  if (batch.results.length !== queries.length) {
+  if (results.length !== queries.length) {
     throw new Error('Number of results is not equal to number of queries');
   }
 
   // apply threshold to query results
   // not done for random batch
   if (batchType !== 'random' && options.applyThreshold) {
-    batch.results = batch.results.map(r => {
+    results = results.map(r => {
       return applyThreshold(r, options.applyThreshold ?? 0, options.distanceMetric);
     });
   }
@@ -33,26 +32,36 @@ export function applyAlgorithm(
   // apply maximal marginal relevance
   // not done for biased batch
   if (batchType !== 'biased' && options.applyMMR) {
-    batch.results = batch.results.map((r, i) =>
+    results = results.map((r, i) =>
       // TODO: move 0.5 to constants
       maximalMarginalRelevance(queries[i].embedding, r, 0.5, queries[i].top_k_mmr)
     );
   }
 
   // filter duplicates
-  if (options.removeDuplicates) {
-    batch.removeDuplicates();
+  if (options.removeDuplicates && results.length !== 0) {
+    // FIXME: refactor / analyze this, could be wrong
+    const ids = results.flat().map(r => r.id);
+    const uniqueIds = new Set<string>(ids).keys();
+    const idx: number[] = [];
+    for (const uniqueId of uniqueIds) {
+      idx.push(ids.indexOf(uniqueId));
+    }
+
+    results.forEach(result => {
+      result = idx.map(i => result[i]);
+    });
   }
 
   // sort w.r.t scores
-  batch.results.forEach(result => {
+  results.forEach(result => {
     result.sort((a, b) => (a.score && b.score ? b.score - a.score : 1));
   });
 
   // get ids and metadata from each result, topK many
   let ids: string[] = [];
   let metadatas: QueryMetadata[] = [];
-  batch.results.forEach((result, i) => {
+  results.forEach((result, i) => {
     const k = queries[i].top_k;
 
     // FIXME: why do we have `undefined` here sometimes? we shouldnt have

@@ -4,6 +4,13 @@ export type QueryMetadata = Record<string, any>; // TODO: type
 
 export type Signal = {label: string; weight: number};
 
+export type QueryResult = {
+  vector: Vector;
+  metadata?: QueryMetadata;
+  score: number;
+  id: string;
+};
+
 export type AlgorithmType =
   | {
       type: 'SIMPLE';

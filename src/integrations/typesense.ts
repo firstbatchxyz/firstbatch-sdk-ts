@@ -1,5 +1,5 @@
 // import type {Query, MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
-// import {SingleQueryResult} from '../query';
+// import {QueryResult} from '../query';
 // import constants from '../constants';
 // import {Client as TypesenseClient} from 'typesense';
 // import Collection from 'typesense/lib/Typesense/Collection';
@@ -32,7 +32,7 @@
 //     this.metadataKey = 'metadata';
 //   }
 
-//   async search(query: Query): Promise<SingleQueryResult[]> {
+//   async search(query: Query): Promise<QueryResult[]> {
 //     let queryObj;
 //     if (query.filter) {
 //       queryObj = {

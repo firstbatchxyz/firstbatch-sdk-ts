@@ -1,6 +1,5 @@
 import {beforeAll, describe, expect, test} from 'bun:test';
 import constants from './constants';
-import {BatchQueryResult} from '../src/query';
 import {Weaviate, Pinecone} from '../src/';
 import type {VectorStore} from '../src/integrations';
 
@@ -79,8 +78,7 @@ describe('vector store', () => {
 
       test('multi-search', async () => {
         const queries = generateBatch(10, dim, 10, true);
-        const res = await vs.multiSearch(queries, 10);
-        expect(res).toBeInstanceOf(BatchQueryResult);
+        const res = await vs.multiSearch(queries);
       });
 
       test('multi-fetch', async () => {

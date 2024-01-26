@@ -1,6 +1,5 @@
-import {SingleQueryResult} from '../query';
-import {Query, Vector} from '../types';
-import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
+import type {QueryResult, Query, Vector, DistanceMetric} from '../types';
+import {divide, index, matrix, mean, Matrix, multiply, norm, range} from 'mathjs';
 import constants from '../constants';
 
 function getRow(matrix: Matrix, ind: number): Matrix {
@@ -26,7 +25,7 @@ export function randomVector(dim: number): number[] {
 export function generateVectors(dim: number, numVectors: number): Vector[] {
   return Array.from({length: numVectors}, (_, i) => {
     const vector = randomVector(dim);
-    return {vector, dim, id: i.toString()};
+    return {vector, id: i.toString()};
   });
 }
 
@@ -63,13 +62,33 @@ export function adjustWeights(weights: number[], batchSize: number, confidenceIn
   return weights;
 }
 
+export function applyThreshold(
+  queries: QueryResult[],
+  threshold: number,
+  distanceMetric: DistanceMetric
+): QueryResult[] {
+  console.log(queries.map(({id, score}) => ({id, score})));
+  const avg = mean(matrix(queries.map(q => q.score))) as number;
+  if (distanceMetric !== 'euclidean_dist') {
+    // this is a similarity metric, threshold should be lower than the score
+    // i.e. we keep the scores higher than the threshold
+    threshold = Math.min(threshold, avg);
+    return queries.filter(q => q.score! >= threshold);
+  } else {
+    // this is a distance metric, threshold should be higher than the score
+    // i.e. we keep the scores lower than the threshold
+    threshold = Math.max(threshold, avg);
+    return queries.filter(q => q.score! <= threshold);
+  }
+}
+
 // Perform maximal marginal relevance ranking.
 export function maximalMarginalRelevance(
   queryEmbedding: Vector,
-  queryResults: SingleQueryResult[],
+  queryResults: QueryResult[],
   lambdaMult: number = 0.5,
   k: number = 4
-): SingleQueryResult[] {
+): QueryResult[] {
   // TODO: should we check for `scores` before doing this? kind of like:
   // if (this.scores?.length === 0) return new Matrix();
   const embeddings: Matrix = matrix(queryResults.map(q => q.vector.vector));

@@ -1,9 +1,9 @@
 import axios, {AxiosInstance} from 'axios';
 import {createHash} from 'crypto';
-import constants from './constants';
-import type {Vertex, WeightedVectors, DFA, Signal, AlgorithmType} from './types';
+import constants from '../constants';
+import type {Vertex, WeightedVectors, DFA, Signal, AlgorithmType} from '../types';
 
-export class FirstBatchClient {
+export class FirstBatchAPI {
   /** API key of this client. */
   private apiKey: string = '';
   /** Prepared Axios instance with base URL and headers set. */

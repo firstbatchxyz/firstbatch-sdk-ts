@@ -1,6 +1,5 @@
-import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
-import type {Query, DistanceMetric, Vector, MetadataFilter} from '../types';
-import {SingleQueryResult} from '../query';
+import type {Index, QueryResponse} from '@pinecone-database/pinecone';
+import type {Query, DistanceMetric, Vector, MetadataFilter, QueryResult} from '../types';
 import {VectorStore} from './base';
 
 export class Pinecone extends VectorStore {
@@ -27,7 +26,7 @@ export class Pinecone extends VectorStore {
     this.index = index;
   }
 
-  async search(query: Query): Promise<SingleQueryResult[]> {
+  async search(query: Query): Promise<QueryResult[]> {
     const result: QueryResponse = await this.index.query({
       vector: query.embedding.vector,
       topK: query.top_k,
@@ -54,7 +53,7 @@ export class Pinecone extends VectorStore {
       if (Object.hasOwn(result.records, key)) {
         const v = result.records[key];
         const vector: Vector = {vector: v.values, id: key};
-        const metadata = {id: key, data: v.metadata as RecordMetadata};
+        const metadata = {id: key, data: v.metadata};
         return {vector, metadata, id: key};
       }
     }

@@ -15,8 +15,7 @@ export class ScalarQuantizer implements Quantizer {
 
   train(data: Vector[]): void {
     // concat all vectors within the data
-    // TODO: we probably dont need the initial value here
-    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur), {vector: [], id: ''});
+    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur));
 
     for (const scalar of scalars.vector) {
       this.quantizer.push(scalar);

@@ -1,6 +1,6 @@
-import type {DFA, Edge, Vertex, Signal} from './types';
+import type {DFA, Edge, Vertex, Signal} from '../types';
 import {Signals} from './signals';
-import constants from './constants';
+import constants from '../constants';
 
 export class Blueprint {
   vertices: Vertex[] = [];

@@ -1,7 +1,7 @@
 // import type {SupabaseClient} from '@supabase/supabase-js';
 // import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
 // import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector, Query} from '../types';
-// import {SingleQueryResult} from '../query';
+// import {QueryResult} from '../query';
 // import {VectorStore} from './base';
 
 // // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
@@ -48,7 +48,7 @@
 //     this.queryName = kwargs?.queryName || 'match_documents';
 //   }
 
-//   async search(query: Query): Promise<SingleQueryResult[]> {
+//   async search(query: Query): Promise<QueryResult[]> {
 //     const ids: string[] = [];
 //     const scores: number[] = [];
 //     const vectors: Vector[] = [];

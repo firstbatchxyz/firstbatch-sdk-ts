@@ -1,6 +1,14 @@
 import constants from '../constants';
-import {BatchQueryResult, SingleQueryResult} from '../query';
-import type {MetadataFilter, Query, CompressedVector, DistanceMetric, Vector, FetchResult, Quantizer} from '../types';
+import type {
+  MetadataFilter,
+  Query,
+  CompressedVector,
+  DistanceMetric,
+  Vector,
+  FetchResult,
+  Quantizer,
+  QueryResult,
+} from '../types';
 
 /** Base vector store implementation.
  *
@@ -42,16 +50,15 @@ export abstract class VectorStore {
     return this.quantizer.decompress(vector);
   }
 
-  async multiSearch(queries: Query[], batchSize: number): Promise<BatchQueryResult> {
-    const multiResult = await Promise.all(queries.map(q => this.search(q)));
-    return new BatchQueryResult(batchSize, multiResult);
+  async multiSearch(queries: Query[]): Promise<QueryResult[][]> {
+    return await Promise.all(queries.map(q => this.search(q)));
   }
 
   async multiFetch(ids: string[]): Promise<FetchResult[]> {
     return await Promise.all(ids.map(id => this.fetch(id)));
   }
 
-  public abstract search(query: Query): Promise<SingleQueryResult[]>;
+  public abstract search(query: Query): Promise<QueryResult[]>;
   public abstract fetch(id: string): Promise<FetchResult>;
   public abstract historyFilter(ids: string[], prevFilter?: object): MetadataFilter;
 }

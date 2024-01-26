@@ -1,9 +1,7 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
-import type {Query, MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
-import {SingleQueryResult} from '../query';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
+import type {Query, MetadataFilter, DistanceMetric, FetchResult, QueryResult} from '../types';
 import {VectorStore} from './base';
-import constants from '../constants';
 
 export class Weaviate extends VectorStore {
   private client: WeaviateClient;
@@ -37,7 +35,7 @@ export class Weaviate extends VectorStore {
     this.outputFields = kwargs?.outputFields || ['text'];
   }
 
-  async search(query: Query, options?: {additional?: string}): Promise<SingleQueryResult[]> {
+  async search(query: Query, options?: {additional?: string}): Promise<QueryResult[]> {
     const vector = {vector: query.embedding.vector};
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);
