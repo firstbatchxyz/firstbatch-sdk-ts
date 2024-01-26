@@ -1,6 +1,6 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
-import type {Query, QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../types';
-import {QueryResult} from '../query';
+import type {Query, DistanceMetric, Vector, MetadataFilter} from '../types';
+import {SingleQueryResult} from '../query';
 import {VectorStore} from './base';
 
 export class Pinecone extends VectorStore {
@@ -27,7 +27,7 @@ export class Pinecone extends VectorStore {
     this.index = index;
   }
 
-  async search(query: Query) {
+  async search(query: Query): Promise<SingleQueryResult[]> {
     const result: QueryResponse = await this.index.query({
       vector: query.embedding.vector,
       topK: query.top_k,
@@ -35,20 +35,16 @@ export class Pinecone extends VectorStore {
       includeMetadata: query.include_metadata,
       includeValues: query.include_values,
     });
-    if (result.matches === undefined) throw Error('No valid match for query');
-
-    const ids: string[] = [];
-    const scores: number[] = [];
-    const vectors: Vector[] = [];
-    const metadatas: QueryMetadata[] = [];
-
-    for (const r of result.matches) {
-      ids.push(r.id);
-      scores.push(r.score ?? 0);
-      vectors.push({vector: r.values, id: r.id});
-      metadatas.push(r.metadata as RecordMetadata);
+    if (result.matches === undefined) {
+      throw Error('No valid match for query');
     }
-    return new QueryResult({vectors, metadatas, scores, ids});
+
+    return result.matches.map(r => ({
+      id: r.id,
+      metadata: r.metadata,
+      score: r.score ?? 0.0,
+      vector: {vector: r.values, id: r.id},
+    }));
   }
 
   async fetch(id: string) {

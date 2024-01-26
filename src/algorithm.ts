@@ -1,5 +1,5 @@
 import {maximalMarginalRelevance} from './utils';
-import {BatchQueryResult} from './query';
+import {BatchQueryResult, applyThreshold} from './query';
 import type {BatchType, DistanceMetric, Query, QueryMetadata} from './types';
 
 export function applyAlgorithm(
@@ -25,7 +25,9 @@ export function applyAlgorithm(
   // apply threshold to query results
   // not done for random batch
   if (batchType !== 'random' && options.applyThreshold) {
-    batch.results = batch.results.map(r => r.applyThreshold(options.applyThreshold ?? 0, options.distanceMetric));
+    batch.results = batch.results.map(r => {
+      return applyThreshold(r, options.applyThreshold ?? 0, options.distanceMetric);
+    });
   }
 
   // apply maximal marginal relevance
@@ -42,8 +44,10 @@ export function applyAlgorithm(
     batch.removeDuplicates();
   }
 
-  // sort w.r.t scores & topK parameter
-  batch.sort();
+  // sort w.r.t scores
+  batch.results.forEach(result => {
+    result.sort((a, b) => (a.score && b.score ? b.score - a.score : 1));
+  });
 
   // get ids and metadata from each result, topK many
   let ids: string[] = [];
@@ -53,8 +57,18 @@ export function applyAlgorithm(
 
     // FIXME: why do we have `undefined` here sometimes? we shouldnt have
     // to do this filtering everytime
-    ids = ids.concat(result.ids.slice(0, k).filter(r => r !== undefined));
-    metadatas = metadatas.concat(result.metadatas.slice(0, k).filter(r => r !== undefined));
+    ids = ids.concat(
+      result
+        .slice(0, k)
+        .map(r => r.id)
+        .filter(r => r !== undefined)
+    );
+    metadatas = metadatas.concat(
+      result
+        .slice(0, k)
+        .map(r => r.metadata)
+        .filter(r => r !== undefined)
+    );
   });
 
   // NOTE: this used to be optional, but we now have it on by default
