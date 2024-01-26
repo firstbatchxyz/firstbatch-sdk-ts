@@ -1,6 +1,6 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
 import type {Query, MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
-import {QueryResult} from '../query';
+import {SingleQueryResult} from '../query';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
 import constants from '../constants';
@@ -37,7 +37,7 @@ export class Weaviate extends VectorStore {
     this.outputFields = kwargs?.outputFields || ['text'];
   }
 
-  async search(query: Query, options?: {additional?: string}): Promise<QueryResult> {
+  async search(query: Query, options?: {additional?: string}): Promise<SingleQueryResult[]> {
     const vector = {vector: query.embedding.vector};
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);
@@ -62,33 +62,14 @@ export class Weaviate extends VectorStore {
     }
 
     const result = await queryObject.withNearVector(vector).withLimit(query.top_k).do();
-
-    const ids: string[] = [];
-    const scores: number[] = [];
-    const vectors: Vector[] = [];
-    const metadatas: QueryMetadata[] = [];
     const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
-    for (const res of data) {
-      const id = res['_additional'].id;
-      ids.push(id);
-
-      const metadata: Record<string, any> = {};
-      for (const k of this.outputFields) {
-        metadata[k] = res[k];
-        delete res[k]; // FIXME: why????
-      }
-
-      metadatas.push(metadata);
-      scores.push(res['_additional'].distance);
-      if (query.include_values) {
-        vectors.push({vector: res['_additional'].vector, id});
-      } else {
-        vectors.push({vector: [], id});
-      }
-    }
-
-    return new QueryResult({vectors, metadatas, scores, ids});
+    return data.map((res: any) => ({
+      id: res['_additional'].id,
+      metadata: Object.fromEntries(this.outputFields.map(k => [k, res[k]])),
+      scores: res['_additional'].distance, // FIXME: is this correct? high score = high distance seems fishy
+      vector: {vector: res['_additional'].vector, id: res['_additional'].id},
+    }));
   }
 
   async fetch(id: string): Promise<FetchResult> {

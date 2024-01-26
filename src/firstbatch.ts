@@ -83,7 +83,7 @@ export class FirstBatch extends FirstBatchClient {
             generateBatch(batchSize, vectorStore.embeddingSize, constants.DEFAULTS.QUANTIZER_TOPK, true),
             batchSize
           )
-          .then(result => result.vectors());
+          .then(multiSearchResult => multiSearchResult.results.flatMap(result => result.map(r => r.vector)));
         quantizer.train(vectors);
 
         const quantizedVectors = vectors.map(v => quantizer.compress(v).vector);

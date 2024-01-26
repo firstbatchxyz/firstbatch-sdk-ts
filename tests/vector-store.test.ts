@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, test} from 'bun:test';
 import constants from './constants';
-import {BatchQueryResult, QueryResult} from '../src/query';
+import {BatchQueryResult} from '../src/query';
 import {Weaviate, Pinecone} from '../src/';
 import type {VectorStore} from '../src/integrations';
 
@@ -64,15 +64,15 @@ describe('vector store', () => {
       test('search', async () => {
         const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
-        expect(res).toBeInstanceOf(QueryResult);
+        // expect(res).toBeInstanceOf(QueryResult_);
       });
 
       test('fetch', async () => {
         const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
-        expect(res).toBeInstanceOf(QueryResult);
+        // expect(res).toBeInstanceOf(QueryResult_);
 
-        const fetchRes = await vs.fetch(res.ids[0]);
+        const fetchRes = await vs.fetch(res[0].id);
         // expect(fetchRes).toBeInstanceOf(FetchResult);
         // TODO: test
       });
@@ -86,18 +86,21 @@ describe('vector store', () => {
       test('multi-fetch', async () => {
         const query = generateQuery(1, dim, 10, true);
         const res = await vs.search(query);
-        expect(res).toBeInstanceOf(QueryResult);
+        // expect(res).toBeInstanceOf(QueryResult_);
 
-        const ids = res.ids;
+        const ids = res.map(r => r.id);
         const multiFetchRes = await vs.multiFetch(ids);
       });
 
       test('history', async () => {
         const query = generateQuery(1, dim, 10, false);
         const res = await vs.search(query);
-        query.filter = vs.historyFilter(res.ids);
-        const res_ = await vs.search(query);
-        expect(res.ids.filter(id => res_.ids.includes(id)).length).toBe(0);
+        const resIds = res.map(r => r.id);
+        query.filter = vs.historyFilter(resIds);
+
+        const newRes = await vs.search(query);
+        const newResIds = newRes.map(r => r.id);
+        expect(resIds.filter(id => newResIds.includes(id)).length).toBe(0);
       });
     });
   });

@@ -1,4 +1,4 @@
-import {QueryResult} from '../query';
+import {SingleQueryResult} from '../query';
 import {Query, Vector} from '../types';
 import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
 import constants from '../constants';
@@ -66,18 +66,18 @@ export function adjustWeights(weights: number[], batchSize: number, confidenceIn
 // Perform maximal marginal relevance ranking.
 export function maximalMarginalRelevance(
   queryEmbedding: Vector,
-  queryResult: QueryResult,
+  queryResults: SingleQueryResult[],
   lambdaMult: number = 0.5,
   k: number = 4
-): QueryResult {
+): SingleQueryResult[] {
   // TODO: should we check for `scores` before doing this? kind of like:
   // if (this.scores?.length === 0) return new Matrix();
-  const embeddings: Matrix = matrix(queryResult.vectors.map(vec => vec.vector));
+  const embeddings: Matrix = matrix(queryResults.map(q => q.vector.vector));
   const query: Matrix = matrix(queryEmbedding.vector);
 
   if (Math.min(k, embeddings.size()[0]) <= 0) {
-    // return the input QueryResult itself
-    return queryResult;
+    // return the input itself
+    return queryResults;
   }
 
   const queryMatrix = matrix(query);
@@ -113,12 +113,7 @@ export function maximalMarginalRelevance(
     selected = selected.concat(getRow(embeddings, idxToAdd).toArray() as number[]);
   }
 
-  return new QueryResult({
-    ids: indices.map(i => queryResult.ids[i]),
-    scores: indices.map(i => queryResult.scores[i]),
-    vectors: indices.map(i => queryResult.vectors[i]),
-    metadatas: indices.map(i => queryResult.metadatas[i]),
-  });
+  return indices.map(i => queryResults[i]);
 }
 
 // Calculate cosine similarity between two matrices.
