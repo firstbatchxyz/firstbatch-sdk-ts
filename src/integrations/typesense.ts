@@ -1,5 +1,5 @@
 import type {Query, MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
-import {QueryResult} from '../vector/query';
+import {QueryResult} from '../query';
 import constants from '../constants';
 import {Client as TypesenseClient} from 'typesense';
 import Collection from 'typesense/lib/Typesense/Collection';
@@ -56,7 +56,7 @@ export class Typesense extends VectorStore {
     const metadatas: QueryMetadata[] = [];
     const metadataObject: Record<string, any> = {};
 
-    const q = new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
+    const q = new QueryResult({vectors, metadatas, scores, ids});
     const hits = res.results[0]['hits'] as any[];
     for (let i = 0; i < hits.length; i++) {
       const document = res.results[0]['hits'][i];

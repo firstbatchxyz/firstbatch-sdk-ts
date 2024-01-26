@@ -1,15 +1,11 @@
-import constants from '../../constants';
-import {BatchQueryResult, QueryResult} from '../../vector/query';
-import type {
-  MetadataFilter,
-  Query,
-  CompressedVector,
-  DistanceMetric,
-  Vector,
-  FetchResult,
-  Quantizer,
-} from '../../types';
+import constants from '../constants';
+import {BatchQueryResult, QueryResult} from '../query';
+import type {MetadataFilter, Query, CompressedVector, DistanceMetric, Vector, FetchResult, Quantizer} from '../types';
 
+/** Base vector store implementation.
+ *
+ * Every integration must extend & implement this abstract class.
+ */
 export abstract class VectorStore {
   public embeddingSize: number;
   public distanceMetric: DistanceMetric;

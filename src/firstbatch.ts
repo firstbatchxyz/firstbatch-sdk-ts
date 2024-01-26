@@ -207,6 +207,7 @@ export class FirstBatch extends FirstBatchClient {
       applyMMR: params.apply_mmr,
       applyThreshold: params.apply_threshold,
       removeDuplicates: params.remove_duplicates,
+      distanceMetric: vectorStore.distanceMetric,
     };
 
     this.logger.info(`Session: ${JSON.stringify(response.algorithm)}\t(${batchType} ${batchSize})`);

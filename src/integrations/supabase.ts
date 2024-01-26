@@ -1,7 +1,7 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {PostgrestFilterBuilder} from '@supabase/postgrest-js';
 import type {MetadataFilter, QueryMetadata, DistanceMetric, FetchResult, Vector, Query} from '../types';
-import {QueryResult} from '../vector/query';
+import {QueryResult} from '../query';
 import {VectorStore} from './base';
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
@@ -89,7 +89,6 @@ export class Supabase extends VectorStore {
       vectors,
       ids,
       scores,
-      distanceMetric: this.distanceMetric,
     });
   }
 

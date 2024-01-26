@@ -1,6 +1,6 @@
 import type {Index, QueryResponse, RecordMetadata} from '@pinecone-database/pinecone';
 import type {Query, QueryMetadata, DistanceMetric, Vector, MetadataFilter} from '../types';
-import {QueryResult} from '../vector/query';
+import {QueryResult} from '../query';
 import {VectorStore} from './base';
 
 export class Pinecone extends VectorStore {
@@ -48,7 +48,7 @@ export class Pinecone extends VectorStore {
       vectors.push({vector: r.values, id: r.id});
       metadatas.push(r.metadata as RecordMetadata);
     }
-    return new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
+    return new QueryResult({vectors, metadatas, scores, ids});
   }
 
   async fetch(id: string) {

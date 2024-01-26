@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, test} from 'bun:test';
 import constants from './constants';
-import {BatchQueryResult, QueryResult} from '../src/vector/query';
+import {BatchQueryResult, QueryResult} from '../src/query';
 import {Weaviate, Pinecone} from '../src/';
 import type {VectorStore} from '../src/integrations';
 

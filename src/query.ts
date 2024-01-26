@@ -1,41 +1,23 @@
-import {matrix, Matrix, mean} from 'mathjs';
-import type {DistanceMetric, Vector, QueryMetadata} from '../types';
+import {matrix, mean} from 'mathjs';
+import type {DistanceMetric, Vector, QueryMetadata} from './types';
 
 export class QueryResult {
   vectors: Vector[];
   metadatas: QueryMetadata[];
   scores: number[];
   ids: string[];
-  distanceMetric: DistanceMetric;
 
-  constructor(args: {
-    vectors?: Vector[];
-    metadatas?: QueryMetadata[];
-    scores?: number[];
-    ids?: string[];
-    distanceMetric?: DistanceMetric;
-  }) {
+  constructor(args: {vectors?: Vector[]; metadatas?: QueryMetadata[]; scores?: number[]; ids?: string[]}) {
     this.vectors = args.vectors || [];
     this.metadatas = args.metadatas || [];
     this.scores = args.scores || [];
     this.ids = args.ids || [];
-    this.distanceMetric = args.distanceMetric || 'cosine_sim';
   }
 
-  toNdArray(): Matrix {
-    if (this.scores?.length === 0) {
-      return new Matrix();
-    }
-
-    // Assuming each vector has a "vector" property containing an array of numbers
-    if (!this.vectors) return new Matrix();
-    return matrix(this.vectors.map(vec => vec.vector));
-  }
-
-  applyThreshold(threshold: number): QueryResult {
+  applyThreshold(threshold: number, distanceMetric: DistanceMetric): QueryResult {
     if (!this.scores) return this;
     const flattenedScores: number[] = ([] as number[]).concat(...this.scores);
-    const isSimilarity = this.distanceMetric !== 'euclidean_dist';
+    const isSimilarity = distanceMetric !== 'euclidean_dist';
     const avg = mean(matrix(flattenedScores)) as number;
 
     // depending on the distance metric, we either have a distance (lower is better)
@@ -51,27 +33,43 @@ export class QueryResult {
       .filter(({keep}) => keep)
       .map(({index}) => index);
 
-    return this.createFilteredResult(indicesToKeep);
-  }
-
-  /** Utility function to select values at the given indices. */
-  private createFilteredResult(indices: number[]): QueryResult {
     return new QueryResult({
-      vectors: indices.map(i => this.vectors.at(i)).filter((v): v is Vector => v !== undefined),
-      metadatas: indices.map(i => this.metadatas.at(i)).filter((m): m is QueryMetadata => m !== undefined),
-      scores: indices.map(i => this.scores.at(i)).filter((s): s is number => s !== undefined),
-      ids: indices.map(i => this.ids.at(i)).filter((id): id is string => id !== undefined),
+      vectors: indicesToKeep.map(i => this.vectors.at(i)).filter((v): v is Vector => v !== undefined),
+      metadatas: indicesToKeep.map(i => this.metadatas.at(i)).filter((m): m is QueryMetadata => m !== undefined),
+      scores: indicesToKeep.map(i => this.scores.at(i)).filter((s): s is number => s !== undefined),
+      ids: indicesToKeep.map(i => this.ids.at(i)).filter((id): id is string => id !== undefined),
     });
   }
+}
 
-  /** Utility function to concatenate two query results. */
-  concat(other: QueryResult): QueryResult {
-    return new QueryResult({
-      vectors: this.vectors.concat(other.vectors),
-      metadatas: this.metadatas.concat(other.metadatas),
-      scores: this.scores.concat(other.scores),
-      ids: this.ids.concat(other.ids),
-    });
+export type SingleQueryResult = {
+  vector: Vector;
+  metadata?: QueryMetadata;
+  score?: number;
+  id: string;
+};
+
+function _applyThreshold(
+  queries: SingleQueryResult[],
+  threshold: number,
+  distanceMetric: DistanceMetric
+): SingleQueryResult[] {
+  if (queries.some(q => q.score === undefined)) {
+    return queries;
+  }
+  const scores: number[] = queries.map(q => q.score as number);
+  const avg = mean(matrix(scores)) as number;
+
+  if (distanceMetric !== 'euclidean_dist') {
+    // this is a similarity metric, threshold should be lower than the score
+    // i.e. we keep the scores higher than the threshold
+    threshold = Math.min(threshold, avg);
+    return queries.filter(q => q.score! >= threshold);
+  } else {
+    // this is a distance metric, threshold should be higher than the score
+    // i.e. we keep the scores lower than the threshold
+    threshold = Math.max(threshold, avg);
+    return queries.filter(q => q.score! <= threshold);
   }
 }
 
@@ -101,7 +99,15 @@ export class BatchQueryResult {
    * Does not modify the underlying results.
    */
   flatten(): QueryResult {
-    return this.results.reduce((acc, cur) => acc.concat(cur), new QueryResult({}));
+    return this.results.reduce(
+      (acc, cur) =>
+        new QueryResult({
+          vectors: acc.vectors.concat(cur.vectors),
+          metadatas: acc.metadatas.concat(cur.metadatas),
+          scores: acc.scores.concat(cur.scores),
+          ids: acc.ids.concat(cur.ids),
+        })
+    );
   }
 
   /** Sorts the results with respect to the result scores. */

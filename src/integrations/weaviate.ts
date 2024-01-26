@@ -1,6 +1,6 @@
 import type {WeaviateClient} from 'weaviate-ts-client';
 import type {Query, MetadataFilter, QueryMetadata, DistanceMetric, Vector, FetchResult} from '../types';
-import {QueryResult} from '../vector/query';
+import {QueryResult} from '../query';
 import type {RecordMetadata} from '@pinecone-database/pinecone';
 import {VectorStore} from './base';
 import constants from '../constants';
@@ -88,7 +88,7 @@ export class Weaviate extends VectorStore {
       }
     }
 
-    return new QueryResult({vectors, metadatas, scores, ids, distanceMetric: this.distanceMetric});
+    return new QueryResult({vectors, metadatas, scores, ids});
   }
 
   async fetch(id: string): Promise<FetchResult> {

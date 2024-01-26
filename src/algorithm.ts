@@ -1,6 +1,6 @@
 import {maximalMarginalRelevance} from './utils';
-import {BatchQueryResult} from './vector';
-import type {BatchType, Query, QueryMetadata} from './types';
+import {BatchQueryResult} from './query';
+import type {BatchType, DistanceMetric, Query, QueryMetadata} from './types';
 
 export function applyAlgorithm(
   batch: BatchQueryResult,
@@ -11,6 +11,7 @@ export function applyAlgorithm(
     applyThreshold: number;
     applyMMR: boolean;
     // shuffle?: boolean; // enabled by default until further changes
+    distanceMetric: DistanceMetric;
   }
 ): [string[], QueryMetadata[]] {
   // TODO: can we do this in a better way
@@ -24,7 +25,7 @@ export function applyAlgorithm(
   // apply threshold to query results
   // not done for random batch
   if (batchType !== 'random' && options.applyThreshold) {
-    batch.results = batch.results.map(r => r.applyThreshold(options.applyThreshold ?? 0));
+    batch.results = batch.results.map(r => r.applyThreshold(options.applyThreshold ?? 0, options.distanceMetric));
   }
 
   // apply maximal marginal relevance

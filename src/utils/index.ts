@@ -1,4 +1,4 @@
-import {QueryResult} from '../vector/query';
+import {QueryResult} from '../query';
 import {Query, Vector} from '../types';
 import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
 import constants from '../constants';
@@ -66,16 +66,18 @@ export function adjustWeights(weights: number[], batchSize: number, confidenceIn
 // Perform maximal marginal relevance ranking.
 export function maximalMarginalRelevance(
   queryEmbedding: Vector,
-  batch: QueryResult,
+  queryResult: QueryResult,
   lambdaMult: number = 0.5,
   k: number = 4
 ): QueryResult {
-  const embeddings: Matrix = batch.toNdArray();
+  // TODO: should we check for `scores` before doing this? kind of like:
+  // if (this.scores?.length === 0) return new Matrix();
+  const embeddings: Matrix = matrix(queryResult.vectors.map(vec => vec.vector));
   const query: Matrix = matrix(queryEmbedding.vector);
 
   if (Math.min(k, embeddings.size()[0]) <= 0) {
     // return the input QueryResult itself
-    return batch;
+    return queryResult;
   }
 
   const queryMatrix = matrix(query);
@@ -112,10 +114,10 @@ export function maximalMarginalRelevance(
   }
 
   return new QueryResult({
-    ids: indices.map(i => batch.ids[i]),
-    scores: indices.map(i => batch.scores[i]),
-    vectors: indices.map(i => batch.vectors[i]),
-    metadatas: indices.map(i => batch.metadatas[i]),
+    ids: indices.map(i => queryResult.ids[i]),
+    scores: indices.map(i => queryResult.scores[i]),
+    vectors: indices.map(i => queryResult.vectors[i]),
+    metadatas: indices.map(i => queryResult.metadatas[i]),
   });
 }
 
