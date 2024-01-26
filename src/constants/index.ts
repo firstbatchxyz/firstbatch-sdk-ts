@@ -1,5 +1,5 @@
-import type {DistanceMetric, QuantizationType, VertexParameters} from '../types';
-import type library from './library';
+import type {DistanceMetric, VertexParameters} from '../types';
+import type library from '../algorithm/library';
 
 export default {
   /** Endpoint to get region. */
@@ -14,7 +14,7 @@ export default {
   /** Default values. */
   DEFAULTS: {
     QUANTIZER_TRAIN_SIZE: 100,
-    QUANTIZER_TYPE: 'scalar' satisfies QuantizationType,
+    QUANTIZER_TYPE: 'scalar' satisfies 'scalar' | 'product',
     QUANTIZER_TOPK: 5,
     EMBEDDING_LAST_N: 50,
     EMBEDDING_SIZE: 1536,

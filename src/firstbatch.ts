@@ -6,22 +6,14 @@ import constants from './constants';
 import {ScalarQuantizer} from './lossy/scalar';
 import {VectorStore} from './integrations/base';
 import {generateBatch, adjustWeights} from './utils';
-import type {
-  WeightedVectors,
-  Signal,
-  QueryMetadata,
-  FirstBatchConfig,
-  Query,
-  AlgorithmType,
-  QuantizationType,
-} from './types';
+import type {WeightedVectors, Signal, QueryMetadata, FirstBatchConfig, Query, AlgorithmType} from './types';
 import {Signals} from './algorithm/signals';
-import library from './constants/library';
+import library from './algorithm/library';
 
 export class FirstBatch extends FirstBatchAPI {
   readonly batchSize: number;
   readonly quantizerTrainSize: number;
-  readonly quantizerType: QuantizationType;
+  readonly quantizerType: 'scalar' | 'product';
   readonly enableHistory: boolean;
   readonly verbose: boolean;
 

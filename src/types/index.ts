@@ -55,8 +55,6 @@ export type WeightedVectors = {
   weights: number[];
 };
 
-export type QuantizationType = 'scalar' | 'product';
-
 export type Vector = {
   id: string;
   vector: number[];
