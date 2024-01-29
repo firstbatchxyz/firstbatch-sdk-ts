@@ -40,7 +40,55 @@ const withBatchesAndDefaults: DFA = {
   ],
 };
 
+const withDuplicateNode: DFA = {
+  nodes: [
+    {name: '0', batch_type: 'random', params: {}},
+    {name: '0', batch_type: 'biased', params: {}},
+    {name: '1', batch_type: 'biased', params: {}},
+  ],
+  edges: [
+    {name: 'edge1', edge_type: 'BATCH', start: '0', end: '0'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: '0', end: '1'},
+  ],
+};
+
+const withDuplicateEdge: DFA = {
+  nodes: [
+    {name: '0', batch_type: 'random', params: {}},
+    {name: '1', batch_type: 'biased', params: {}},
+    {name: '2', batch_type: 'biased', params: {}},
+  ],
+  edges: [
+    {name: 'edge1', edge_type: 'BATCH', start: '0', end: '0'},
+    {name: 'edge1', edge_type: 'DEFAULT', start: '0', end: '1'},
+    {name: 'edge2', edge_type: 'DEFAULT', start: '1', end: '2'},
+    {name: 'edge3', edge_type: 'BATCH', start: '1', end: '2'},
+  ],
+};
+
+const withInvalidEdgeStart: DFA = {
+  nodes: [
+    {name: '0', batch_type: 'random', params: {}},
+    {name: '1', batch_type: 'biased', params: {}},
+  ],
+  // `end` does not exist
+  edges: [{name: 'edge1', edge_type: 'BATCH', start: '2', end: '0'}],
+};
+
+const withInvalidEdgeEnd: DFA = {
+  nodes: [
+    {name: '0', batch_type: 'random', params: {}},
+    {name: '1', batch_type: 'biased', params: {}},
+  ],
+  // `end` does not exist
+  edges: [{name: 'edge1', edge_type: 'BATCH', start: '0', end: '2'}],
+};
+
 export default {
   withNewSignals,
   withBatchesAndDefaults,
+  withDuplicateNode,
+  withDuplicateEdge,
+  withInvalidEdgeStart,
+  withInvalidEdgeEnd,
 };

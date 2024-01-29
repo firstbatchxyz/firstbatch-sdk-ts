@@ -1,5 +1,5 @@
 import type {Index, QueryResponse} from '@pinecone-database/pinecone';
-import type {Query, DistanceMetric, Vector, MetadataFilter, QueryResult} from '../types';
+import type {Query, DistanceMetric, MetadataFilter, QueryResult} from '../types';
 import {VectorStore} from './base';
 
 export class Pinecone extends VectorStore {
@@ -48,15 +48,9 @@ export class Pinecone extends VectorStore {
 
   async fetch(id: string) {
     const result = await this.index.fetch([id]);
-
-    // FIXME: ???
-    for (const key in result.records) {
-      if (Object.hasOwn(result.records, key)) {
-        const v = result.records[key];
-        const vector: Vector = v.values;
-        const metadata = {id: key, data: v.metadata};
-        return {vector, metadata, id: key};
-      }
+    if (result.records && id in result.records) {
+      const {values, metadata} = result.records[id];
+      return {vector: values, metadata: metadata ?? {}, id};
     }
 
     throw new Error('Could not find a result.');

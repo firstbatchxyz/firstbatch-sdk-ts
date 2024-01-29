@@ -1,15 +1,16 @@
 import {describe, it, expect, beforeAll} from 'bun:test';
 import {ScalarQuantizer} from '../src/lossy/scalar';
 import {flatten, matrix, equal as mathEqual} from 'mathjs';
-import {generateRandomVectors, meanAbsoluteError} from './utils/vector';
+import {meanAbsoluteError} from './utils/vector';
 import {ProductQuantizer} from '../src/lossy/product';
 import {PQ} from '../src/lossy/product/pqt';
+import {generateVectors} from '../src/utils';
 
 describe('lossy compression', () => {
-  const EPSILON = 1e-4; // FIXME: aggree on an eps value
-  const data = generateRandomVectors(1000, 1536);
+  const EPSILON = 1e-4;
+  const data = generateVectors(1536, 1000);
 
-  describe.skip('via product quantization', () => {
+  describe.skip('product quantization', () => {
     const pq = new ProductQuantizer(512, 32);
 
     beforeAll(() => {
@@ -18,18 +19,14 @@ describe('lossy compression', () => {
 
     it('should compress & decompress', () => {
       const vector = data[0];
-
       const compressed = pq.compress(vector);
-      // expect(compressed.id).toBe(vector.id);
-
       const decompressed = pq.decompress(compressed);
-      // expect(decompressed.id).toBe(vector.id);
 
       const mae = meanAbsoluteError(vector, decompressed);
       expect(mae).toBeLessThan(EPSILON);
     });
 
-    it('should reproduce (?)', () => {
+    it('should produce the same things via codewords', () => {
       const vector = data[0];
 
       const newPQ = new PQ(32, 512);
@@ -55,8 +52,8 @@ describe('lossy compression', () => {
     });
   });
 
-  describe('via scalar quantization', () => {
-    const data = generateRandomVectors(1000, 1536);
+  describe('scalar quantization', () => {
+    const data = generateVectors(1536, 1000);
     const quantizer = new ScalarQuantizer(256);
 
     beforeAll(() => {
@@ -67,10 +64,7 @@ describe('lossy compression', () => {
       const vector = data[0];
 
       const compressed = quantizer.compress(vector);
-      // expect(compressed.id).toBe(vector.id);
-
       const decompressed = quantizer.decompress(compressed);
-      // expect(decompressed.id).toBe(vector.id);
 
       const mae = meanAbsoluteError(vector, decompressed);
       expect(mae).toBeLessThan(EPSILON);
