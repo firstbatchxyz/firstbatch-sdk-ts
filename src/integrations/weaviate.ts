@@ -31,18 +31,17 @@ export class Weaviate extends VectorStore {
       historyField: kwargs?.historyField,
     });
     this.client = client;
-    this.className = kwargs?.className || 'my_collection';
-    this.outputFields = kwargs?.outputFields || ['text'];
+    this.className = kwargs?.className ?? 'my_collection';
+    this.outputFields = kwargs?.outputFields ?? ['text'];
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult[]> {
-    const vector = {vector: query.embedding};
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
 
-    // FIXME: why is this check done?
-    if (typeof query.filter === 'object') {
+    // FIXME: metadata causes issues when these fields are undefined, check later
+    if (typeof query.filter === 'object' && query.filter['operands'] && query.filter['operator']) {
       queryObject = queryObject.withWhere({
         operands: query.filter['operands'],
         operator: query.filter['operator'],
@@ -59,7 +58,7 @@ export class Weaviate extends VectorStore {
       queryObject = queryObject.withFields('_additional { id } _additional { distance }');
     }
 
-    const result = await queryObject.withNearVector(vector).withLimit(query.top_k).do();
+    const result = await queryObject.withNearVector({vector: query.embedding}).withLimit(query.top_k).do();
     const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
     return data.map((res: any) => ({
