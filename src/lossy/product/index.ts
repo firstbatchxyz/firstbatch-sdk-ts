@@ -21,7 +21,7 @@ export class ProductQuantizer implements Quantizer {
 
   train(data: Vector[]): void {
     // TODO: check this for all vectors
-    if (data[0].vector.length % this.m !== 0) {
+    if (data[0].length % this.m !== 0) {
       throw new Error('Input dimension must be divisible by M');
     }
 
@@ -29,7 +29,7 @@ export class ProductQuantizer implements Quantizer {
       return;
     }
 
-    const trainX = matrix(data.map(v => v.vector));
+    const trainX = matrix(data);
     this.quantizer.fit(trainX);
     const xCode = this.quantizer.encode(trainX);
     const x = this.quantizer.decode(xCode);
@@ -45,14 +45,14 @@ export class ProductQuantizer implements Quantizer {
       throw new Error('train() must be called before compress()');
     }
 
-    const dataVector = matrix(data.vector);
+    const dataVector = matrix(data);
     const x = this.quantizer.encode(dataVector);
     const decodedX = this.quantizer.decode(x.get([0]));
     const residual = this.quantizerResidual.encode(dataVector.map((value, index) => value - decodedX.get(index)));
 
     return {
       vector: x.get([0]),
-      id: data.id,
+      // id: data.id,
       residual: residual.get([0]),
     };
   }
@@ -67,9 +67,7 @@ export class ProductQuantizer implements Quantizer {
       const x = this.quantizer.decode(dataVector);
       const residual = this.quantizerResidual.decode(dataResidual);
       const vector = concat(x, residual, 0); // 0 indicates vertical concatenation
-
-      // TODO: is this cast valid?
-      return {vector: vector as number[], id: data.id};
+      return vector as Vector;
     } else {
       throw new Error('No residual');
     }

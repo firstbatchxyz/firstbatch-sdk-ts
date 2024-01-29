@@ -53,34 +53,26 @@ export class FirstBatch extends FirstBatchAPI {
    * @param vectorStore a `VectorStore` instance
    */
   async addVectorStore(name: string, vectorStore: VectorStore) {
-    if (await this.vdbExists(name)) {
-      // Vector store already exists, no need to add it to the API again.
-      // We can simply update the mapping and mark this store as registered.
-      this.store[name] = vectorStore;
-    } else {
-      this.logger.info(`Vector store with name ${name} not found, sketching a new one.`);
-      if (vectorStore.quantizer === undefined) {
-        throw new Error('Vector store already has a quantizer in it!');
-      }
+    const exists = await this.vdbExists(name);
+    if (!exists) {
+      this.logger.info(`Vector store "${name}" not found, sketching a new one.`);
 
       if (this.quantizerType === 'scalar') {
+        this.logger.info('Initializing with scalar quantizer, this might take some time...');
+
         const quantizer = new ScalarQuantizer(256);
-        const batchSize = Math.min(
-          Math.floor(this.quantizerTrainSize / constants.DEFAULTS.QUANTIZER_TOPK),
-          constants.MIN_TRAIN_SIZE
-        );
+        const batchSize = Math.min(Math.floor(this.quantizerTrainSize / constants.DEFAULTS.QUANTIZER_TOPK), 500);
         const vectors = await vectorStore
           .multiSearch(generateBatch(batchSize, vectorStore.embeddingSize, constants.DEFAULTS.QUANTIZER_TOPK, true))
           .then(results => results.flatMap(result => result.map(r => r.vector)));
+
         quantizer.train(vectors);
 
-        const quantizedVectors = vectors.map(v => quantizer.compress(v).vector);
-
-        this.logger.info('Initializing with scalar quantizer, might take some time...');
-        await this.initVectordbScalar(name, quantizedVectors, quantizer.quantiles);
-
-        vectorStore.quantizer = quantizer;
-        this.store[name] = vectorStore;
+        await this.initVectordbScalar(
+          name,
+          vectors.map(v => quantizer.compress(v).vector),
+          quantizer.quantiles
+        );
       } else if (this.quantizerType === 'product') {
         throw new Error('Product quantization is not supported yet');
       } else {
@@ -88,6 +80,9 @@ export class FirstBatch extends FirstBatchAPI {
         throw new Error('Invalid quantizer type: ' + this.quantizerType);
       }
     }
+
+    // add to local storage
+    this.store[name] = vectorStore;
   }
 
   /**
@@ -152,7 +147,7 @@ export class FirstBatch extends FirstBatchAPI {
 
     const blueprint = await this.getBlueprint(sessionResponse.algorithm);
     const {source, destination} = blueprint.step(sessionResponse.state, signal);
-    const signalResponse = await this.signal(sessionId, fetchResult.vector.vector, destination.name, signal);
+    const signalResponse = await this.signal(sessionId, fetchResult.vector, destination.name, signal);
     if (signalResponse.success && this.enableHistory) {
       await this.addHistory(sessionId, [contentId]);
     }
@@ -285,7 +280,7 @@ export class FirstBatch extends FirstBatchAPI {
       const topK = Math.max(topKs[i], constants.MIN_TOPK);
 
       return {
-        embedding: {vector, id: ''}, // FIXME: id empty, smelly!
+        embedding: vector,
         top_k: applyMMR ? topK * constants.MMR_TOPK_FACTOR : topK,
         top_k_mmr: applyMMR ? topK : Math.floor(topK / constants.MMR_TOPK_FACTOR),
         include_metadata: true,

@@ -5,11 +5,11 @@ import {Blueprint} from '../src/algorithm/blueprint';
 import {Signals} from '../src';
 
 describe('blueprint parser', () => {
-  test('case: example1 with NEW_SIGNAL', () => {
+  test('case: DFA with a new signal', () => {
     // NEW_SIGNAL doesnt exist at first
     expect(Signals.NEW_SIGNAL).toBeUndefined();
 
-    const blueprint = new Blueprint(testLibrary.example1);
+    const blueprint = new Blueprint(testLibrary.withNewSignals);
 
     expect(blueprint.vertices.length).toBe(3);
     expect(blueprint.edges.length).toBe(9);
@@ -25,8 +25,8 @@ describe('blueprint parser', () => {
     expect(destination2.name).toBe('1');
   });
 
-  test('case: example2 with BATCH', () => {
-    const blueprint = new Blueprint(testLibrary.example2);
+  test('case: DFA with BATCH and DEFAULTs', () => {
+    const blueprint = new Blueprint(testLibrary.withBatchesAndDefaults);
 
     expect(blueprint.vertices.length).toBe(4);
     expect(blueprint.edges.length).toBe(8);

@@ -1,35 +1,64 @@
-# Firstbatch SDK
+<p align="center">
+  <!-- <img src="https://raw.githubusercontent.com/firstbatchxyz/firstbatch-sdk-ts/master/logo.svg" alt="logo" width="142"> -->
+  <img src="./logo.svg" alt="logo" width="142">
+</p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![NPM](https://img.shields.io/npm/v/firstbatch?logo=npm&color=CB3837)](https://www.npmjs.com/package/firstbatch)
+<p align="center">
+  <h1 align="center">
+    FirstBatch SDK
+  </h1>
+  <p align="center">
+    <i>FirstBatch SDK provides an interface for integrating vector databases and powering personalized AI experiences in your application.</i>
+  </p>
+</p>
 
-The FirstBatch SDK provides an interface for integrating vector databases and powering personalized AI experiences in your application.
+<p align="center">
+    <a href="https://opensource.org/licenses/MIT" target="_blank">
+        <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-7CB9E8.svg">
+    </a>
+    <a href="https://www.npmjs.com/package/firstbatch" target="_blank">
+        <img alt="NPM" src="https://img.shields.io/npm/v/firstbatch?logo=npm&color=CB3837">
+    </a>
+    <!-- <a href="./.github/workflows/test.yml" target="_blank">
+        <img alt="Workflow: Tests" src="https://github.com/firstbatchxyz/firstbatch-sdk-ts/actions/workflows/test.yml/badge.svg?branch=master">
+    </a> -->
+    <a href="https://discord.gg/2wuU9ym6fq" target="_blank">
+        <img alt="Discord" src="https://dcbadge.vercel.app/api/server/2wuU9ym6fq?style=flat">
+    </a>
+</p>
 
-- Seamlessly manage user sessions with persistent IDs or temporary sessions.
-- Send signal actions like likes, clicks, etc. to update user embeddings in real-time.
-- Fetch personalized batches of data tailored to each user's embeddings.
-- Support for multiple vector database integrations: Pinecone, Weaviate, etc.
-- Built-in algorithms for common personalization use cases.
+- [x] Seamlessly manage user sessions with persistent IDs or temporary sessions.
+- [x] Send signal actions like likes, clicks, etc. to update user embeddings in real-time.
+- [x] Fetch personalized batches of data tailored to each user's embeddings.
+- [x] Support for multiple vector database integrations: Pinecone, Weaviate, etc.
+- [x] Built-in algorithms for common personalization use cases.
 
-For more information, see the [User Embedding Guide](https://firstbatch.gitbook.io/user-embeddings/) or [SDK Documentation](https://firstbatch.gitbook.io/firstbatch-sdk/).
+For more information, see the [User Embedding Guide](https://firstbatch.gitbook.io/user-embeddings/) or the [SDK Documentation](https://firstbatch.gitbook.io/firstbatch-sdk/).
 
 ## Installation
 
 Install the package from NPM:
 
 ```sh
-yarn add firstbatch     # yarn
 npm install firstbatch  # npm
+yarn add firstbatch     # yarn
 pnpm add firstbatch     # pnpm
 ```
 
 ## Usage
 
-FirstBatch SDK is used together with an existing vector database client, where you register the client to our SDK and then create personalization sessions from it.
+FirstBatch SDK is used together with an existing vector store, where you register the vector store to our SDK and then create personalization sessions from it.
 
 ### Adding a Client
 
-First, initialize a Vector Database of your choice; our SDK supports [Pinecone](https://www.npmjs.com/package/@pinecone-database/pinecone), [Weaviate](https://www.npmjs.com/package/weaviate-ts-client), [Typesense](https://www.npmjs.com/package/typesense), and soon Supabase. Let us go over an example using Pinecone.
+First, initialize a Vector Database of your choice; our SDK supports:
+
+- [x] [Pinecone](https://www.npmjs.com/package/@pinecone-database/pinecone)
+- [x] [Weaviate](https://www.npmjs.com/package/weaviate-ts-client)
+- [ ] [Typesense](https://www.npmjs.com/package/typesense) (work in progress)
+- [ ] [Supabase](https://www.npmjs.com/package/@supabase/supabase-js) (work in progress)
+
+Let us go over an example using Pinecone.
 
 ```ts
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
@@ -112,8 +141,16 @@ bun t # alternative
 
 Bun will look for `.env.test` during the tests.
 
-## Stlying
+## Styling
 
-## Support
+Check formatting:
 
-For any issues or queries contact `support@firstbatch.xyz`.
+```sh
+bun format
+```
+
+Lint everything:
+
+```sh
+bun lint
+```

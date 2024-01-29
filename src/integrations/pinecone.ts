@@ -28,7 +28,7 @@ export class Pinecone extends VectorStore {
 
   async search(query: Query): Promise<QueryResult[]> {
     const result: QueryResponse = await this.index.query({
-      vector: query.embedding.vector,
+      vector: query.embedding,
       topK: query.top_k,
       filter: query.filter,
       includeMetadata: query.include_metadata,
@@ -42,17 +42,18 @@ export class Pinecone extends VectorStore {
       id: r.id,
       metadata: r.metadata,
       score: r.score ?? 0.0,
-      vector: {vector: r.values, id: r.id},
+      vector: r.values,
     }));
   }
 
   async fetch(id: string) {
     const result = await this.index.fetch([id]);
 
+    // FIXME: ???
     for (const key in result.records) {
       if (Object.hasOwn(result.records, key)) {
         const v = result.records[key];
-        const vector: Vector = {vector: v.values, id: key};
+        const vector: Vector = v.values;
         const metadata = {id: key, data: v.metadata};
         return {vector, metadata, id: key};
       }

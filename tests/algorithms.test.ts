@@ -65,7 +65,7 @@ describe('algorithms', () => {
     const session = await personalized.session('SIMPLE', vdbid);
 
     const bias = {
-      vectors: generateVectors(embeddingSize, 5).map(v => v.vector),
+      vectors: generateVectors(embeddingSize, 5),
       weights: new Array(5).fill(1),
     };
 

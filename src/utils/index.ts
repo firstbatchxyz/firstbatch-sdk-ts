@@ -15,7 +15,7 @@ function argsort(mat: Matrix): number[] {
 }
 
 /** Generate a random vector with the specified dimension.  */
-export function randomVector(dim: number): number[] {
+export function generateVector(dim: number): number[] {
   const vec = new Array(dim).fill(0).map(() => Math.random());
   const norm = Math.sqrt(vec.reduce((sum, val) => sum + val * val, 0));
   return vec.map(val => val / (norm + Number.EPSILON));
@@ -23,10 +23,7 @@ export function randomVector(dim: number): number[] {
 
 /** Generate an array of random vectors with the specified dimension and count. */
 export function generateVectors(dim: number, numVectors: number): Vector[] {
-  return Array.from({length: numVectors}, (_, i) => {
-    const vector = randomVector(dim);
-    return {vector, id: i.toString()};
-  });
+  return Array.from({length: numVectors}, () => generateVector(dim));
 }
 
 export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Query {
@@ -91,8 +88,8 @@ export function maximalMarginalRelevance(
 ): QueryResult[] {
   // TODO: should we check for `scores` before doing this? kind of like:
   // if (this.scores?.length === 0) return new Matrix();
-  const embeddings: Matrix = matrix(queryResults.map(q => q.vector.vector));
-  const query: Matrix = matrix(queryEmbedding.vector);
+  const embeddings: Matrix = matrix(queryResults.map(q => q.vector));
+  const query: Matrix = matrix(queryEmbedding);
 
   if (Math.min(k, embeddings.size()[0]) <= 0) {
     // return the input itself
@@ -135,7 +132,6 @@ export function maximalMarginalRelevance(
   return indices.map(i => queryResults[i]);
 }
 
-// Calculate cosine similarity between two matrices.
 function dotProduct(a: number[], b: number[]): number {
   return a.reduce((sum, val, index) => sum + val * b[index], 0);
 }
@@ -161,8 +157,4 @@ function cosineSimilarityMatrix(A: number[][], B: number[][]): number[][] {
     similarities.push(rowSimilarities);
   }
   return similarities;
-}
-
-export function concatVectors(self: Vector, other: Vector): Vector {
-  return {vector: self.vector.concat(other.vector), id: self.id + '_' + other.id};
 }

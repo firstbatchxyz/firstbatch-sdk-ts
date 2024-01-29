@@ -1,5 +1,4 @@
 import type {Quantizer, CompressedVector, Vector} from '../../types';
-import {concatVectors} from '../../utils';
 import {TDigest} from 'tdigest';
 
 export class ScalarQuantizer implements Quantizer {
@@ -15,9 +14,9 @@ export class ScalarQuantizer implements Quantizer {
 
   train(data: Vector[]): void {
     // concat all vectors within the data
-    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur));
+    const scalars = data.reduce((acc, cur) => acc.concat(cur));
 
-    for (const scalar of scalars.vector) {
+    for (const scalar of scalars) {
       this.quantizer.push(scalar);
     }
     this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile(i / this.levels));
@@ -45,15 +44,14 @@ export class ScalarQuantizer implements Quantizer {
   }
 
   compress(data: Vector): CompressedVector {
-    const quantizedData: number[] = this.quantize(data.vector);
+    const quantizedData: number[] = this.quantize(data);
     return {
       vector: quantizedData,
-      id: data.id,
+      // id: data.id,
     };
   }
 
   decompress(data: CompressedVector): Vector {
-    const dequantizedData: number[] = this.dequantize(data.vector);
-    return {vector: dequantizedData, id: data.id};
+    return this.dequantize(data.vector);
   }
 }

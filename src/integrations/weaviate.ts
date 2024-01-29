@@ -36,7 +36,7 @@ export class Weaviate extends VectorStore {
   }
 
   async search(query: Query, options?: {additional?: string}): Promise<QueryResult[]> {
-    const vector = {vector: query.embedding.vector};
+    const vector = {vector: query.embedding};
     let queryObject = this.client.graphql.get();
     queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
@@ -66,7 +66,7 @@ export class Weaviate extends VectorStore {
       id: res['_additional'].id,
       metadata: Object.fromEntries(this.outputFields.map(k => [k, res[k]])),
       scores: res['_additional'].distance, // FIXME: is this correct? high score = high distance seems fishy
-      vector: {vector: res['_additional'].vector, id: res['_additional'].id},
+      vector: res['_additional'].vector,
     }));
   }
 
@@ -74,7 +74,7 @@ export class Weaviate extends VectorStore {
     const result = await this.client.data.getterById().withClassName(this.className).withVector().withId(id).do();
     const vector = result.vector as number[];
     const metadata = {id, data: result.properties as RecordMetadata};
-    return {vector: {vector, id}, metadata, id};
+    return {vector, metadata, id};
   }
 
   historyFilter(

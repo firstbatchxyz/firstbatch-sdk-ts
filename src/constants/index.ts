@@ -30,7 +30,6 @@ export default {
   /** Factor applied to TOPK when MMR is to be applied. */
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
-  MIN_TRAIN_SIZE: 500,
   /** Preset algorithm names. */
   PRESET_ALGORITHMS: {
     UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),

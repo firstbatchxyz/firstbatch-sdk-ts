@@ -55,13 +55,10 @@ export type WeightedVectors = {
   weights: number[];
 };
 
-export type Vector = {
-  id: string;
-  vector: number[];
-};
+export type Vector = number[];
 
 export type CompressedVector = {
-  id: string;
+  // id: string;
   vector: number[];
   residual?: number[];
 };
