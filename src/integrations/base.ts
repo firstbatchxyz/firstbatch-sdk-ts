@@ -11,9 +11,9 @@ export abstract class VectorStore {
   protected readonly historyField: string;
 
   constructor(options?: {embeddingSize?: number; distanceMetric?: DistanceMetric; historyField?: string}) {
-    this.embeddingSize = options?.embeddingSize || constants.DEFAULTS.EMBEDDING_SIZE;
-    this.distanceMetric = options?.distanceMetric || constants.DEFAULTS.DISTANCE_METRIC;
-    this.historyField = options?.historyField || constants.DEFAULTS.HISTORY_FIELD;
+    this.embeddingSize = options?.embeddingSize ?? constants.DEFAULTS.EMBEDDING_SIZE;
+    this.distanceMetric = options?.distanceMetric ?? constants.DEFAULTS.DISTANCE_METRIC;
+    this.historyField = options?.historyField ?? constants.DEFAULTS.HISTORY_FIELD;
   }
 
   async multiSearch(queries: Query[]): Promise<QueryResult[][]> {

@@ -9,6 +9,7 @@ import {generateVectors} from '../src/utils';
 describe('lossy compression', () => {
   const EPSILON = 1e-4;
   const data = generateVectors(1536, 1000);
+  const NUM_TESTS = 10; // number of test vectors
 
   describe.skip('product quantization', () => {
     const pq = new ProductQuantizer(512, 32);
@@ -18,17 +19,18 @@ describe('lossy compression', () => {
     });
 
     it('should compress & decompress', () => {
-      const vector = data[0];
-      const compressed = pq.compress(vector);
-      const decompressed = pq.decompress(compressed);
+      const randomIndices = Array.from({length: NUM_TESTS}, () => Math.floor(Math.random() * data.length));
+      for (const i of randomIndices) {
+        const vector = data[i];
+        const compressed = pq.compress(vector);
+        const decompressed = pq.decompress(compressed);
 
-      const mae = meanAbsoluteError(vector, decompressed);
-      expect(mae).toBeLessThan(EPSILON);
+        const mae = meanAbsoluteError(vector, decompressed);
+        expect(mae).toBeLessThan(EPSILON);
+      }
     });
 
     it('should produce the same things via codewords', () => {
-      const vector = data[0];
-
       const newPQ = new PQ(32, 512);
       const newPQRes = new PQ(32, 512);
 
@@ -38,16 +40,20 @@ describe('lossy compression', () => {
       newPQ.Ds = pq.quantizer.Ds;
       newPQRes.Ds = pq.quantizerResidual.Ds;
 
-      const m = matrix(flatten(vector));
-      {
-        const comp = pq.quantizer.encode(m);
-        const newComp = newPQ.encode(m);
-        expect(mathEqual(comp, newComp)).toBeTrue();
-      }
-      {
-        const comp = pq.quantizerResidual.encode(m);
-        const newComp = newPQRes.encode(m);
-        expect(mathEqual(comp, newComp)).toBeTrue();
+      const randomIndices = Array.from({length: NUM_TESTS}, () => Math.floor(Math.random() * data.length));
+      for (const i of randomIndices) {
+        const vector = data[i];
+        const m = matrix(flatten(vector));
+        {
+          const comp = pq.quantizer.encode(m);
+          const newComp = newPQ.encode(m);
+          expect(mathEqual(comp, newComp)).toBeTrue();
+        }
+        {
+          const comp = pq.quantizerResidual.encode(m);
+          const newComp = newPQRes.encode(m);
+          expect(mathEqual(comp, newComp)).toBeTrue();
+        }
       }
     });
   });
@@ -61,13 +67,16 @@ describe('lossy compression', () => {
     });
 
     it('should compress & decompress', () => {
-      const vector = data[0];
+      const randomIndices = Array.from({length: 5}, () => Math.floor(Math.random() * data.length));
+      for (const i of randomIndices) {
+        const vector = data[i];
 
-      const compressed = quantizer.compress(vector);
-      const decompressed = quantizer.decompress(compressed);
+        const compressed = quantizer.compress(vector);
+        const decompressed = quantizer.decompress(compressed);
 
-      const mae = meanAbsoluteError(vector, decompressed);
-      expect(mae).toBeLessThan(EPSILON);
+        const mae = meanAbsoluteError(vector, decompressed);
+        expect(mae).toBeLessThan(EPSILON);
+      }
     });
   });
 });

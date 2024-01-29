@@ -26,9 +26,9 @@ export function generateVectors(dim: number, numVectors: number): Vector[] {
   return Array.from({length: numVectors}, () => generateVector(dim));
 }
 
-export function generateQuery(numVecs: number, dim: number, topK: number, includeValues: boolean): Query {
+export function generateQuery(dim: number, topK: number, includeValues: boolean): Query {
   return {
-    embedding: generateVectors(dim, 1)[0],
+    embedding: generateVector(dim),
     top_k: topK,
     top_k_mmr: Math.floor(topK / constants.MMR_TOPK_FACTOR),
     include_values: includeValues,
@@ -39,7 +39,7 @@ export function generateQuery(numVecs: number, dim: number, topK: number, includ
 
 // TODO: instead of random_batch_request with defaults, have the defaults apply here?
 export function generateBatch(numVecs: number, dim: number, topK: number, includeValues: boolean): Query[] {
-  return Array.from({length: numVecs}, () => generateQuery(numVecs, dim, topK, includeValues));
+  return Array.from({length: numVecs}, () => generateQuery(dim, topK, includeValues));
 }
 
 // Adjust weights to meet batch size requirements.

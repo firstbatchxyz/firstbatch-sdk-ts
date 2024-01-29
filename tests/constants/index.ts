@@ -1,4 +1,7 @@
 export default {
+  FIRSTBATCH: {
+    API_KEY: process.env.FIRSTBATCH_API_KEY as string,
+  },
   PINECONE: {
     API_KEY: process.env.PINECONE_API_KEY as string,
     ENV: process.env.PINECONE_ENV as string,
@@ -16,9 +19,6 @@ export default {
     CLASS_NAME: {
       FARCASTER: 'Farcaster',
     },
-  },
-  FIRSTBATCH: {
-    API_KEY: process.env.FIRSTBATCH_API_KEY as string,
   },
   TYPESENSE: {
     API_KEY: process.env.TYPESENSE_API_KEY as string,
