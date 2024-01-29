@@ -40,8 +40,8 @@ export class Weaviate extends VectorStore {
     queryObject.withClassName(this.className);
     queryObject.withFields(this.outputFields?.join(' ') as string);
 
-    // FIXME: why is this check done?
-    if (typeof query.filter === 'object') {
+    // FIXME: metadata causes issues when these fields are undefined, check later
+    if (typeof query.filter === 'object' && query.filter['operands'] && query.filter['operator']) {
       queryObject = queryObject.withWhere({
         operands: query.filter['operands'],
         operator: query.filter['operator'],
@@ -58,7 +58,6 @@ export class Weaviate extends VectorStore {
       queryObject = queryObject.withFields('_additional { id } _additional { distance }');
     }
 
-    console.log(queryObject);
     const result = await queryObject.withNearVector({vector: query.embedding}).withLimit(query.top_k).do();
     const data = result.data['Get'][this.className.charAt(0).toUpperCase() + this.className.slice(1)];
 
