@@ -3,11 +3,22 @@ import {createHash} from 'crypto';
 import constants from '../constants';
 import type {Vertex, WeightedVectors, DFA, Signal, AlgorithmType} from '../types';
 
+/** Endpoint to get region w.r.t user's API key. */
+const REGION_URL = 'https://idp.firstbatch.xyz/v1/teams/team/get-team-information';
+
+/** HollowDB regions, the field names are important. */
+const REGIONS = {
+  'us-east-1': 'https://aws-us-east-1.hollowdb.xyz/',
+  'us-west-1': 'https://aws-us-west-1.hollowdb.xyz/',
+  'eu-central-1': 'https://aws-eu-central-1.hollowdb.xyz/',
+  'ap-southeast-1': 'https://aws-ap-southeast-1.hollowdb.xyz/',
+} as const;
+
 export class FirstBatchAPI {
   /** API key of this client. */
   private apiKey: string = '';
-  /** Prepared Axios instance with base URL and headers set. */
-  private axios: AxiosInstance = axios.create(); // see `init`
+  /** Prepared Axios instance with base URL and headers set, see {@link init}. */
+  private axios: AxiosInstance = axios.create();
   /** TeamID of this client. */
   teamId: string = '';
   /** Backend URL with respect to the region of the API key. */
@@ -250,13 +261,13 @@ export class FirstBatchAPI {
       message?: string | undefined;
       data: {
         teamID: string;
-        region: keyof typeof constants.REGIONS;
+        region: keyof typeof REGIONS;
       };
-    }>(constants.REGION_URL, {
+    }>(REGION_URL, {
       headers,
       validateStatus: status => {
         if (status != 200) {
-          throw new Error(`Region request failed with ${status} at ${constants.REGION_URL}`);
+          throw new Error(`Region request failed with ${status} at ${REGION_URL}`);
         }
         return true;
       },
@@ -265,7 +276,7 @@ export class FirstBatchAPI {
     const {teamID, region} = axiosResponse.data.data; // notice the 2 data's
     this.teamId = teamID;
     this.region = region;
-    const regionBaseURL = constants.REGIONS[region];
+    const regionBaseURL = REGIONS[region];
     if (!regionBaseURL) {
       throw new Error('No such region: ' + region);
     }

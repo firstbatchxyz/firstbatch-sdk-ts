@@ -1,6 +1,7 @@
 import type {DFA} from '../../src/types';
 
-const example1: DFA = {
+const withNewSignals: DFA = {
+  // this is a new signals
   signals: [{label: 'NEW_SIGNAL', weight: 1.5}],
   nodes: [
     {name: '1', batch_type: 'biased', params: {mu: 0.1}},
@@ -20,7 +21,7 @@ const example1: DFA = {
   ],
 };
 
-const example2: DFA = {
+const withBatchesAndDefaults: DFA = {
   nodes: [
     {name: '0', batch_type: 'random', params: {}},
     {name: '1', batch_type: 'biased', params: {mu: 0.0}},
@@ -40,6 +41,6 @@ const example2: DFA = {
 };
 
 export default {
-  example1,
-  example2,
+  withNewSignals,
+  withBatchesAndDefaults,
 };

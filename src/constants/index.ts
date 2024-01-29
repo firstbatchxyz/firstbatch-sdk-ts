@@ -2,15 +2,6 @@ import type {DistanceMetric, VertexParameters} from '../types';
 import type library from '../algorithm/library';
 
 export default {
-  /** Endpoint to get region. */
-  REGION_URL: 'https://idp.firstbatch.xyz/v1/teams/team/get-team-information',
-  /** HollowDB regions, the field names are important. */
-  REGIONS: {
-    'us-east-1': 'https://aws-us-east-1.hollowdb.xyz/',
-    'us-west-1': 'https://aws-us-west-1.hollowdb.xyz/',
-    'eu-central-1': 'https://aws-eu-central-1.hollowdb.xyz/',
-    'ap-southeast-1': 'https://aws-ap-southeast-1.hollowdb.xyz/',
-  },
   /** Default values. */
   DEFAULTS: {
     QUANTIZER_TRAIN_SIZE: 100,
@@ -40,8 +31,7 @@ export default {
   MMR_TOPK_FACTOR: 2,
   MIN_TOPK: 5,
   MIN_TRAIN_SIZE: 500,
-
-  // presets
+  /** Preset algorithm names. */
   PRESET_ALGORITHMS: {
     UNIQUE_JOURNEYS: 'Unique_Journeys'.toUpperCase(),
     CONTENT_CURATION: 'User_Centric_Promoted_Content_Curations'.toUpperCase(),
