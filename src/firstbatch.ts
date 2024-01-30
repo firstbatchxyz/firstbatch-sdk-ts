@@ -195,13 +195,17 @@ export class FirstBatch extends FirstBatchAPI {
 
     switch (response.algorithm.type) {
       case 'CUSTOM':
-        this.logger.info(`Session | CUSTOM | ${response.algorithm.customId} | ${batchType} ${batchSize})`);
+        this.logger.info(
+          `Session | CUSTOM | ${response.algorithm.customId} | ${batchType} batch of ${batchSize} vectors`
+        );
         break;
       case 'FACTORY':
-        this.logger.info(`Session | FACTORY | ${response.algorithm.factoryId} | ${batchType} ${batchSize})`);
+        this.logger.info(
+          `Session | FACTORY | ${response.algorithm.factoryId} | ${batchType} batch of ${batchSize} vectors`
+        );
         break;
       case 'SIMPLE':
-        this.logger.info(`Session | SIMPLE | ${batchType} ${batchSize})`);
+        this.logger.info(`Session | SIMPLE | ${batchType} batch of ${batchSize} vectors`);
         break;
     }
 
