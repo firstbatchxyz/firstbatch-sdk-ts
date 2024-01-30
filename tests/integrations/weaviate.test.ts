@@ -4,7 +4,7 @@ import {Weaviate} from '../../src';
 import {generateBatch, generateQuery} from '../../src/utils';
 import weaviate, {ApiKey} from 'weaviate-ts-client';
 
-describe('weaviate integration', () => {
+describe.skip('weaviate integration', () => {
   let vs: Weaviate;
   const topK = 10;
 

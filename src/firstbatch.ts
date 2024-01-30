@@ -193,10 +193,19 @@ export class FirstBatch extends FirstBatchAPI {
       distanceMetric: vectorStore.distanceMetric,
     };
 
-    this.logger.info(`Session: ${JSON.stringify(response.algorithm)}\t(${batchType} ${batchSize})`);
+    switch (response.algorithm.type) {
+      case 'CUSTOM':
+        this.logger.info(`Session | CUSTOM | ${response.algorithm.customId} | ${batchType} ${batchSize})`);
+        break;
+      case 'FACTORY':
+        this.logger.info(`Session | FACTORY | ${response.algorithm.factoryId} | ${batchType} ${batchSize})`);
+        break;
+      case 'SIMPLE':
+        this.logger.info(`Session | SIMPLE | ${batchType} ${batchSize})`);
+        break;
+    }
 
     let queries: Query[];
-
     if (batchType === 'random') {
       queries = generateBatch(
         batchSize,

@@ -62,7 +62,7 @@ Let us go over an example using Pinecone.
 
 ```ts
 import {Pinecone as PineconeClient} from '@pinecone-database/pinecone';
-import {Pinecone, FirstBatch, TODO:!, Signals} from 'firstbatch';
+import {Pinecone, FirstBatch, Signals} from 'firstbatch';
 
 // create Pinecone client
 const pinecone = new PineconeClient({apiKey: 'pinecone-api-key', environment: 'pinecone-env'});
@@ -76,7 +76,7 @@ Then, create a Vector Store with this index and pass it in the FirstBatch SDK.
 // create SDK
 const personalized = await FirstBatch.new('firstbatch-api-key');
 
-// add client to SDK
+// add vector store to SDK
 const vectorStore = new Pinecone(index);
 const vdbid = 'pinecone-example-db';
 await personalized.addVectorStore(vdbid, vectorStore);
@@ -91,44 +91,45 @@ Now, we can create a session with an algorithm that suits our use-case, and prov
 const session = personalized.session('ALGORITHM_NAME', vdbid);
 
 // make recommendations
-const sessionId = session.data;
-const [ids, batch] = personalized.batch(sessionId);
+const [ids, batch] = personalized.batch(session);
 ```
 
 Suppose that the user has **liked** the **first content** from the `batch` above. We can provide personalization over this as follows:
 
 ```ts
-const userPick = 0; // i.e. the first content
-personalized.addSignal(sessionId, new TODO:!(Signals.LIKE), ids[userPick]);
+// the user liked the first content of the previous batch
+const userPick = ids[0];
+
+// signal this to the session
+personalized.addSignal(sessionId, Signals.LIKE, userPick);
 ```
 
-### Custom Signals
-
-The `Signals` in the code above contains a set of signals (i.e. labels and weights) that we have prepared for you, but you can also create a Signal with your own parameters:
+Here, `LIKE` signal is one of the many preset signals provided by our SDK. You can also define your own signals:
 
 ```ts
-import {Signal} from 'firstbatch';
+import type {Signal} from 'firstbatch';
 
-const mySignal = new Signal('label', 0.5); // label and weight
-const userAction = new TODO:!(mySignal);
+const mySignal: Signal = {label: 'SOME_USER_ACTION', weight: 0.5};
 ```
 
 ## Building
 
-Install the dependencies,
+Install the dependencies:
 
 ```bash
 bun install
 ```
 
-The following command will check the code with TSC and then build with Parcel.
+Then, build everything with:
 
 ```bash
 bun run build
 bun b # alternative
 ```
 
-If you get an error like "expected content key ... to exist" simply delete the `.parcel-cache` folder and build again.
+> [!NOTE]
+>
+> If you get an error like "expected content key ... to exist" simply delete the `.parcel-cache` folder and build again.
 
 ## Testing
 

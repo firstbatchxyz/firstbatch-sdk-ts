@@ -4,8 +4,12 @@ import {Pinecone} from '../src/integrations/pinecone';
 import {FirstBatchConfig, FirstBatch, Signals} from '../src';
 import constants from './constants';
 import {generateVectors} from '../src/utils';
+import {Signal, WeightedVectors} from '../src/types';
 
 describe('algorithms', () => {
+  /** Either a `batch` action or a `Signal` with the content id of `ids[idx]`. */
+  type Actions = ('batch' | {signal: Signal; idx: number})[];
+
   let personalized: FirstBatch;
   const vdbid = 'my_db_384';
   const config: FirstBatchConfig = {
@@ -17,6 +21,7 @@ describe('algorithms', () => {
   };
   const embeddingSize = constants.PINECONE.EMBEDDING_SIZE;
 
+  // TODO: beforeAll?
   beforeEach(async () => {
     const indexName = constants.PINECONE.INDEX.RSS;
 
@@ -31,94 +36,84 @@ describe('algorithms', () => {
   });
 
   test('simple', async () => {
-    const signals = [
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 2},
-      {label: 'batch', weight: 0},
-    ];
+    const actions: Actions = ['batch', {signal: Signals.LIKE, idx: 0}, 'batch'];
 
     const session = await personalized.session('SIMPLE', vdbid);
-
     let ids: string[] = [];
-    for (const s of signals) {
-      if (s.label === 'batch') {
+    for (const action of actions) {
+      if (action === 'batch') {
         [ids] = await personalized.batch(session);
-      } else if (s.label === 'signal') {
-        await personalized.addSignal(session, Signals.LIKE, ids[s.weight]);
+      } else {
+        await personalized.addSignal(session, action.signal, ids[action.idx]);
       }
     }
   });
 
   test('simple with bias vectors', async () => {
-    const signals = [
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 2},
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 4},
-      {label: 'batch', weight: 0},
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 1},
-      {label: 'signal', weight: 2},
-      {label: 'signal', weight: 3},
-      {label: 'batch', weight: 0},
+    const signal = Signals.LIKE;
+    const actions: Actions = [
+      'batch',
+      {signal, idx: 2},
+      'batch',
+      {signal, idx: 4},
+      'batch',
+      'batch',
+      {signal, idx: 1},
+      {signal, idx: 2},
+      {signal, idx: 3},
+      'batch',
     ];
-    const session = await personalized.session('SIMPLE', vdbid);
-
-    const bias = {
+    const bias: WeightedVectors = {
       vectors: generateVectors(embeddingSize, 5),
       weights: new Array(5).fill(1),
     };
 
+    const session = await personalized.session('SIMPLE', vdbid);
     let ids: string[] = [];
-    for (const s of signals) {
-      if (s.label === 'batch') {
+    for (const action of actions) {
+      if (action === 'batch') {
         [ids] = await personalized.batch(session, {bias});
-      } else if (s.label === 'signal') {
-        await personalized.addSignal(session, Signals.LIKE, ids[s.weight]);
+      } else {
+        await personalized.addSignal(session, action.signal, ids[action.idx]);
       }
     }
   });
 
   test('factory', async () => {
-    const signals = [
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 2},
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 4},
-      {label: 'signal', weight: 1},
-      {label: 'batch', weight: 0},
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 12},
-      {label: 'signal', weight: 9},
+    const signal = Signals.ADD_TO_CART;
+    const actions: Actions = [
+      'batch',
+      {signal, idx: 2},
+      'batch',
+      {signal, idx: 4},
+      {signal, idx: 1},
+      'batch',
+      'batch',
+      {signal, idx: 12},
+      {signal, idx: 9},
     ];
     const session = await personalized.session('RECOMMENDATIONS', vdbid);
 
     let ids: string[] = [];
-    for (const s of signals) {
-      if (s.label === 'batch') {
+    for (const action of actions) {
+      if (action === 'batch') {
         [ids] = await personalized.batch(session);
-      } else if (s.label === 'signal') {
-        await personalized.addSignal(session, Signals.ADD_TO_CART, ids[s.weight]);
+      } else {
+        await personalized.addSignal(session, action.signal, ids[action.idx]);
       }
     }
   });
 
   test('custom', async () => {
-    const signals = [
-      {label: 'batch', weight: 0},
-      {label: 'signal', weight: 2},
-      {label: 'batch', weight: 0},
-    ];
-    const session = await personalized.session('CUSTOM', vdbid, {
-      customId: constants.PINECONE.CUSTOM_ID,
-    });
+    const actions: Actions = ['batch', {signal: Signals.ADD_TO_CART, idx: 2}, 'batch'];
 
+    const session = await personalized.session('CUSTOM', vdbid, {customId: constants.PINECONE.CUSTOM_ID});
     let ids: string[] = [];
-    for (const s of signals) {
-      if (s.label === 'batch') {
+    for (const action of actions) {
+      if (action === 'batch') {
         [ids] = await personalized.batch(session);
-      } else if (s.label === 'signal') {
-        await personalized.addSignal(session, Signals.ADD_TO_CART, ids[s.weight]);
+      } else {
+        await personalized.addSignal(session, action.signal, ids[action.idx]);
       }
     }
   });

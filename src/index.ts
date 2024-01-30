@@ -1,5 +1,4 @@
-export {Signals} from './algorithm/signals';
+export {Signals} from './algorithm/';
 export {FirstBatch} from './firstbatch';
-export type {FirstBatchConfig} from './types';
-
 export {Pinecone, Weaviate} from './integrations';
+export type {FirstBatchConfig, Signal} from './types';
