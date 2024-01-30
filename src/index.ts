@@ -1,4 +1,4 @@
-export {UserAction, Signals, Signal} from './algorithm';
-export {FirstBatch} from './client';
-export {Pinecone, Weaviate, Typesense, Supabase} from './vector';
-export type {FirstBatchConfig} from './config';
+export {Signals} from './algorithm/';
+export {FirstBatch} from './firstbatch';
+export {Pinecone, Weaviate} from './integrations';
+export type {FirstBatchConfig, Signal} from './types';

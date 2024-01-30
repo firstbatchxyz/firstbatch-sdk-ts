@@ -1,6 +1,6 @@
-import {QueryResult} from './query';
-import {Vector} from './types';
-import {divide, index, matrix, Matrix, multiply, norm, range} from 'mathjs';
+import type {QueryResult, Query, Vector, DistanceMetric} from '../types';
+import {divide, index, matrix, mean, Matrix, multiply, norm, range} from 'mathjs';
+import constants from '../constants';
 
 function getRow(matrix: Matrix, ind: number): Matrix {
   return matrix.subset(index(ind, range(0, matrix.size()[1])));
@@ -15,7 +15,7 @@ function argsort(mat: Matrix): number[] {
 }
 
 /** Generate a random vector with the specified dimension.  */
-export function randomVector(dim: number): number[] {
+export function generateVector(dim: number): number[] {
   const vec = new Array(dim).fill(0).map(() => Math.random());
   const norm = Math.sqrt(vec.reduce((sum, val) => sum + val * val, 0));
   return vec.map(val => val / (norm + Number.EPSILON));
@@ -23,42 +23,77 @@ export function randomVector(dim: number): number[] {
 
 /** Generate an array of random vectors with the specified dimension and count. */
 export function generateVectors(dim: number, numVectors: number): Vector[] {
-  return Array.from({length: numVectors}, (_, i) => {
-    const vector = randomVector(dim);
-    return {vector, dim, id: i.toString()};
-  });
+  return Array.from({length: numVectors}, () => generateVector(dim));
+}
+
+export function generateQuery(dim: number, topK: number, includeValues: boolean): Query {
+  return {
+    embedding: generateVector(dim),
+    top_k: topK,
+    top_k_mmr: Math.floor(topK / constants.MMR_TOPK_FACTOR),
+    include_values: includeValues,
+    filter: {},
+    include_metadata: true,
+  };
+}
+
+// TODO: instead of random_batch_request with defaults, have the defaults apply here?
+export function generateBatch(numVecs: number, dim: number, topK: number, includeValues: boolean): Query[] {
+  return Array.from({length: numVecs}, () => generateQuery(dim, topK, includeValues));
 }
 
 // Adjust weights to meet batch size requirements.
-export function adjustWeights(weights: number[], batchSize: number, c: number): number[] {
+export function adjustWeights(weights: number[], batchSize: number, confidenceInterval: number): number[] {
   const minWeight = Math.min(...weights);
   if (minWeight < 1) {
     const diff = 1 - minWeight;
     weights = weights.map(w => w + diff);
   }
 
-  const currentSum = weights.reduce((sum, w) => sum + w, 0);
-  if (!(batchSize - c <= currentSum && currentSum <= batchSize + c)) {
-    const scaleFactor = batchSize / currentSum;
+  const sum = weights.reduce((sum, w) => sum + w, 0);
+  if (!(batchSize - confidenceInterval <= sum && sum <= batchSize + confidenceInterval)) {
+    const scaleFactor = batchSize / sum;
     weights = weights.map(w => Math.ceil(w * scaleFactor));
   }
 
   return weights;
 }
 
+export function applyThreshold(
+  queries: QueryResult[],
+  threshold: number,
+  distanceMetric: DistanceMetric
+): QueryResult[] {
+  console.log(queries.map(({id, score}) => ({id, score})));
+  const avg = mean(matrix(queries.map(q => q.score))) as number;
+  if (distanceMetric !== 'euclidean_dist') {
+    // this is a similarity metric, threshold should be lower than the score
+    // i.e. we keep the scores higher than the threshold
+    threshold = Math.min(threshold, avg);
+    return queries.filter(q => q.score! >= threshold);
+  } else {
+    // this is a distance metric, threshold should be higher than the score
+    // i.e. we keep the scores lower than the threshold
+    threshold = Math.max(threshold, avg);
+    return queries.filter(q => q.score! <= threshold);
+  }
+}
+
 // Perform maximal marginal relevance ranking.
 export function maximalMarginalRelevance(
   queryEmbedding: Vector,
-  batch: QueryResult,
+  queryResults: QueryResult[],
   lambdaMult: number = 0.5,
   k: number = 4
-): QueryResult {
-  const embeddings: Matrix = batch.toNdArray();
-  const query: Matrix = matrix(queryEmbedding.vector);
+): QueryResult[] {
+  // TODO: should we check for `scores` before doing this? kind of like:
+  // if (this.scores?.length === 0) return new Matrix();
+  const embeddings: Matrix = matrix(queryResults.map(q => q.vector));
+  const query: Matrix = matrix(queryEmbedding);
 
   if (Math.min(k, embeddings.size()[0]) <= 0) {
-    // return the input QueryResult itself
-    return batch;
+    // return the input itself
+    return queryResults;
   }
 
   const queryMatrix = matrix(query);
@@ -94,15 +129,9 @@ export function maximalMarginalRelevance(
     selected = selected.concat(getRow(embeddings, idxToAdd).toArray() as number[]);
   }
 
-  return new QueryResult({
-    ids: indices.map(i => batch.ids[i]),
-    scores: indices.map(i => batch.scores[i]),
-    vectors: indices.map(i => batch.vectors[i]),
-    metadata: indices.map(i => batch.metadata[i]),
-  });
+  return indices.map(i => queryResults[i]);
 }
 
-// Calculate cosine similarity between two matrices.
 function dotProduct(a: number[], b: number[]): number {
   return a.reduce((sum, val, index) => sum + val * b[index], 0);
 }
@@ -128,8 +157,4 @@ function cosineSimilarityMatrix(A: number[][], B: number[][]): number[][] {
     similarities.push(rowSimilarities);
   }
   return similarities;
-}
-
-export function concatVectors(self: Vector, other: Vector): Vector {
-  return {vector: self.vector.concat(other.vector), dim: self.dim + other.dim, id: self.id + '_' + other.id};
 }

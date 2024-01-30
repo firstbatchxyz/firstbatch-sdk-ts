@@ -1,15 +1,24 @@
 import axios, {AxiosInstance} from 'axios';
-import * as crypto from 'crypto';
+import {createHash} from 'crypto';
 import constants from '../constants';
-import {BatchResponse, SessionObject} from './types';
-import {Params} from '../algorithm/blueprint/params';
-import {Vertex} from '../algorithm';
+import type {Vertex, WeightedVectors, DFA, Signal, AlgorithmType} from '../types';
 
-export class FirstBatchClient {
+/** Endpoint to get region w.r.t user's API key. */
+const REGION_URL = 'https://idp.firstbatch.xyz/v1/teams/team/get-team-information';
+
+/** HollowDB regions, the field names are important. */
+const REGIONS = {
+  'us-east-1': 'https://aws-us-east-1.hollowdb.xyz/',
+  'us-west-1': 'https://aws-us-west-1.hollowdb.xyz/',
+  'eu-central-1': 'https://aws-eu-central-1.hollowdb.xyz/',
+  'ap-southeast-1': 'https://aws-ap-southeast-1.hollowdb.xyz/',
+} as const;
+
+export class FirstBatchAPI {
   /** API key of this client. */
   private apiKey: string = '';
-  /** Prepared Axios instance with base URL and headers set. */
-  private axios: AxiosInstance = axios.create(); // see `init`
+  /** Prepared Axios instance with base URL and headers set, see {@link init}. */
+  private axios: AxiosInstance = axios.create();
   /** TeamID of this client. */
   teamId: string = '';
   /** Backend URL with respect to the region of the API key. */
@@ -43,13 +52,13 @@ export class FirstBatchClient {
   }
 
   /** Initializes vectorDB, returns error message as a response if there was one. */
-  protected async initVectordbScalar(vdbid: string, vecs: number[][], quantiles: number[]) {
+  protected async initVectordbScalar(vdbid: string, quantizedVectors: number[][], quantiles: number[]) {
     return await this.post<string>('embeddings/init_vdb', {
-      key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
+      key: createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'scalar',
       region: this.region,
-      quantized_vecs: vecs,
+      quantized_vecs: quantizedVectors,
       quantiles: quantiles,
     });
   }
@@ -57,23 +66,23 @@ export class FirstBatchClient {
   /** Initializes vectorDB, returns error message as a response if there was one. */
   protected async initVectordbProduct(
     vdbid: string,
-    vecs: number[][],
-    res_vecs: number[][],
+    quantizedVectors: number[][],
+    quantizedVectorResiduals: number[][],
     codebook: number[][],
-    codebook_residual: number[][],
+    codebookResidual: number[][],
     M: number,
     Ks: number,
     Ds: number
   ) {
     return await this.post<string>('embeddings/init_vdb', {
-      key: crypto.createHash('md5').update(this.apiKey).digest('hex'),
+      key: createHash('md5').update(this.apiKey).digest('hex'),
       vdbid: vdbid,
       mode: 'product',
       region: this.region,
-      quantized_vecs: vecs,
-      quantized_residuals: res_vecs,
+      quantized_vecs: quantizedVectors,
+      quantized_residuals: quantizedVectorResiduals,
       codebook: codebook,
-      codebook_residual: codebook_residual,
+      codebook_residual: codebookResidual,
       M: M,
       Ks: Ks,
       Ds: Ds,
@@ -81,11 +90,8 @@ export class FirstBatchClient {
   }
 
   /** Updates history, returns error message as a response if there was one. */
-  protected async addHistory(session: SessionObject, ids: string[]) {
-    return await this.post<string>('embeddings/update_history', {
-      id: session.id,
-      ids,
-    });
+  protected async addHistory(sessionId: string, ids: string[]) {
+    return await this.post<string>('embeddings/update_history', {id: sessionId, ids});
   }
 
   protected async createSession(
@@ -94,76 +100,70 @@ export class FirstBatchClient {
     options?: {
       customId?: string;
       factoryId?: string;
+      sessionId?: string;
       hasEmbeddings?: string;
-      id?: string;
     }
   ) {
+    const sessionId = options?.sessionId ? this.teamId + '-' + options.sessionId : undefined;
     return await this.post<string>('embeddings/create_session', {
       vdbid,
       algorithm,
-      id: this.idWrapper(options?.id),
+      id: sessionId,
       custom_id: options?.customId,
       factory_id: options?.factoryId,
-      has_embeddings: options?.hasEmbeddings || false,
+      has_embeddings: options?.hasEmbeddings ?? false,
     });
   }
 
   /** Updates state, returns error message as a response if there was one. */
-  protected async updateState(session: SessionObject, state: string, batchType: Vertex['batchType']) {
+  protected async updateState(sessionId: string, state: string, batchType: Vertex['batchType']) {
     return await this.post<string>('embeddings/update_state', {
-      id: session.id,
+      id: sessionId,
       state: state,
       batch_type: batchType.toUpperCase(), // NOTE: api expects uppercased values for this field
     });
   }
 
   /** Adds a signal, returns error message as a response if there was one. */
-  protected async signal(
-    session: SessionObject,
-    vector: number[],
-    stateName: string,
-    signal: number,
-    signalLabel: string
-  ) {
+  protected async signal(sessionId: string, vector: number[], stateName: string, signal: Signal) {
     return this.post<string>('embeddings/signal', {
-      id: session.id,
+      id: sessionId,
       state: stateName,
-      signal: signal,
-      signal_label: signalLabel,
+      signal: signal.weight,
+      signal_label: signal.label,
       vector: vector,
     });
   }
 
   protected async biasedBatch(
-    session: SessionObject,
+    sessionId: string,
     vdbid: string,
     state: string,
     options?: {
-      biasVectors?: number[][];
-      biasWeights?: number[];
-      params?: Params;
+      bias?: WeightedVectors;
+      params?: Vertex['params'];
     }
   ) {
-    const response = await this.post<BatchResponse>('embeddings/biased_batch', {
-      id: session.id,
+    const response = await this.post<WeightedVectors>('embeddings/biased_batch', {
+      id: sessionId,
       vdbid: vdbid,
       state: state,
       params: options?.params,
-      bias_vectors: options?.biasVectors,
-      bias_weights: options?.biasWeights,
+      bias_vectors: options?.bias?.vectors,
+      bias_weights: options?.bias?.weights,
     });
     return response.data;
   }
 
   protected async sampledBatch(
-    session: SessionObject,
+    sessionId: string,
     vdbid: string,
     state: string,
     nTopics: number,
     params?: Record<string, number>
   ) {
-    const response = await this.post<BatchResponse>('embeddings/sampled_batch', {
-      id: session.id,
+    const response = await this.post<WeightedVectors>('embeddings/sampled_batch', {
+      id: sessionId,
       n: nTopics,
       vdbid: vdbid,
       state: state,
@@ -172,7 +172,7 @@ export class FirstBatchClient {
     return response.data;
   }
 
-  protected async getSession(session: SessionObject) {
+  protected async getSession(sessionId: string) {
     const response = await this.post<{
       state: string;
       algorithm: 'SIMPLE' | 'CUSTOM' | 'FACTORY';
@@ -180,37 +180,68 @@ export class FirstBatchClient {
       has_embeddings: boolean;
       factory_id?: string;
       custom_id?: string;
-    }>('embeddings/get_session', {id: session.id});
+    }>('embeddings/get_session', {id: sessionId});
 
-    return response.data;
+    const data = response.data;
+
+    let algorithm: AlgorithmType = {
+      type: 'SIMPLE',
+    };
+
+    if (data.algorithm === 'FACTORY') {
+      if (data.factory_id === undefined) {
+        throw new Error('Did not get factory_id from API for a FACTORY algorithm.');
+      }
+
+      algorithm = {
+        type: 'FACTORY',
+        factoryId: data.factory_id,
+      };
+    }
+
+    if (data.algorithm === 'CUSTOM') {
+      if (data.custom_id === undefined) {
+        throw new Error('Did not get custom_id from API for a CUSTOM algorithm.');
+      }
+      algorithm = {
+        type: 'CUSTOM',
+        customId: data.custom_id,
+      };
+    }
+
+    return {
+      ...data,
+      algorithm,
+    };
   }
 
-  protected async getHistory(session: SessionObject) {
-    const response = await this.post<{ids: string[]}>('embeddings/get_history', {
-      id: session.id,
-    });
-    return response.data;
+  protected async getHistory(sessionId: string) {
+    const response = await this.post<{ids: string[]}>('embeddings/get_history', {id: sessionId});
+    return response.data.ids;
   }
 
-  protected async getUserEmbeddings(session: SessionObject, lastN?: number) {
-    const response = await this.post<BatchResponse>('embeddings/get_embeddings', {
-      id: session.id,
-      last_n: lastN || constants.DEFAULT_EMBEDDING_LAST_N,
+  protected async getUserEmbeddings(sessionId: string, lastN?: number) {
+    const response = await this.post<WeightedVectors>('embeddings/get_embeddings', {
+      id: sessionId,
+      last_n: lastN ?? constants.DEFAULTS.EMBEDDING_LAST_N,
     });
     return response.data;
   }
 
   protected async vdbExists(vdbid: string) {
-    const response = await this.post<boolean>('embeddings/vdb_exists', {
-      vdbid,
-    });
+    const response = await this.post<boolean>('embeddings/vdb_exists', {vdbid});
     return response.data;
   }
 
-  protected async getBlueprint(customId: string) {
-    const response = await this.post<string>('embeddings/get_blueprint', {
-      id: customId,
-    });
+  /**
+   * Retrieve the blueprint of some custom id.
+   *
+   * @param customId algorithm id
+   * @returns a DFA (TODO: is this a string & object or always an object?)
+   */
+  protected async getCustomBlueprint(customId: string) {
+    const response = await this.post<DFA>('embeddings/get_blueprint', {id: customId});
+    // FIXME: do we ever receive a string here?
     return response.data;
   }
 
@@ -230,13 +261,13 @@ export class FirstBatchClient {
       message?: string | undefined;
       data: {
         teamID: string;
-        region: keyof typeof constants.REGIONS;
+        region: keyof typeof REGIONS;
       };
-    }>(constants.REGION_URL, {
+    }>(REGION_URL, {
       headers,
       validateStatus: status => {
         if (status != 200) {
-          throw new Error(`Region request failed with ${status} at ${constants.REGION_URL}`);
+          throw new Error(`Region request failed with ${status} at ${REGION_URL}`);
         }
         return true;
       },
@@ -245,7 +276,7 @@ export class FirstBatchClient {
     const {teamID, region} = axiosResponse.data.data; // notice the 2 data's
     this.teamId = teamID;
     this.region = region;
-    const regionBaseURL = constants.REGIONS[region];
+    const regionBaseURL = REGIONS[region];
     if (!regionBaseURL) {
       throw new Error('No such region: ' + region);
     }
@@ -267,20 +298,9 @@ export class FirstBatchClient {
       });
       this.axios.interceptors.response.use(response => {
         console.log(`RES ${response.statusText} (${response.status})`);
-        // if (response.status !== 200) {
         console.log(response.data);
-        // }
         return response;
       });
-    }
-  }
-
-  /** Attach teamID to the given ID. */
-  private idWrapper(id?: string): string | undefined {
-    if (id) {
-      return this.teamId + '-' + id;
-    } else {
-      return undefined;
     }
   }
 }

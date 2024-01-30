@@ -1,30 +1,27 @@
-import {BaseLossy} from './base'; // Import necessary modules
-import {CompressedVector, Vector} from '../vector/types';
-import {concatVectors} from '../vector/utils';
+import type {Quantizer, CompressedVector, Vector} from '../../types';
 import {TDigest} from 'tdigest';
 
-export class ScalarQuantizer extends BaseLossy {
+export class ScalarQuantizer implements Quantizer {
   private quantizer: TDigest;
   private levels: number;
   quantiles: number[] = [];
 
   constructor(levels: number = 256) {
-    super();
-    this.quantizer = new TDigest(false); // TODO: this had no arguments before
+    this.quantizer = new TDigest(false);
     this.levels = levels;
     this.quantiles = [];
   }
 
   train(data: Vector[]): void {
     // concat all vectors within the data
-    // TODO: we probably dont need the initial value here
-    const scalars = data.reduce((acc, cur) => concatVectors(acc, cur), {vector: [], dim: 0, id: ''});
+    const scalars = data.reduce((acc, cur) => acc.concat(cur));
 
-    for (const scalar of scalars.vector) {
+    for (const scalar of scalars) {
       this.quantizer.push(scalar);
     }
     this.quantiles = Array.from({length: this.levels}, (_, i) => this.quantizer.percentile(i / this.levels));
   }
+
   findIndex(scalar: number): number {
     for (let i = 0; i < this.quantiles.length; i++) {
       if (scalar < this.quantiles[i]) {
@@ -47,15 +44,14 @@ export class ScalarQuantizer extends BaseLossy {
   }
 
   compress(data: Vector): CompressedVector {
-    const quantizedData: number[] = this.quantize(data.vector);
+    const quantizedData: number[] = this.quantize(data);
     return {
       vector: quantizedData,
-      id: data.id,
+      // id: data.id,
     };
   }
 
   decompress(data: CompressedVector): Vector {
-    const dequantizedData: number[] = this.dequantize(data.vector);
-    return {vector: dequantizedData, dim: dequantizedData.length, id: data.id};
+    return this.dequantize(data.vector);
   }
 }
